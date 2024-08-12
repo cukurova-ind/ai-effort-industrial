@@ -1,0 +1,98 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Çoklu Giriş
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid data-import-main">
+    <div class="data-form">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <p><strong>Deney Sonuçlarının Dosyadan Girilmesi:</strong></p>
+            <hr>
+            <div class="mb-3">
+                <div>
+                    <label class="form-label" for="id_data_file">Veri Dosyası (.csv, .xlsx)</label>
+                </div>
+                <input type="file" name="data_file" id="id_data_file" accept=".csv, .xlsx">
+            </div>
+            <button class="btn btn-success text-center" type="submit">Upload</button>
+        </form>
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}  
+    </div>
+    {% if records %}
+    <table class="table table-striped text-successtable-border border-light">
+        <thead class="border-light">
+            <tr>
+                <th scope="col"><strong>Tip</strong></th>
+                <th scope="col"><strong>Ham Kumaş Görüntüsü</strong></th>
+                <th scope="col"><strong>Reçete</strong></th>
+                <th scope="col"><strong>Çıktı Örnekleri</strong></th>
+                <th scope="col"><strong>Kopma Mukavemeti (Atkı)</strong></th>
+                <th scope="col"><strong>Kopma Mukavemeti (Çözgü)</strong></th>
+                <th scope="col"><strong>Yırtılma Mukavemeti (Atkı)</strong></th>
+                <th scope="col"><strong>Yırtılma Mukavemeti (Çözgü)</strong></th>
+                <th scope="col"><strong>Elastikiyet</strong></th>
+                <th scope="col"><strong>Potluk</strong></th>
+                <th scope="col"><strong>CIELab L</strong></th>
+                <th scope="col"><strong>CIELab a</strong></th>
+                <th scope="col"><strong>CIELab b</strong></th>
+                <th scope="col"><strong>Stiffness</strong></th>
+                <th scope="col"><strong>Alambeta</strong></th>
+                <th scope="col"><strong>Kat Geri Dönüşüm</strong></th>
+                <th scope="col"><strong>Pilling</strong></th>
+                <th scope="col"><strong>Temas Açısı</strong></th>
+                <th scope="col"><strong>Hava Geçirgenliği</strong></th>
+                <th scope="col"><strong>Aşınma Dayanımı</strong></th>
+            </tr>
+        </thead>
+        <tbody>
+            <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for r in records %}
+            <tr>
+                <td><input type="text" name="type" class="form-control" value="{{ r.type }}"></td>
+                <td><input type="file" name="raw_file{{ forloop.counter }}"></td>
+                <td><input type="text" name="recipe" class="form-control" value="{{ r.recipe }}"></td>
+                <td><input type="file" name="outputs{{ forloop.counter }}[]"></td>
+                <td><input type="text" name="breaking_strength_weft" class="form-control" value="{{ r.breaking_strength_weft }}"></td>
+                <td><input type="text" name="breaking_strength_warp" class="form-control" value="{{ r.breaking_strength_warp }}"></td>
+                <td><input type="text" name="tearing_strength_weft" class="form-control" value="{{ r.tearing_strength_weft }}"></td>
+                <td><input type="text" name="tearing_strength_warp" class="form-control" value="{{ r.tearing_strength_warp }}"></td>
+                <td><input type="text" name="elasticity" class="form-control" value="{{ r.elasticity }}"></td>
+                <td><input type="text" name="pot" class="form-control" value="{{ r.pot }}"></td>
+                <td><input type="text" name="cielab_l" class="form-control" value="{{ r.cielab_l }}"></td>
+                <td><input type="text" name="cielab_a" class="form-control" value="{{ r.cielab_a }}"></td>
+                <td><input type="text" name="cielab_b" class="form-control" value="{{ r.cielab_b }}"></td>
+                <td><input type="text" name="stiffness" class="form-control" value="{{ r.stiffness }}"></td>
+                <td><input type="text" name="alambeta" class="form-control" value="{{ r.alambeta }}"></td>
+                <td><input type="text" name="recovery" class="form-control" value="{{ r.recovery }}"></td>
+                <td><input type="text" name="pilling" class="form-control" value="{{ r.pilling }}"></td>
+                <td><input type="text" name="contact_angle" class="form-control" value="{{ r.contact_angle }}"></td>
+                <td><input type="text" name="air_permeability" class="form-control" value="{{ r.air_permeability }}"></td>
+                <td><input type="text" name="abrasion_resistance" class="form-control" value="{{ r.abrasion_resistance }}"></td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td>
+                    <button class="btn btn-success text-center"
+                        id="mltiple-data-form-button"
+                        type="submit">Gönder
+                    </button>
+                </td>
+            </tr>
+        </form>
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+        
+{% endblock %}

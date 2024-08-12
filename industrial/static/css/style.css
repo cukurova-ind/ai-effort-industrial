@@ -1,0 +1,241 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300');
+
+html, body {
+  font-family : 'Open Sans Condensed', sans-serif;
+  height : 100%;
+}
+
+a, a:hover, a:visited, a:active, a:focus {
+  text-decoration : none;
+  color : black;
+}
+
+.row{
+  padding: 0;
+}
+
+.top {
+  width: 100%;
+  height: 10%;
+  color : white;
+  background-color: black;
+}
+
+.top nav {
+  width: 80%;
+  height: 100%;
+  margin: 0 auto;
+  background-color: black;
+}
+
+.top .navbar-nav a {
+  color: white;
+}
+
+.top .navbar-collapse {
+  background-color: black;
+  z-index: 999;
+  padding: 1%;
+}
+
+.top .navbar-toggler {
+  border: 1px solid white;
+}
+
+.top .navbar-toggler-icon {
+  border: 1px solid white;
+}
+
+.top img {
+  width: 60%;
+  height: 100%;
+}
+
+.top .logo {
+  display: block;
+  width: 20%;
+}
+
+.top .navbar-nav .avat {
+  width: 30%;
+  border: 1px solid black;
+}
+
+.horizontal-line {
+  width: 100%;
+  height: 0.1%;
+  background: white;
+  opacity: .8;
+}
+
+/* main-page */
+.main-page-main {
+  width: 100%;
+  min-height: 89.9%;
+  padding: 0;
+}
+
+/* data */
+.data-page-main {
+  width: 100%;
+  height: 9.9%;
+  padding: 0;
+}
+
+.data-page-main .link-info {
+  width: 80%;
+  margin: 0 auto;
+  margin-top: 2%;
+}
+
+.data-page-support {
+  width: 100%;
+  height: 80%;
+  padding: 0;
+}
+
+.data-page-support .data-info {
+  width: 80%;
+  margin: 0 auto;
+}
+
+/* data-page */
+.entry-page-main .data-form form select,
+.entry-page-main .data-form form input,
+.entry-page-main .data-form form button {
+  border-radius: 0;
+}
+
+.entry-page-main, .data-import-main, .import-area {
+  width: 100%;
+  min-height: 89.9%;
+  padding: 0;
+}
+
+.entry-page-main .data-form, .data-import-main .data-form, .import-area .data-form {
+  width: 50%;
+  margin: 0 auto;
+}
+
+/* data */
+.modeling-page-main {
+  width: 100%;
+  height: 89.9%;
+  padding: 0;
+}
+
+.modeling-page-main .dataset {
+  width: 15%;
+  height: 25%;
+  margin: 1%;
+}
+
+.modeling-page-main .dataset .card {
+  border: 1px solid red;
+  background: darkorange;
+  height: 100%;
+  transition: 0.3s;
+}
+
+.modeling-page-main .dataset .card:hover {
+  opacity: 0.7;
+  box-shadow: 2px 2px 1px 1px;
+}
+
+.general-settings {
+  width: 100%;
+  height: 89.9%;
+  padding: 0;
+}
+
+.process {
+  width: 40%;
+}
+
+/* prompt */
+.prompt-page-main, .model-page-main {
+  width: 100%;
+  height: 89.9%;
+  padding: 0;
+}
+
+.prompt-page-main .model {
+  width: 15%;
+  height: 25%;
+  margin: 1%;
+}
+
+.prompt-page-main .model .card {
+  border: 1px solid red;
+  background: darkorange;
+  height: 100%;
+  opacity: 0.8;
+  transition: 1s;
+}
+
+.prompt-page-main .model .card:hover {
+  opacity: 1;
+}
+
+.model-page-main {
+  width: 98%;
+  height: 100%;
+}
+
+.model-page-main .model-form,
+.model-page-main .model-selection {
+  margin: 0 auto;
+  border-right: 2px solid gray;
+  height: 100%;
+  padding: 2%;
+}
+
+.model-page-main .model-selection a {
+  width: 85%;
+  margin: 0 auto;
+  margin-top: 1%;
+}
+
+.model-page-main .model-selection a,
+.model-page-main .model-form form select,
+.model-page-main .model-form form input,
+.model-page-main .model-form form button {
+  border-radius: 0;
+}
+
+.model-page-main .model-support {
+  margin: 0 auto;
+  margin-top: 2%;
+}
+
+.model-page-main .model-support img {
+  width: 256px;
+  height: 256px;
+}
+
+/* footer */
+.bottom {
+  height: 20%;
+  background-color: black;
+  color: white;
+  font-size: small;
+}
+
+.bottom .upper-footer {
+  width: 80%;
+  margin: 0 auto;
+  padding: 1%;
+}
+
+.bottom .upper-footer a{
+  color: white;
+}
+
+.bottom .upper-footer a:hover{
+  font-weight: bold;
+}
+
+.bottom .low-footer {
+  width: 80%;
+  margin: 0 auto;
+}

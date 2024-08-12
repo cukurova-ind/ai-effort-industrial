@@ -1,0 +1,49 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Prompt
+
+{% endblock %}
+
+
+{% block content %}
+
+  
+
+    <div class="container-fluid d-flex justify-content-center align-items-center prompt-page-main">
+        <a href="{% url 'generator' %}">
+            <div class="model">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Generator</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Görüntü Üretimi</h6>
+                        <p class="card-text">Başlangıç görüntüleri, kumaş özellikleri ve proses
+                            şartları ile çıktı görüntülerinin üretilmesi 
+                        </p>
+                        <a href="{% url 'generator' %}" class="card-link">
+                            <i class="fa fa-long-arrow-right"></i>İstem Ayarları</a>
+                    </div>
+                </div>
+            </div>
+        </a>
+        <a href="{% url 'predictor' %}">
+            <div class="model">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Predictor</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Tahmin</h6>
+                        <p class="card-text">Başlangıç görüntüleri, kumaş özellikleri ve proses
+                            şartları ile çıktı özelliklerinin tahmini 
+                        </p>
+                        <a href="{% url 'predictor' %}" class="card-link">
+                            <i class="fa fa-long-arrow-right"></i>İstem Ayarları</a>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+     
+{% endblock %}

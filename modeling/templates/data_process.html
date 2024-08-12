@@ -1,0 +1,106 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Veri seti
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid d-flex justify-content-center align-items-center general-settings">
+    <div class="process">
+        <form method="post">
+            {% csrf_token %}
+            <label class="form-label">Açıklayıcı Değişkenler</label>
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_type">
+                    <label for="id_type" class="form-label">Tip numarası</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_coloring">
+                    <label for="id_coloring" class="form-label">Boyama tipi</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_onzyd">
+                    <label for="id_onzyd" class="form-label">Onz/yd2</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_yarn">
+                    <label for="id_yarn" class="form-label">İplik no</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_gramaj_raw">
+                    <label for="id_gramaj_raw" class="form-label">Ham kumaş gramaj</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_gramaj_hypo">
+                    <label for="id_gramaj_hypo" class="form-label">Hipo öncesi gramaj</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_weft_raw">
+                    <label for="id_weft_raw" class="form-label">Ham kumaş yırtılma mukavemeti (atkı)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_weft_hypo">
+                    <label for="id_weft_hypo" class="form-label">Hipo öncesi yırtılma mukavemeti (atkı)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_warp_raw">
+                    <label for="id_warp_raw" class="form-label">Ham kumaş yırtılma mukavemeti (çözgü)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_warp_hypo">
+                    <label for="id_warp_hypo" class="form-label">Hipo öncesi yırtılma mukavemeti (çözgü)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_elasticity_raw">
+                    <label for="id_elasticity_raw" class="form-label">Ham kumaş elastikiyet</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_elasticity_hypo">
+                    <label for="id_elasticity_hypo" class="form-label">Hipo öncesi elastikiyet</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_pot_raw">
+                    <label for="id_pot_raw" class="form-label">Ham kumaş potluk</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_pot_hypo">
+                    <label for="id_pot_hypo" class="form-label">Hipo öncesi potluk</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_cielab_l_raw">
+                    <label for="id_cielab_l_raw" class="form-label">Ham kumaş CIELab-L*</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_cielab_l_hypo">
+                    <label for="id_cielab_l_hypo" class="form-label">Hipo öncesi CIELab-L*</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_pot_raw">
+                    <label for="id_pot_raw" class="form-label">Ham kumaş CIELab-a*</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_cielab_a_hypo">
+                    <label for="id_cielab_a_hypo" class="form-label">Hipo öncesi CIELab-a*</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_cielab_b_raw">
+                    <label for="id_cielab_b_raw" class="form-label">Ham kumaş CIELab-b*</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="id_cielab_b_hypo">
+                    <label for="id_cielab_b_hypo" class="form-label">Hipo öncesi CIELab-b*</label>
+                </div>
+            </div>
+        <button class="btn btn-success text-center" type="submit">Kaydet</button>
+        <button class="btn btn-success text-center" type="submit">İndir</button>
+        </form>
+    </div>
+</div>
+        
+{% endblock %}
