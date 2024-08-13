@@ -37,6 +37,11 @@ class Preprocessor:
         return boxes, contours, hierarchy, img_copy1, img_copy2
     
     def clip_image(self, boxes):
+
+        save_file = os.path.join(self.save_path, self.image_name + ".jpg")
+        if len(boxes) == 0:
+            return 0, save_file
+        
         obj = boxes[0]
         area = 0
         for b in boxes:
@@ -47,8 +52,10 @@ class Preprocessor:
 
         x, y, w, h = obj
         clip_image = self.image[y:y + h, x:x + w]
-        save_file = os.path.join(self.save_path, self.image_name + ".jpg")
+        
         cv2.imwrite(save_file, clip_image)
+
+        return 1, save_file
     
     def process(self):
         gray = self.convert_gray(self.image)
@@ -56,4 +63,6 @@ class Preprocessor:
         _, th = self.add_threshold(blur)
         edged = self.edge_detection(th)
         boxes, _, _, _, _ = self.contour_detection(edged, draw=False)
-        self.clip_image(boxes)
+        res, file = self.clip_image(boxes)
+
+        return res, file

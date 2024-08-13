@@ -49,8 +49,15 @@ def image_settings(req):
                     file_path = os.path.join(root, file)
                     folder_name = file_path.split("/")[-2]
                     save_folder = os.path.join(save_path, folder_name)
+                    if not os.path.exists(save_folder):
+                        os.mkdir(save_folder)
                     p = Preprocessor(file_path, save_folder)
-                    p.process()
+                    r, f = p.process()
+                    
+                    if r == 0:
+                        print(r, f)
+                        return render(req, "image_process.html", 
+                            {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo, "err": f}})
 
         return render(req, "image_process.html", 
                     {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo}})

@@ -279,14 +279,20 @@ class Entry(View):
     def get_ids(self):
         r_ids = []
         r1 = Recipe.objects.all().order_by("id")
-        for r  in r1:
-            r_ids.append((r.id, r.id))
-        r_ids.insert(0, (r.id+1, "Yeni Reçete"))
+        if r1:
+            for r  in r1:
+                r_ids.append((r.id, r.id))
+            r_ids.insert(0, (r.id+1, "Yeni Reçete"))
+        else:
+            r_ids.insert(0, (1, "Yeni Reçete"))
         f_ids = []
         f1 = Fabric.objects.all().order_by("id")
-        for f  in f1:
-            f_ids.append((f.id, f.id))
-        f_ids.insert(0, (f.id+1, "Yeni Kumaş"))
+        if f1:
+            for f  in f1:
+                f_ids.append((f.id, f.id))
+            f_ids.insert(0, (f.id+1, "Yeni Kumaş"))
+        else:
+            f_ids.insert(0, (1, "Yeni Kumaş"))
         return r_ids, f_ids
     
     def get(self, req, *args, **kwargs):

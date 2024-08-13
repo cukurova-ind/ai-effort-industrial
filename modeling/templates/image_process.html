@@ -15,35 +15,38 @@ Görüntü
         <form method="post">
             {% csrf_token %}
         <div class="mb-3">
-            <label for="basic-url" class="form-label">Görüntü Klasörleri</label>
+            <label class="form-label">Görüntü Klasörleri</label>
             <div class="input-group">
                 <span class="input-group-text" id="id_raw_span">Ham Kumaş Görüntüleri</span>
-                <input type="text" class="form-control" id="basic-url"
-                value="data/raw/images/" aria-describedby="id_raw_span id_raw_div" readonly>
+                <input type="text" class="form-control" id="raw-url"
+                value="data/raw/" aria-describedby="id_raw_span id_raw_div" readonly>
             </div>
             <div class="form-text" id="id_raw_div">{{ i.raw }} adet görüntü</div>
             <div class="input-group">
                 <span class="input-group-text" id="id_hypo_span">Hypo Öncesi Kumaş Görüntüleri</span>
-                <input type="text" class="form-control" id="basic-url"
-                value="data/hypo/images/" aria-describedby="id_hypo_span id_hypo_div" readonly>
+                <input type="text" class="form-control" id="hypo-url"
+                value="data/hypo/" aria-describedby="id_hypo_span id_hypo_div" readonly>
             </div>
             <div class="form-text" id="id_hypo_div">{{ i.hypo }} adet görüntü</div>
             <div class="input-group">
-                <span class="input-group-text" id="id_output_span">Ham Kumaş Görüntüleri</span>
-                <input type="text" class="form-control" id="basic-url"
-                value="data/output/images/" aria-describedby="id_output_span id_output_div" readonly>
+                <span class="input-group-text" id="id_output_span">Çıktı Görüntüleri</span>
+                <input type="text" class="form-control" id="output-url"
+                value="data/output/" aria-describedby="id_output_span id_output_div" readonly>
             </div>
             <div class="form-text" id="id_output_div">{{ i.output }} adet görüntü</div>
         </div>
         <div class="mb-3">
-            <label for="basic-url" class="form-label">Kayıt Klasörü</label>
+            <label class="form-label">Kayıt Klasörü</label>
             <div class="input-group">
                 <span class="input-group-text" id="id_save_span">İşlenmiş Görüntüler</span>
-                <input type="text" class="form-control" id="basic-url"
+                <input type="text" class="form-control" id="save-url"
                 value="data/modeling/images/" aria-describedby="id_save_span" readonly>
             </div>
         </div>
         <button class="btn btn-success text-center" type="submit">Başla</button>
+        {% if i.err %}
+        <span class="text-danger">Hata: {{ i.err }}</span>
+        {% endif %}
         </form>
     </div>
 </div>
