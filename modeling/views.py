@@ -43,6 +43,7 @@ def image_settings(req):
         image_extensions = ('.png', '.jpg', '.jpeg')
         folder_path = os.path.join(settings.MEDIA_ROOT, "data")
         save_path = os.path.join(settings.MEDIA_ROOT, "modeling", "images")
+        err = []
         for root, dirs, files in os.walk(folder_path):
             for file in files:
                 if file.lower().endswith(image_extensions):
@@ -53,14 +54,13 @@ def image_settings(req):
                         os.mkdir(save_folder)
                     p = Preprocessor(file_path, save_folder)
                     r, f = p.process()
-                    
                     if r == 0:
                         print(r, f)
-                        return render(req, "image_process.html", 
-                            {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo, "err": f}})
+                        err.append(f)
+
 
         return render(req, "image_process.html", 
-                    {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo}})
+                    {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo, "err": err}})
     
 def data_settings(req):
 

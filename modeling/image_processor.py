@@ -43,16 +43,16 @@ class Preprocessor:
             return 0, save_file
         
         obj = boxes[0]
-        area = 0
+        area, ha = 0, 0
         for b in boxes:
             
-            if b[2]*b[3] > area:
+            if b[2]*b[3] > area and b[3]>ha:
                 area = b[2]*b[3]
+                ha = b[3]
                 obj = b
 
         x, y, w, h = obj
         clip_image = self.image[y:y + h, x:x + w]
-        
         cv2.imwrite(save_file, clip_image)
 
         return 1, save_file
