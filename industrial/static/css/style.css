@@ -142,15 +142,16 @@ a, a:hover, a:visited, a:active, a:focus {
   box-shadow: 2px 2px 1px 1px;
 }
 
-.general-settings {
+.data-settings, .image-settings {
   width: 100%;
-  height: 89.9%;
+  min-height: 89.9%;
   padding: 0;
 }
 
-.process {
-  width: 40%;
+.data-settings form button {
+  width: 50%;
 }
+
 
 /* prompt */
 .prompt-page-main, .model-page-main {
