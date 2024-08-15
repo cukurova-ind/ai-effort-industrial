@@ -143,7 +143,7 @@ a, a:hover, a:visited, a:active, a:focus {
 }
 
 .data-settings, .image-settings {
-  width: 100%;
+  width: 60%;
   min-height: 89.9%;
   padding: 0;
 }
