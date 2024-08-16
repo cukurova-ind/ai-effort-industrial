@@ -23,4 +23,8 @@ util = {"weft_target": "tearing_strength_weft",
         "cielab_b_hypo": "cielab_b_hypo",
         "bleaching_num": "bleaching",
         "duration": "duration",
-        "concentration": "concentration"}
+        "concentration": "concentration",
+        "type": "id",
+        "coloring": "coloring",
+        "onyzd": "onyzd",
+        "yarn": "yarn_number"}

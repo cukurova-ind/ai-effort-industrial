@@ -1,6 +1,5 @@
 import pandas as pd
 import os
-import zipfile
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, HttpResponseRedirect
@@ -8,7 +7,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 from django.db.models import Q
-from dataops.models import Experiment, Input
+from dataops.models import Experiment, Input, Fabric, Recipe
 from .image_processor import Preprocessor
 from .utils import util
 
@@ -90,7 +89,37 @@ def data_settings(req):
 
     if req.method == "POST":
         postdata = req.POST
-        print([util.get(p) for p in postdata])
+        qs = Experiment.objects.values("id")
+        df_input = pd.DataFrame.from_records(qs)
+        df_target = pd.DataFrame.from_records(qs)
+        for p in postdata:
+            if util.get(p):
+                if util.get(p) in [e.name for e in Experiment._meta.get_fields()]:
+                    qt = Experiment.objects.values(util.get(p))
+                    qs = pd.DataFrame.from_records(qt)
+                    df_target = df_target.join(qs)
+                else:
+                    if util.get(p) in [i.name for i in Input._meta.get_fields()]:
+                        field = "input__" + str(util.get(p))
+                        qi = Experiment.objects.values(field)
+                    if util.get(p) in [r.name for r in Recipe._meta.get_fields()]:
+                        field = "recipe__" + str(util.get(p))
+                        qi = Experiment.objects.values(field)
+                    if util.get(p) in [f.name for f in Fabric._meta.get_fields()]:
+                        field = "input__type__" + str(util.get(p))
+                        qi = Experiment.objects.values(field)
+                    qs = pd.DataFrame.from_records(qi)
+                    df_input = df_input.join(qs)
+        
+        features_path = os.path.join(csv_input_path, "training_features.csv")
+        df_input.to_csv(features_path, index=False)
+
+        target_path = os.path.join(csv_target_path, "training_target.csv")
+        df_target.to_csv(target_path, index=False)
+
+        it = int(postdata["image_type"].split(" ")[-1])
+        print(it)
+
         return render(req, "data_process.html")
     
     if req.method == "GET":

@@ -86,7 +86,7 @@ class Experiment(models.Model):
     id = models.CharField(primary_key=True)
 
     input = models.ForeignKey(Input, null=True, on_delete=models.CASCADE)    
-    recipe = models.ForeignKey(Recipe, null=True, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, null=True, on_delete=models.CASCADE) 
     
     output_image_0 = models.ImageField(upload_to="data/output/", null=True)
     output_image_1 = models.ImageField(upload_to="data/output/", null=True)
