@@ -9,6 +9,6 @@ class PromptingConfig(AppConfig):
 
     def ready(self):
         global gen_model
-        i2i = Img2Img(image_shape=(128,128,3))
-        i2i.restore_model()
-        gen_model = i2i 
+        #i2i = Img2Img(image_shape=(128,128,3))
+        #i2i.restore_model()
+        #gen_model = i2i 

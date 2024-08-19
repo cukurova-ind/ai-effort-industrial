@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import shutil
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, HttpResponseRedirect
@@ -63,6 +64,9 @@ def image_settings(req):
                     {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo, "err": err}})
     
 def data_settings(req):
+    raw_image_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
+    hypo_image_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
+    output_image_path = os.path.join(settings.MEDIA_ROOT, "data", "output")
     image_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "training")
     image_input_path = os.path.join(image_training_path, "input")
     image_target_path = os.path.join(image_training_path, "target")
@@ -108,6 +112,7 @@ def data_settings(req):
                     if util.get(p) in [f.name for f in Fabric._meta.get_fields()]:
                         field = "input__type__" + str(util.get(p))
                         qi = Experiment.objects.values(field)
+
                     qs = pd.DataFrame.from_records(qi)
                     df_input = df_input.join(qs)
         
@@ -117,8 +122,57 @@ def data_settings(req):
         target_path = os.path.join(csv_target_path, "training_target.csv")
         df_target.to_csv(target_path, index=False)
 
+        for root, dirs, files in os.walk(image_input_path):
+            for f in files:
+                os.unlink(os.path.join(root, f))
+        for root, dirs, files in os.walk(image_target_path):
+            for f in files:
+                os.unlink(os.path.join(root, f))
+
         it = int(postdata["image_type"].split(" ")[-1])
-        print(it)
+        if "raw_image" in postdata:
+            for root, dirs, files in os.walk(raw_image_path):
+                for file in files:
+                    if file.lower().endswith(image_extensions):
+                        if len(file.split("."))==2:
+                            tip = 0
+                        if len(file.split("."))==3:
+                            tip = int(file.split(".")[1])
+                        
+                        if tip==it:
+                            source_path = os.path.join(root, file)
+                            dest_path = os.path.join(image_input_path, file)
+                            shutil.copyfile(source_path, dest_path)
+        
+        if "hypo_image" in postdata:
+            for root, dirs, files in os.walk(hypo_image_path):
+                for file in files:
+                    if file.lower().endswith(image_extensions):
+                        if len(file.split("."))==2:
+                            tip = 0
+                        if len(file.split("."))==3:
+                            tip = int(file.split(".")[1])
+                        
+                        if tip==it:
+                            source_path = os.path.join(root, file)
+                            dest_path = os.path.join(image_input_path, file)
+                            shutil.copyfile(source_path, dest_path)
+
+        if "hypo_image" in postdata or "raw_image" in postdata:
+            for root, dirs, files in os.walk(output_image_path):
+                for file in files:
+                    if file.lower().endswith(image_extensions):
+                        
+                        if len(file.split("."))==2:
+                            tip = 0
+                        if len(file.split("."))==3:
+                            tip = int(file.split(".")[1])
+                        
+                        if tip==it:
+                            folder_name = root.split("/")[-1]
+                            source_path = os.path.join(root, file)
+                            dest_path = os.path.join(image_target_path, folder_name + file)
+                            shutil.copyfile(source_path, dest_path)
 
         return render(req, "data_process.html")
     

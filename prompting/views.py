@@ -4,21 +4,21 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
-import tensorflow as tf
+# import tensorflow as tf
 from .apps import gen_model
 
-def generate_shot(model, input):
-    x = tf.io.read_file(input["file"])
-    x_decode = tf.image.decode_jpeg(x, channels=3)
-    img = tf.image.resize(x_decode, [128, 128])
-    img = (img - 127.5) / 127.5
-    img = tf.expand_dims(img, axis=0)
-    print(model.output_channels)
-    prediction = model.generator([img])
+# def generate_shot(model, input):
+#     x = tf.io.read_file(input["file"])
+#     x_decode = tf.image.decode_jpeg(x, channels=3)
+#     img = tf.image.resize(x_decode, [128, 128])
+#     img = (img - 127.5) / 127.5
+#     img = tf.expand_dims(img, axis=0)
+#     print(model.output_channels)
+#     prediction = model.generator([img])
 
-    p_file = "media/prompt/output/predshot.png"
-    tf.keras.utils.save_img(p_file, prediction[0] * 0.5 + 0.5)
-    return p_file
+#     p_file = "media/prompt/output/predshot.png"
+#     tf.keras.utils.save_img(p_file, prediction[0] * 0.5 + 0.5)
+#     return p_file
 
 def main_page(req):
     return render(req, "prompt_main_page.html", {"exp":None})
