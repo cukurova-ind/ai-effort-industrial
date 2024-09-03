@@ -59,7 +59,6 @@ def image_settings(req):
                         print(r, f)
                         err.append(f)
 
-
         return render(req, "image_process.html", 
                     {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo, "err": err}})
     
@@ -81,15 +80,6 @@ def data_settings(req):
         os.makedirs(csv_target_path)
 
     image_extensions = ('.png', '.jpg', '.jpeg')
-    image_input_num, image_target_num = 0, 0
-    for root, dirs, files in os.walk(image_training_path):
-        for file in files:
-            if file.lower().endswith(image_extensions):
-                folder_name = root.split("/")[-1]
-                if folder_name=="input":
-                    image_input_num += 1
-                if folder_name=="target":
-                    image_target_num += 1 
 
     if req.method == "POST":
         postdata = req.POST
@@ -143,6 +133,11 @@ def data_settings(req):
                             source_path = os.path.join(root, file)
                             dest_path = os.path.join(image_input_path, file)
                             shutil.copyfile(source_path, dest_path)
+                            p = Preprocessor(dest_path, image_input_path)
+                            r, f = p.process()
+                            os.unlink(dest_path)
+                            if r == 0:
+                                print(r, f)
         
         if "hypo_image" in postdata:
             for root, dirs, files in os.walk(hypo_image_path):
@@ -157,6 +152,11 @@ def data_settings(req):
                             source_path = os.path.join(root, file)
                             dest_path = os.path.join(image_input_path, file)
                             shutil.copyfile(source_path, dest_path)
+                            p = Preprocessor(dest_path, image_input_path)
+                            r, f = p.process()
+                            os.unlink(dest_path)
+                            if r == 0:
+                                print(r, f)
 
         if "hypo_image" in postdata or "raw_image" in postdata:
             for root, dirs, files in os.walk(output_image_path):
@@ -173,10 +173,25 @@ def data_settings(req):
                             source_path = os.path.join(root, file)
                             dest_path = os.path.join(image_target_path, folder_name + file)
                             shutil.copyfile(source_path, dest_path)
+                            p = Preprocessor(dest_path, image_target_path)
+                            r, f = p.process()
+                            os.unlink(dest_path)
+                            if r == 0:
+                                print(r, f)
 
-        return render(req, "data_process.html")
+        return render(req, "modeling_main_page.html")
     
     if req.method == "GET":
+        image_input_num, image_target_num = 0, 0
+        for root, dirs, files in os.walk(image_training_path):
+            for file in files:
+                if file.lower().endswith(image_extensions):
+                    folder_name = root.split("/")[-1]
+                    if folder_name=="input":
+                        image_input_num += 1
+                    if folder_name=="target":
+                        image_target_num += 1 
+
         return render(req, "data_process.html",
                        {"iip": image_input_path,
                         "iin": image_input_num,

@@ -401,7 +401,7 @@ def image_upload(req):
                                                     type=fabric,
                                                     defaults=inp)
                                         Input.save(ip)
-                                    if folder=="hypo öncesi":
+                                    if folder=="hypo":
                                         img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "hypo")) 
                                         fabric = Fabric.objects.get(pk=tip)
                                         inp = {"hypo_image_" + str(region): os.path.join("data", "hypo", info.filename)}
@@ -409,7 +409,7 @@ def image_upload(req):
                                                     type=fabric,
                                                     defaults=inp)
                                         Input.save(ip)
-                                    if folder.startswith("reçete"):
+                                    if folder.startswith("recete"):
                                         img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "output"))
                                         recipe = folder.split("ete")[-1]
                                         exp = {"output_image_" + str(region): os.path.join("data", "output", info.filename)}
