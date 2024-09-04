@@ -112,15 +112,11 @@ def data_settings(req):
         target_path = os.path.join(csv_target_path, "training_target.csv")
         df_target.to_csv(target_path, index=False)
 
-        for root, dirs, files in os.walk(image_input_path):
-            for f in files:
-                os.unlink(os.path.join(root, f))
-        for root, dirs, files in os.walk(image_target_path):
-            for f in files:
-                os.unlink(os.path.join(root, f))
-
         it = int(postdata["image_type"].split(" ")[-1])
         if "raw_image" in postdata:
+            for root, dirs, files in os.walk(image_input_path):
+                for f in files:
+                    os.unlink(os.path.join(root, f))
             for root, dirs, files in os.walk(raw_image_path):
                 for file in files:
                     if file.lower().endswith(image_extensions):
@@ -159,6 +155,11 @@ def data_settings(req):
                                 print(r, f)
 
         if "hypo_image" in postdata or "raw_image" in postdata:
+
+            for root, dirs, files in os.walk(image_target_path):
+                for f in files:
+                    os.unlink(os.path.join(root, f))
+
             for root, dirs, files in os.walk(output_image_path):
                 for file in files:
                     if file.lower().endswith(image_extensions):
@@ -179,18 +180,44 @@ def data_settings(req):
                             if r == 0:
                                 print(r, f)
 
-        return render(req, "modeling_main_page.html")
+        return HttpResponseRedirect("/modeling/dataset/settings/")
     
     if req.method == "GET":
+        input_sample, target_sample = [], []
         image_input_num, image_target_num = 0, 0
+        _file_path = os.path.join(settings.BASE_DIR, "industrial", "static", "sample")
+        for root, dirs, files in os.walk(_file_path):
+            for f in files:
+                os.unlink(os.path.join(root, f))
         for root, dirs, files in os.walk(image_training_path):
             for file in files:
                 if file.lower().endswith(image_extensions):
                     folder_name = root.split("/")[-1]
                     if folder_name=="input":
                         image_input_num += 1
+                        if image_input_num<10:
+                            source_path = os.path.join(root, file)
+                            file_path = os.path.join(_file_path, "input", file)
+                            shutil.copyfile(source_path, file_path)
+                            input_sample.append(file)
                     if folder_name=="target":
-                        image_target_num += 1 
+                        image_target_num += 1
+                        if image_target_num<10:
+                            source_path = os.path.join(root, file)
+                            file_path = os.path.join(_file_path, "target", file)
+                            shutil.copyfile(source_path, file_path)
+                            target_sample.append(file)
+
+        df_input, df_target = pd.DataFrame(), pd.DataFrame()
+        for root, dirs, files in os.walk(csv_training_path):
+            for file in files:
+                if file.lower().endswith("csv"):
+                    folder_name = root.split("/")[-1]
+                    csv_path = os.path.join(root, file)
+                    if folder_name=="input":
+                        df_input = pd.read_csv(csv_path)
+                    if folder_name=="target":
+                        df_target = pd.read_csv(csv_path)
 
         return render(req, "data_process.html",
                        {"iip": image_input_path,
@@ -198,4 +225,8 @@ def data_settings(req):
                         "itn": image_target_num,
                         "itp": image_target_path,
                         "cip": csv_input_path,
-                        "ctp": csv_target_path})
+                        "ctp": csv_target_path,
+                        "is": input_sample,
+                        "ts": target_sample,
+                        "dfi": df_input.head(),
+                        "dft": df_target.head()})

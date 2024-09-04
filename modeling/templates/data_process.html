@@ -175,6 +175,13 @@ Veri seti
             </div>
         </div>
         <div class="row mb-3">
+            
+            <div class="d-flex justify-content-center align-items-center">
+                <button class="btn btn-success text-center" type="submit">Oluştur</button>
+            </div>
+
+        </div>
+        <div class="row mb-3">
             <label class="form-label">Görüntü Klasörleri</label>
             <div class="input-group">
                 <span class="input-group-text" id="id_iip_span">Girdi</span>
@@ -182,36 +189,98 @@ Veri seti
                 value="{{ iip }}" aria-describedby="id_iip_span id_iin_div" readonly>
             </div>
             <div class="form-text" id="id_iin_div">{{ iin }} adet görüntü</div>
+            {% if iin > 0 %}
+            <div class="samples">
+                <label class="form-label">Önizleme</label>
+                <div>
+                    {% for i in is %}
+                        <img src="{% static 'sample/input/' %}{{ i }}">
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             <div class="input-group">
                 <span class="input-group-text" id="id_itp_span">Hedef</span>
                 <input type="text" class="form-control" id="itp"
                 value="{{ itp }}" aria-describedby="id_itp_span id_itn_div" readonly>
             </div>
             <div class="form-text" id="id_itn_div">{{ itn }} adet görüntü</div>
+            {% if itn > 0 %}
+            <div class="samples">
+                <label class="form-label">Önizleme</label>
+                <div>
+                    {% for t in ts %}
+                        <img src="{% static 'sample/target/' %}{{ t }}">
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             <label class="form-label">Değişken Klasörleri</label>
             <div class="input-group">
                 <span class="input-group-text" id="id_cip_span">Girdi</span>
                 <input type="text" class="form-control" id="cip"
                 value="{{ cip }}" aria-describedby="id_cip_span" readonly>
             </div>
-            <div class="form-text" id="id_iin_div"></div>
+            <div class="form-text" id="id_iin_div">
+                <div class="samples">
+                    <label class="form-label">Önizleme</label>
+                    <table class="table table-striped text-successtable-border border-light">
+                        <thead class="border-light">
+                            <tr>
+                                {% for c in dfi.columns %}
+                                <th scope="col"><strong>{{ c }}</strong></th>
+                                {% endfor %}                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dfv in dfi.values %}
+                            <tr>
+                                {% for v in dfv %}
+                                <td scope="row">{{ v }}</td>
+                                {% endfor %} 
+                            </tr>
+                            {% endfor %} 
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <div class="input-group">
                 <span class="input-group-text" id="id_ctp_span">Hedef</span>
                 <input type="text" class="form-control" id="ctp"
                 value="{{ ctp }}" aria-describedby="id_ctp_span" readonly>
             </div>
-            <div class="form-text" id="id_iin_div"></div>
+            <div class="form-text" id="id_iin_div">
+                <div class="samples">
+                    <label class="form-label">Önizleme</label>
+                    <table class="table table-striped text-successtable-border border-light">
+                        <thead class="border-light">
+                            <tr>
+                                {% for c in dft.columns %}
+                                <th scope="col"><strong>{{ c }}</strong></th>
+                                {% endfor %}                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dfv in dft.values %}
+                            <tr>
+                                {% for v in dfv %}
+                                <td scope="row">{{ v }}</td>
+                                {% endfor %} 
+                            </tr>
+                            {% endfor %} 
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
         <div class="row mb-3">
-            
-            <div class="col-md-6 d-flex justify-content-center align-items-center">
-                <button class="btn btn-success text-center" type="submit">Oluştur</button>
-            </div>
-            <div class="col-md-6 d-flex justify-content-center align-items-center">
+
+            <div class="d-flex justify-content-center align-items-center">
                 <button class="btn btn-success text-center" type="submit">İndir</button>
             </div>
             
         </div>
+        
     </form>
     
 </div>

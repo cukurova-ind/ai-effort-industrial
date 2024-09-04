@@ -142,3 +142,4 @@ user_list.py
 /dataset*/
 *_checkpoints/
 */static/img/
+*/static/sample/

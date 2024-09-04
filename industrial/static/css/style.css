@@ -149,7 +149,13 @@ a, a:hover, a:visited, a:active, a:focus {
 }
 
 .data-settings form button {
-  width: 50%;
+  width: 20%;
+}
+
+.samples img {
+  width: 8.5%;
+  height: 80%;
+  margin: 1%;
 }
 
 
