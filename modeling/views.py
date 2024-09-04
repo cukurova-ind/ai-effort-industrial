@@ -230,3 +230,37 @@ def data_settings(req):
                         "ts": target_sample,
                         "dfi": df_input.head(),
                         "dft": df_target.head()})
+
+def training_settings(req):
+
+    conf = dict()
+    with open("config.conf") as c:
+        for l in c.read().split("\n"):
+            e = l.split("=")
+            if len(e)==2:
+                conf[e[0].strip()] = e[1].strip()
+    
+    if req.method == "POST":
+        data = req.POST
+        with open("config.conf") as c:
+            for l in c.read().split("\n"):
+                e = l.split("=")
+                if len(e)==2:
+                    conf[e[0].strip()] = e[1].strip()
+                    if data.get(e[0].strip()):   
+                        conf[e[0].strip()] = data[e[0].strip()]
+        
+        if not "max_steps" in data.keys():
+            conf["max_steps"] = "off"
+        if not "val" in data.keys():
+            conf["val"] = "off"
+
+        with open("config.conf", "w") as c:
+            c.truncate()
+            for x in conf:
+                c.write(x + " = " + conf[x] + "\n")
+
+        return HttpResponseRedirect("http://127.0.0.1:5000/")
+
+    if req.method == "GET":
+        return render(req, "modeling_configuration.html", conf)

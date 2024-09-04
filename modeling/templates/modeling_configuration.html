@@ -1,0 +1,106 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Model Ayarları
+
+{% endblock %}
+
+
+{% block content %}
+
+  
+<div class="container-fluid d-flex justify-content-center align-items-center modeling-configuration">
+    
+    <form method="post">
+        <div class="row">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="model" class="form-label">Model Tipi</label> 
+                <select name="model" class="form-select">
+
+                    {% if model == "dcgan" %}
+                    <option value="dcgan" selected>DCGAN</option>
+                    {% else %}
+                    <option value="dcgan">DCGAN</option>
+                    {% endif %}
+
+                    {% if model == "srgan" %}
+                    <option value="srgan" selected>SRGAN</option>
+                    {% else %}
+                    <option value="srgan">SRGAN</option>
+                    {% endif %}
+
+                    {% if model == "unet_plus" %}
+                    <option value="unet_plus" selected>Unet++</option>
+                    {% else %}
+                    <option value="unet_plus">Unet++</option>
+                    {% endif %}
+
+                    {% if model == "unet_plus_cond" %}
+                    <option value="unet_plus_cond" selected>Unet++ Conditional</option>
+                    {% else %}
+                    <option value="unet_plus_cond">Unet++ Conditional</option>
+                    {% endif %}
+
+                    {% if model == "unet_plus_gan" %}
+                    <option value="unet_plus_gan" selected>Unet++ Gan</option>
+                    {% else %}
+                    <option value="unet_plus_gan">Unet++ Gan</option>
+                    {% endif %}
+
+                    {% if model == "unet_plus_gan_cond" %}
+                    <option value="unet_plus_gan_cond" selected>Unet++ Gan Conditional</option>
+                    {% else %}
+                    <option value="unet_plus_gan_cond">Unet++ Gan Conditional</option>
+                    {% endif %}
+
+                    {% if model == "image_cond" %}
+                    <option value="image_cond" selected>UnetGan</option>
+                    {% else %}
+                    <option value="image_cond">UnetGan</option>
+                    {% endif %}
+                        
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="batch" class="form-label">Veri Seti Batch Boyutu</label> 
+                <input name="batch_size" type="number" class="form-control" id="batch" value="{{ batch_size }}"> 
+            </div>
+            
+            <div class="mb-3">
+                <label for="epoch" class="form-label">Training Epoch Sayısı</label> 
+                <input name="n_epochs" type="number" class="form-control" id="epoch" value="{{ n_epochs }}">
+            </div>
+
+            <div class="mb-3">
+                <label for="step" class="form-label">Epoch Step Sayısı</label> 
+                <input name="n_steps" type="number" class="form-control" id="step" value="{{ n_steps }}">
+            </div>
+        
+            <div class="mb-3">
+                <div class="form-check form-switch py-3">
+                    {% if max_steps == "on" %}
+                    <input class="form-check-input" type="checkbox" role="switch" id="max_steps" name="max_steps" checked>
+                    {% else %}
+                    <input class="form-check-input" type="checkbox" role="switch" id="max_steps" name="max_steps">
+                    {% endif %}
+                    <label class="form-check-label" for="max_steps">Max-Steps</label> 
+                </div>
+                <div class="form-check form-switch py-3">
+                    {% if val == "on" %}
+                    <input class="form-check-input" type="checkbox" role="switch" id="val" name="val" checked>
+                    {% else %}
+                    <input class="form-check-input" type="checkbox" role="switch" id="val" name="val">
+                    {% endif %}
+                    <label class="form-check-label" for="val">Validation</label> 
+                </div> 
+            </div>
+            <button type="submit" class="btn btn-success">Devam</button>
+        </div>
+    </form>
+</div> 
+
+        
+{% endblock %}
