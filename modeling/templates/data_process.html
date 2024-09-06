@@ -15,7 +15,7 @@ Veri seti
     <form method="post">
         <div class="row">
             {% csrf_token %}
-            <div class="col-md-3">
+            <div class="col-md-3 process-section">
                 <label class="form-label"><strong>Açıklayıcı Değişkenler</strong></label>
                 <div class="mb-3">
                     <div class="form-check">
@@ -60,7 +60,7 @@ Veri seti
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 process-section">
                 <label class="form-label"></label>
                 <div class="mb-3">
                     <div class="form-check">
@@ -119,7 +119,7 @@ Veri seti
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 process-section">
                 <label class="form-label"><strong>Açıklanan Değişkenler</strong></label>
                 <div class="mb-3">
                     <div class="form-check">
@@ -152,7 +152,7 @@ Veri seti
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-3 process-section">
                 <label class="form-label"><strong>Görüntüler</strong></label>
                 <div class="mb-3">
                     <div class="form-check">
@@ -276,7 +276,7 @@ Veri seti
         <div class="row mb-3">
 
             <div class="d-flex justify-content-center align-items-center">
-                <button class="btn btn-success text-center" type="submit">İndir</button>
+                <a href="{% url 'training_settings' %}" class="btn btn-success text-center">Ayarlar</a>
             </div>
             
         </div>

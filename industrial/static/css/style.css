@@ -148,7 +148,15 @@ a, a:hover, a:visited, a:active, a:focus {
   padding: 0;
 }
 
-.data-settings form button, .modeling-configuration form button {
+.process-section:hover{
+  border: 2px solid rgba(0, 0, 255, 0.212);
+  border-radius: 2%;
+}
+
+.data-settings form button,
+.data-settings form a,
+.modeling-configuration form button,
+.modeling-configuration form a {
   width: 20%;
   margin: 0 auto;
 }

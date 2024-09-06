@@ -12,6 +12,16 @@ from dataops.models import Experiment, Input, Fabric, Recipe
 from .image_processor import Preprocessor
 from .utils import util
 
+raw_image_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
+hypo_image_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
+output_image_path = os.path.join(settings.MEDIA_ROOT, "data", "output")
+image_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "training")
+image_input_path = os.path.join(image_training_path, "input")
+image_target_path = os.path.join(image_training_path, "target")
+csv_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "training")
+csv_input_path = os.path.join(csv_training_path, "input")
+csv_target_path = os.path.join(csv_training_path, "target")
+
 def main_page(req):
 
     return render(req, "modeling_main_page.html")
@@ -63,15 +73,7 @@ def image_settings(req):
                     {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo, "err": err}})
     
 def data_settings(req):
-    raw_image_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
-    hypo_image_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
-    output_image_path = os.path.join(settings.MEDIA_ROOT, "data", "output")
-    image_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "training")
-    image_input_path = os.path.join(image_training_path, "input")
-    image_target_path = os.path.join(image_training_path, "target")
-    csv_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "training")
-    csv_input_path = os.path.join(csv_training_path, "input")
-    csv_target_path = os.path.join(csv_training_path, "target")
+    
     if not os.path.exists(image_training_path):   
         os.makedirs(image_input_path)
         os.makedirs(image_target_path)
@@ -170,9 +172,10 @@ def data_settings(req):
                             tip = int(file.split(".")[1])
                         
                         if tip==it:
+                            image_name = ".".join(file.split(".")[:-1]) 
                             folder_name = root.split("/")[-1]
                             source_path = os.path.join(root, file)
-                            dest_path = os.path.join(image_target_path, folder_name + file)
+                            dest_path = os.path.join(image_target_path, image_name + folder_name + ".JPG")
                             shutil.copyfile(source_path, dest_path)
                             p = Preprocessor(dest_path, image_target_path)
                             r, f = p.process()
@@ -220,12 +223,12 @@ def data_settings(req):
                         df_target = pd.read_csv(csv_path)
 
         return render(req, "data_process.html",
-                       {"iip": image_input_path,
+                       {"iip": "modeling -> image -> training -> input",
                         "iin": image_input_num,
                         "itn": image_target_num,
-                        "itp": image_target_path,
-                        "cip": csv_input_path,
-                        "ctp": csv_target_path,
+                        "itp": "modeling -> image -> training -> target",
+                        "cip": "modeling -> csv -> training -> input",
+                        "ctp": "modeling -> csv -> training -> target",
                         "is": input_sample,
                         "ts": target_sample,
                         "dfi": df_input.head(),
@@ -252,15 +255,25 @@ def training_settings(req):
         
         if not "max_steps" in data.keys():
             conf["max_steps"] = "off"
-        if not "val" in data.keys():
-            conf["val"] = "off"
 
         with open("config.conf", "w") as c:
             c.truncate()
             for x in conf:
                 c.write(x + " = " + conf[x] + "\n")
 
-        return HttpResponseRedirect("http://127.0.0.1:5000/")
+        config_dest = os.path.join(settings.ENG_URL, "config.conf")
+        image_train_dest = os.path.join(settings.ENG_URL, "dataset", "train", "image")
+        csv_train_dest = os.path.join(settings.ENG_URL, "dataset", "train", "csv")
+        shutil.copyfile("config.conf", config_dest)
+        if os.path.exists(image_train_dest):
+            shutil.rmtree(image_train_dest)
+        shutil.copytree(image_training_path, image_train_dest)
+        if os.path.exists(csv_train_dest):
+            shutil.rmtree(csv_train_dest)
+        shutil.copytree(csv_training_path, csv_train_dest)
+        
+        return render(req, "modeling_configuration.html", conf)
 
     if req.method == "GET":
+ 
         return render(req, "modeling_configuration.html", conf)

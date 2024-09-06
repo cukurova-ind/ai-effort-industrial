@@ -3,6 +3,8 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+APP_DIR = Path(__file__).resolve().parent.parent.parent
+
 SECRET_KEY = 'django-insecure-5b_0d+-4ek%8ue_ooyhwp9q%as%4bee5ou0b+s%q^qxk9h&jy('
 
 DEBUG = True
@@ -90,9 +92,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-MEDIA_ROOT =  BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-STATIC_ROOT =  BASE_DIR / 'static'
+STATIC_ROOT =  os.path.join(BASE_DIR, 'static')
+
+ENG_URL =  os.path.join(APP_DIR, 'engineering')
 
 MEDIA_URL = '/media/'
 

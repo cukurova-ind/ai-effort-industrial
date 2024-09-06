@@ -40,3 +40,15 @@
 //     },
 //     false,
 //   );
+
+$(document).ready(function() {
+    $("#max_steps").on("change", function(){
+        if ($("#max_steps").attr("checked")) {
+            $("#step").removeAttr("disabled");
+            $("#max_steps").removeAttr("checked");
+        } else {
+            $("#step").attr("disabled", "true");
+            $("#max_steps").attr("checked", "true");
+        }
+    });
+});

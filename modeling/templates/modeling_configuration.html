@@ -75,29 +75,29 @@ Model Ayarları
             </div>
 
             <div class="mb-3">
-                <label for="step" class="form-label">Epoch Step Sayısı</label> 
-                <input name="n_steps" type="number" class="form-control" id="step" value="{{ n_steps }}">
-            </div>
-        
-            <div class="mb-3">
+                <label for="step" class="form-label">Epoch Step Sayısı</label>
                 <div class="form-check form-switch py-3">
                     {% if max_steps == "on" %}
                     <input class="form-check-input" type="checkbox" role="switch" id="max_steps" name="max_steps" checked>
                     {% else %}
                     <input class="form-check-input" type="checkbox" role="switch" id="max_steps" name="max_steps">
                     {% endif %}
-                    <label class="form-check-label" for="max_steps">Max-Steps</label> 
+                    <label class="form-check-label" for="max_steps">Max-Steps (Sample Size / Batch Size)</label> 
                 </div>
-                <div class="form-check form-switch py-3">
-                    {% if val == "on" %}
-                    <input class="form-check-input" type="checkbox" role="switch" id="val" name="val" checked>
-                    {% else %}
-                    <input class="form-check-input" type="checkbox" role="switch" id="val" name="val">
-                    {% endif %}
-                    <label class="form-check-label" for="val">Validation</label> 
-                </div> 
+                
+                {% if max_steps == "on" %}
+                <input name="n_steps" type="number" class="form-control" id="step" value="{{ n_steps }}" disabled>
+                {% else %}
+                <input name="n_steps" type="number" class="form-control" id="step" value="{{ n_steps }}">
+                {% endif %}
             </div>
-            <button type="submit" class="btn btn-success">Devam</button>
+        
+            <div class="mb-3">
+                <label for="step" class="form-label">Validation Size [0, 0.9]</label>
+                <input name="val_size" type="number" min="0" max="0.9" step="0.05" class="form-control" id="val_size" value="{{ val_size }}">
+            </div>
+            <button type="submit" class="btn btn-success">Uygula</button>
+            <a href="http://127.0.0.1:5000/" class="btn btn-primary" target="_blank">Devam</a>
         </div>
     </form>
 </div> 
