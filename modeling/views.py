@@ -94,6 +94,7 @@ def data_settings(req):
                     qt = Experiment.objects.values(util.get(p))
                     qs = pd.DataFrame.from_records(qt)
                     df_target = df_target.join(qs)
+                    
                 else:
                     if util.get(p) in [i.name for i in Input._meta.get_fields()]:
                         field = "input__" + str(util.get(p))
@@ -108,9 +109,28 @@ def data_settings(req):
                     qs = pd.DataFrame.from_records(qi)
                     df_input = df_input.join(qs)
         
+        df_input["type"] = df_input["id"].apply(lambda x: int(x.split("-")[0]))
+        df_input["recipe"] = df_input["id"].apply(lambda x: int(x.split("-")[1]))
+        df_input = df_input.sort_values(["type", "recipe"]).drop(columns=["id"])
+        new_cols = df_input.columns.tolist()[:-2]
+        new_cols.insert(0, df_input.columns.tolist()[-1])
+        new_cols.insert(0, df_input.columns.tolist()[-2])
+        df_input = df_input[new_cols]
+        if not "type" in postdata:
+            df_input = df_input.drop(columns="type")
+        if not "recipe" in postdata:
+            df_input = df_input.drop(columns="recipe")
+
         features_path = os.path.join(csv_input_path, "training_features.csv")
         df_input.to_csv(features_path, index=False)
 
+        df_target["type"] = df_target["id"].apply(lambda x: int(x.split("-")[0]))
+        df_target["recipe"] = df_target["id"].apply(lambda x: int(x.split("-")[1]))
+        df_target = df_target.sort_values(["type", "recipe"]).drop(columns=["id"])
+        new_cols = df_target.columns.tolist()[:-2]
+        new_cols.insert(0, df_target.columns.tolist()[-1])
+        new_cols.insert(0, df_target.columns.tolist()[-2])
+        df_target = df_target[new_cols]
         target_path = os.path.join(csv_target_path, "training_target.csv")
         df_target.to_csv(target_path, index=False)
 
