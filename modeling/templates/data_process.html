@@ -123,6 +123,15 @@ Veri seti
                         <label for="id_concentration" class="form-label">Konsantrasyon</label>
                     </div>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label" for="id_scaling">Ölçekleme</label>
+                    <select name="scaling_type" class="form-select" title="" id="id_scaling">
+                        <option value="norm1">(0, 1) Normalizasyon</option>
+                        <option value="norm2">(-1, 1) Normalizasyon</option>
+                        <option value="stand">(0, 1) Standardizasyon</option>
+                        <option value="off">Yok</option>
+                    </select>
+                </div>
             </div>
             <div class="col-md-3 process-section">
                 <label class="form-label"><strong>Açıklanan Değişkenler</strong></label>
@@ -281,7 +290,7 @@ Veri seti
         <div class="row mb-3">
 
             <div class="d-flex justify-content-center align-items-center">
-                <a href="{% url 'training_settings' %}" class="btn btn-success text-center">Ayarlar</a>
+                <a href="{% url 'training_settings' %}" class="btn btn-success text-center">Ayarlara Devam Et</a>
             </div>
             
         </div>

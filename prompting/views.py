@@ -5,7 +5,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
 # import tensorflow as tf
-from .apps import gen_model
+# from .apps import gen_model
 
 # def generate_shot(model, input):
 #     x = tf.io.read_file(input["file"])

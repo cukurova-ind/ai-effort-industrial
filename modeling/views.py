@@ -117,10 +117,13 @@ def data_settings(req):
         new_cols.insert(0, df_input.columns.tolist()[-2])
         df_input = df_input[new_cols]
         if not "type" in postdata:
-            df_input = df_input.drop(columns="type")
+           df_input = df_input.drop(columns="type")
         if not "recipe" in postdata:
             df_input = df_input.drop(columns="recipe")
-
+        if postdata["scaling_type"]=="norm1":
+            df_input = (df_input - df_input.min()) / df_input.max()
+        if postdata["scaling_type"]=="norm2":
+            df_input = 2 * (df_input - df_input.min()) / (df_input.max() - df_input.min()) - 1
         features_path = os.path.join(csv_input_path, "training_features.csv")
         df_input.to_csv(features_path, index=False)
 
