@@ -11,92 +11,84 @@ Generator
 {% block content %}
 
   
-<div class="container-fluid model-page-main">
-    <div class="row h-100">
-        <div class="col-4 model-form">
-            
-            <form method="post" enctype="multipart/form-data" id="grand_form">
-                {% csrf_token %}
-
-                <p><strong>Değişkenler:</strong></p>
-                <hr>
-
-                <div class="mb-3">
-                    <div>
-                        <label class="form-label" for="id_raw_image">Ham Kumaş Görüntüsü</label>
-                    </div>
-                    <input type="file" name="raw_image" id="id_raw_image" accept=".jpg, .png, .jpeg, |image/*">
-                </div>
-
-                <div class="row mb-3">
-                    <label class="form-label">Prosess Koşulları</label>
-                    <div class="col-4">
-                        <label class="form-label" for="id_step">Adım Sayısı</label>
-                        <select name="step" class="form-select" title="" id="id_step">
-                            <option>1</option>
-                            <option>2</option>
-                        </select>
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label" for="id_duration">Süre (dakika)</label>
-                        <select name="duration" class="form-select" title="" id="id_duration">
-                            <option>3</option>
-                            <option>5</option>
-                            <option>7</option>
-                        </select>
-                    </div>
-                    <div class="col-4">
-                        <label class="form-label" for="id_concentration">Konsantrasyon (ml)</label>
-                        <select name="concentration" class="form-select" title="" id="id_concentration">
-                            <option>2000</option>
-                            <option>3000</option>
-                            <option>4000</option>
-                            <option>5000</option>
-                        </select>
-                    </div>
-                </div>
-
-                
-
-                <button class="btn btn-success text-center"
-                    id="generate-form-button"
-                    type="button">Generate
-                </button>
-
-            </form>
-            
-        </div>
+<div class="container-fluid d-flex justify-content-center align-items-center model-page-main">
     
-        <div class="col-8 model-support">
-            <div class="row">
-                <div class="col-4">
-                    {% if file %}
-                        <p><strong>Girdiler:</strong></p>
-                        <hr>
-                        
-                        <img src="../../{{ file }}"/>
-                        
-                        <hr>
-                        <p>{{ step }}</p>
-                        <p>{{ duration }}</p>
-                        <p>{{ concentration }}</p>
-                        <hr>
-                        <p>{{ type }}</p>
-                    {% endif %}
-                </div>
+    <div class="col-md-5 model-form">
+        <form method="post" enctype="multipart/form-data" id="grand_form">
+            {% csrf_token %}
+            
+            <p><strong>Değişkenler:</strong></p>
+            <hr>
 
-                <div class="col-8">
-                    {% if photo %}
-                        <p><strong>Çıktılar:</strong></p>
-                        <hr>
+            <div class="mb-3">
+                <div>
+                    <label class="form-label" for="id_raw_image">Ham Kumaş Görüntüsü</label>
+                </div>
+                <input type="file" name="raw_image" id="id_raw_image" accept=".jpg, .png, .jpeg, |image/*">
+            </div>
+
+            <div class="row mb-3">
+                <label class="form-label">Prosess Koşulları</label>
+                <div class="col-4">
+                    <label class="form-label" for="id_step">Adım Sayısı</label>
+                    <select name="step" class="form-select" title="" id="id_step">
+                        <option>1</option>
+                        <option>2</option>
+                    </select>
+                </div>
+                <div class="col-4">
+                    <label class="form-label" for="id_duration">Süre (dakika)</label>
+                    <select name="duration" class="form-select" title="" id="id_duration">
+                        <option>3</option>
+                        <option>5</option>
+                        <option>7</option>
+                    </select>
+                </div>
+                <div class="col-4">
+                    <label class="form-label" for="id_concentration">Konsantrasyon (ml)</label>
+                    <select name="concentration" class="form-select" title="" id="id_concentration">
+                        <option>2000</option>
+                        <option>3000</option>
+                        <option>4000</option>
+                        <option>5000</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn btn-success text-center"
+                id="generate-form-button"
+                type="submit">Generate
+            </button>
+        </form>
+    </div>
+
+    <div class="col-md-7 model-response">
+        <div class="row">
+            <div class="mb-3">
+                <p><strong>Sonuç:</strong></p>
+                <hr>
+                
+                    <p>{{ type }} {{ step }} {{ duration }} {{ concentration }}</p>
+
+                    <div class="row">
+                        <div class="input-img">
+                            {% if file %}
+                            <img src="../../{{ file }}"/>
+                            {% endif %}
+                        </div>
                         
-                        <img src="/{{ photo }}"/>
-                    {% endif %}
+                        <div class="input-img">
+                            {% if photo %}
+                            <img src="/{{ photo }}"/>
+                            {% endif %}
+                        </div>
                 </div>
             </div>
         </div>
     </div>
+    
 </div>
+
 <script src ="{% static 'js/inference.js' %}" ></script>
 
         

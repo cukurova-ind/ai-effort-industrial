@@ -1,6 +1,6 @@
 import os
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
@@ -39,8 +39,8 @@ def generator_model(req):
         concentration = req.POST.get("concentration")
         if raw_image:
             content = raw_image.content_type
-            tmp = os.path.join(tmp, raw_image.name)
-            f = default_storage.save(tmp, ContentFile(raw_image.read()))
+            tmp = os.path.join("prompt", "input", raw_image.name)
+            f = default_storage.save(tmp, raw_image)
             input = {"file": os.path.join("media", f),
                      "type": type_number,
                      "types": range(1,51),
