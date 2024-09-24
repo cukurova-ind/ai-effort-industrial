@@ -1,27 +1,42 @@
 import os
+import shutil
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponseRedirect
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
-# import tensorflow as tf
-# from .apps import gen_model
-
-# def generate_shot(model, input):
-#     x = tf.io.read_file(input["file"])
-#     x_decode = tf.image.decode_jpeg(x, channels=3)
-#     img = tf.image.resize(x_decode, [128, 128])
-#     img = (img - 127.5) / 127.5
-#     img = tf.expand_dims(img, axis=0)
-#     print(model.output_channels)
-#     prediction = model.generator([img])
-
-#     p_file = "media/prompt/output/predshot.png"
-#     tf.keras.utils.save_img(p_file, prediction[0] * 0.5 + 0.5)
-#     return p_file
 
 def main_page(req):
-    return render(req, "prompt_main_page.html", {"exp":None})
+    conf = dict()
+    with open("config.conf") as c:
+        for l in c.read().split("\n"):
+            e = l.split("=")
+            if len(e)==2:
+                conf[e[0].strip()] = e[1].strip()
+
+    if req.method == "POST":
+
+        data = req.POST
+        with open("config.conf") as c:
+            for l in c.read().split("\n"):
+                e = l.split("=")
+                if len(e)==2:
+                    conf[e[0].strip()] = e[1].strip()
+                    if data.get(e[0].strip()):   
+                        conf[e[0].strip()] = data[e[0].strip()]
+
+        with open("config.conf", "w") as c:
+            c.truncate()
+            for x in conf:
+                c.write(x + " = " + conf[x] + "\n")
+
+        config_dest = os.path.join(settings.ENG_URL, "config.conf")
+
+        shutil.copyfile("config.conf", config_dest)
+        
+        return render(req, "prompt_main_page.html", conf)
+    else:
+        return render(req, "prompt_main_page.html", {"exp":None})
 
 def generator_model(req):
     p_shot = None
@@ -30,7 +45,7 @@ def generator_model(req):
         _, old_files = default_storage.listdir(tmp)
         for r in old_files:
             f = os.path.join(tmp, r)
-            default_storage.delete(f)  
+            default_storage.delete(f)
 
         raw_image = req.FILES.get("raw_image")
         type_number = req.POST.get("type_number")
