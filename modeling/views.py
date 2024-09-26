@@ -73,6 +73,13 @@ def image_settings(req):
                     {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo, "err": err}})
     
 def data_settings(req):
+
+    conf = dict()
+    with open("config.conf") as c:
+        for l in c.read().split("\n"):
+            e = l.split("=")
+            if len(e)==2:
+                conf[e[0].strip()] = e[1].strip()
     
     if not os.path.exists(image_training_path):   
         os.makedirs(image_input_path)
@@ -88,12 +95,14 @@ def data_settings(req):
         qs = Experiment.objects.values("id")
         df_input = pd.DataFrame.from_records(qs)
         df_target = pd.DataFrame.from_records(qs)
+        input_list, target_list = [], []
         for p in postdata:
             if util.get(p):
                 if util.get(p) in [e.name for e in Experiment._meta.get_fields()]:
                     qt = Experiment.objects.values(util.get(p))
                     qs = pd.DataFrame.from_records(qt)
                     df_target = df_target.join(qs)
+                    target_list.append(util.get(p))
                     
                 else:
                     if util.get(p) in [i.name for i in Input._meta.get_fields()]:
@@ -108,6 +117,7 @@ def data_settings(req):
 
                     qs = pd.DataFrame.from_records(qi)
                     df_input = df_input.join(qs)
+                    input_list.append(util.get(p))
         
         df_input["type"] = df_input["id"].apply(lambda x: int(x.split("-")[0]))
         df_input["recipe"] = df_input["id"].apply(lambda x: int(x.split("-")[1]))
@@ -116,15 +126,15 @@ def data_settings(req):
         new_cols.insert(0, df_input.columns.tolist()[-1])
         new_cols.insert(0, df_input.columns.tolist()[-2])
         df_input = df_input[new_cols]
-        if not "type" in postdata:
-           df_input = df_input.drop(columns="type")
-        if not "recipe" in postdata:
-            df_input = df_input.drop(columns="recipe")
-        if postdata["scaling_type"]=="norm1":
-            df_input = (df_input - df_input.min()) / df_input.max()
-        if postdata["scaling_type"]=="norm2":
-            df_input = 2 * (df_input - df_input.min()) / (df_input.max() - df_input.min()) - 1
-        features_path = os.path.join(csv_input_path, "training_features.csv")
+        # if not "type" in postdata:
+        #    df_input = df_input.drop(columns="type")
+        # if not "recipe" in postdata:
+        #     df_input = df_input.drop(columns="recipe")
+        # if postdata["scaling_type"]=="norm1":
+        #     df_input = (df_input - df_input.min()) / df_input.max()
+        # if postdata["scaling_type"]=="norm2":
+        #     df_input = 2 * (df_input - df_input.min()) / (df_input.max() - df_input.min()) - 1
+        features_path = os.path.join(csv_input_path, conf["input_file_name"])
         df_input.to_csv(features_path, index=False)
 
         df_target["type"] = df_target["id"].apply(lambda x: int(x.split("-")[0]))
@@ -134,7 +144,7 @@ def data_settings(req):
         new_cols.insert(0, df_target.columns.tolist()[-1])
         new_cols.insert(0, df_target.columns.tolist()[-2])
         df_target = df_target[new_cols]
-        target_path = os.path.join(csv_target_path, "training_target.csv")
+        target_path = os.path.join(csv_target_path, conf["target_file_name"])
         df_target.to_csv(target_path, index=False)
 
         it = int(postdata["image_type"].split(" ")[-1])
@@ -205,6 +215,24 @@ def data_settings(req):
                             os.unlink(dest_path)
                             if r == 0:
                                 print(r, f)
+            
+        # with open("config.conf") as c:
+        #     for l in c.read().split("\n"):
+        #         e = l.split("=")
+        #         if len(e)==2:
+        #             conf[e[0].strip()] = e[1].strip()
+        #             if postdata.get(e[0].strip()):   
+        #                 conf[e[0].strip()] = postdata[e[0].strip()]
+        
+        conf["input_features"] = ",".join(input_list)
+        conf["input_scaling"] = postdata["scaling_type"]
+        conf["target_features"] = ",".join(target_list)
+        conf["target_scaling"] = "off"
+
+        with open("config.conf", "w") as c:
+            c.truncate()
+            for x in conf:
+                c.write(x + " = " + conf[x] + "\n")
 
         return HttpResponseRedirect("/modeling/dataset/settings/")
     
