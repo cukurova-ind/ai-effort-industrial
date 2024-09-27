@@ -20,6 +20,12 @@ Model Ayarları
                 <label for="model" class="form-label">Model Tipi</label> 
                 <select name="model" class="form-select">
 
+                    {% if model == "mlp" %}
+                    <option value="mlp" selected>Multilayer Perceptron</option>
+                    {% else %}
+                    <option value="mlp">Multilayer Perceptron</option>
+                    {% endif %}
+
                     {% if model == "dcgan" %}
                     <option value="dcgan" selected>DCGAN</option>
                     {% else %}

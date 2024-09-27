@@ -117,7 +117,7 @@ def data_settings(req):
 
                     qs = pd.DataFrame.from_records(qi)
                     df_input = df_input.join(qs)
-                    input_list.append(util.get(p))
+                    input_list.append(field)
         
         df_input["type"] = df_input["id"].apply(lambda x: int(x.split("-")[0]))
         df_input["recipe"] = df_input["id"].apply(lambda x: int(x.split("-")[1]))
