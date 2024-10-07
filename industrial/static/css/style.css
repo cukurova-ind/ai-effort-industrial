@@ -261,9 +261,9 @@ a, a:hover, a:visited, a:active, a:focus {
 }
 
 .data-settings, .image-settings {
-  width: 60%;
+  width: 80%;
   min-height: 89.9%;
-  padding: 0;
+  padding: 0%;
 }
 
 .process-section:hover{
@@ -277,6 +277,12 @@ a, a:hover, a:visited, a:active, a:focus {
 .modeling-configuration form a {
   width: 20%;
   margin: 0 auto;
+}
+
+table {
+  table-layout: fixed;
+  word-wrap: break-word;
+  overflow-x: scroll;
 }
 
 .samples img {

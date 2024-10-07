@@ -19,12 +19,8 @@ Veri seti
                 <label class="form-label"><strong>Açıklayıcı Değişkenler</strong></label>
                 <div class="mb-3">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="id_type" name="type">
-                        <label for="id_type" class="form-label">Kumaş tipi</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="id_coloring" name="coloring">
-                        <label for="id_coloring" class="form-label">Boyama tipi</label>
+                        <input class="form-check-input" type="checkbox" value="" id="id_coloring_type" name="coloring_type">
+                        <label for="id_coloring_type" class="form-label">Boyama tipi</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_onzyd" name="onzyd">
@@ -32,7 +28,15 @@ Veri seti
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_yarn" name="yarn">
-                        <label for="id_yarn" class="form-label">İplik no</label>
+                        <label for="id_yarn" class="form-label">İplik no (ne)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="id_frequency" name="frequency">
+                        <label for="id_frequency" class="form-label">Sıklık</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="id_knitting" name="knitting">
+                        <label for="id_knitting" class="form-label">Örgü</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_gramaj_raw" name="gramaj_raw">
@@ -122,15 +126,6 @@ Veri seti
                         <input class="form-check-input" type="checkbox" value="" id="id_concentration" name="concentration">
                         <label for="id_concentration" class="form-label">Konsantrasyon</label>
                     </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" for="id_scaling">Ölçekleme</label>
-                    <select name="scaling_type" class="form-select" title="" id="id_scaling">
-                        <option value="norm1">(0, 1) Normalizasyon</option>
-                        <option value="norm2">(-1, 1) Normalizasyon</option>
-                        <option value="stand">(0, 1) Standardizasyon</option>
-                        <option value="off">Yok</option>
-                    </select>
                 </div>
             </div>
             <div class="col-md-3 process-section">

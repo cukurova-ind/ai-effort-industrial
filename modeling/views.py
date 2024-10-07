@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db.models import Q
 from dataops.models import Experiment, Input, Fabric, Recipe
 from .image_processor import Preprocessor
-from .utils import util
+from .utils import util, utility
 
 raw_image_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
 hypo_image_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
@@ -95,7 +95,7 @@ def data_settings(req):
         qs = Experiment.objects.values("id")
         df_input = pd.DataFrame.from_records(qs)
         df_target = pd.DataFrame.from_records(qs)
-        input_list, target_list = [], []
+        input_list, target_list, input_types = [], [], []
         for p in postdata:
             if util.get(p):
                 if util.get(p) in [e.name for e in Experiment._meta.get_fields()]:
@@ -115,9 +115,11 @@ def data_settings(req):
                         field = "input__type__" + str(util.get(p))
                         qi = Experiment.objects.values(field)
 
+                    typ = str(utility.get(p))
                     qs = pd.DataFrame.from_records(qi)
                     df_input = df_input.join(qs)
                     input_list.append(field)
+                    input_types.append(typ)
         
         df_input["type"] = df_input["id"].apply(lambda x: int(x.split("-")[0]))
         df_input["recipe"] = df_input["id"].apply(lambda x: int(x.split("-")[1]))
@@ -126,14 +128,6 @@ def data_settings(req):
         new_cols.insert(0, df_input.columns.tolist()[-1])
         new_cols.insert(0, df_input.columns.tolist()[-2])
         df_input = df_input[new_cols]
-        # if not "type" in postdata:
-        #    df_input = df_input.drop(columns="type")
-        # if not "recipe" in postdata:
-        #     df_input = df_input.drop(columns="recipe")
-        # if postdata["scaling_type"]=="norm1":
-        #     df_input = (df_input - df_input.min()) / df_input.max()
-        # if postdata["scaling_type"]=="norm2":
-        #     df_input = 2 * (df_input - df_input.min()) / (df_input.max() - df_input.min()) - 1
         features_path = os.path.join(csv_input_path, conf["input_file_name"])
         df_input.to_csv(features_path, index=False)
 
@@ -225,9 +219,8 @@ def data_settings(req):
         #                 conf[e[0].strip()] = postdata[e[0].strip()]
         
         conf["input_features"] = ",".join(input_list)
-        conf["input_scaling"] = postdata["scaling_type"]
+        conf["input_feature_types"] = ",".join(input_types)
         conf["target_features"] = ",".join(target_list)
-        conf["target_scaling"] = "off"
 
         with open("config.conf", "w") as c:
             c.truncate()
@@ -306,6 +299,8 @@ def training_settings(req):
         
         if not "max_steps" in data.keys():
             conf["max_steps"] = "off"
+
+        conf["target_scaling"] = "off"
 
         with open("config.conf", "w") as c:
             c.truncate()

@@ -26,6 +26,12 @@ Model Ayarları
                     <option value="mlp">Multilayer Perceptron</option>
                     {% endif %}
 
+                    {% if model == "cnnmlp" %}
+                    <option value="cnnmlp" selected>CNN-Augmented MLP</option>
+                    {% else %}
+                    <option value="cnnmlp">CNN-Augmented MLP</option>
+                    {% endif %}
+
                     {% if model == "dcgan" %}
                     <option value="dcgan" selected>DCGAN</option>
                     {% else %}
@@ -71,7 +77,30 @@ Model Ayarları
                 </select>
             </div>
             <div class="mb-3">
-                <label for="batch" class="form-label">Veri Seti Batch Boyutu</label> 
+                <label for="scale" class="form-label">Veri Seti Ölçekleme</label> 
+                <select name="input_scaling" class="form-select">
+                    {% if input_scaling == "norm1" %}
+                    <option value="norm1" selected>Normalizasyon [0,1]</option>
+                    {% else %}
+                    <option value="norm1">Normalizasyon [0,1]</option>
+                    {% endif %}
+
+                    {% if input_scaling == "norm2" %}
+                    <option value="norm2" selected>Normalizasyon [-1,1]</option>
+                    {% else %}
+                    <option value="norm2">Normalizasyon [-1,1]</option>
+                    {% endif %}
+
+                    {% if input_scaling == "off" %}
+                    <option value="off" selected>Yok</option>
+                    {% else %}
+                    <option value="off">Yok</option>
+                    {% endif %}
+
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="batch" class="form-label">Veri Seti Batch Büyüklüğü</label> 
                 <input name="batch_size" type="number" class="form-control" id="batch" value="{{ batch_size }}"> 
             </div>
             
