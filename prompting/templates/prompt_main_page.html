@@ -13,26 +13,21 @@
   
 
 <div class="container-fluid d-flex justify-content-center align-items-center modeling-configuration">
-    <form method="post">
+    <form method="post" id="model_selection">
         <div class="row">
             {% csrf_token %}
             <div class="mb-3">
                 <label for="prompt_type" class="form-label">İstem Tipi</label> 
-                <select name="prompt_type" class="form-select">
+                <select name="prompt_type" class="form-select" id="prompt_type">
+                    <option value="">Seçiniz</option>
                     <option value="generator">Üretici</option>
                     <option value="predictor">Tahmin Edici</option>
                 </select>
             </div>
             <div class="mb-3">
                 <label for="prompt_model_type" class="form-label">Model Tipi</label> 
-                <select name="prompt_model_type" class="form-select">
-                    <option value="dcgan">DCGAN</option>
-                    <option value="srgan">SRGAN</option>
-                    <option value="unet_plus">Unet++</option>
-                    <option value="unet_plus_cond">Unet++ Conditional</option>
-                    <option value="unet_plus_gan">Unet++ Gan</option>
-                    <option value="unet_plus_gan_cond">Unet++ Gan Conditional</option>
-                    <option value="image_cond">UnetGan</option>
+                <select name="prompt_model_type" class="form-select" id="prompt_model_type">
+                    <option value="">Seçiniz</option>
                 </select>
             </div>
             <div class="mb-3">
@@ -42,7 +37,7 @@
                 </select>
             </div>
             
-            <button type="submit" class="btn btn-success">Uygula</button>
+            <button type="submit" class="btn btn-success">Yükle</button>
             <a href="http://127.0.0.1:5000/inference-page" class="btn btn-primary" target="_blank">Devam</a>
         </div>
     </form>

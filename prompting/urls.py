@@ -8,6 +8,7 @@ urlpatterns = [
     path('generator/', views.generator_model, name="generator"),
     path('predictor/', views.predictor_model, name="predictor"),
     path('predictor/<str:model>', views.predictor_model, name="predictor"),
+    path('selection-change/', views.selection_change, name="selection-change"),
 ]
 
 if settings.DEBUG:

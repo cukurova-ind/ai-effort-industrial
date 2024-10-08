@@ -51,4 +51,35 @@ $(document).ready(function() {
             $("#max_steps").attr("checked", "true");
         }
     });
+
+    $("#prompt_type").on("change", function(){
+
+        var form_data = new FormData($("#model_selection")[0]);
+        $.ajax({
+            url: "/prompting/selection-change/",
+            type: 'POST',
+            data: form_data,
+            contentType: false,
+            processData: false,
+            cache: false,
+            success: function(res) {
+
+                if (res.type_options.length>0){
+                    to = res.type_options;
+                    $("#prompt_model_type").empty();
+                    $("#prompt_model_type").append("<option value=''>Seçiniz</option>");
+                    for (var i in to) {
+                        $("#prompt_model_type").append("<option value='"+ to[i].value +"'>" + to[i].label + "</option>");
+                    }
+                } else {
+                    $("#prompt_model_type").empty();
+                    $("#prompt_model_type").append("<option value=''>Seçiniz</option>");
+                }
+
+            },
+            error: function(jqXHR, textStatus, errorMessage) {
+                alert(errorMessage);
+            }
+        });
+    });
 });

@@ -17,26 +17,38 @@ def main_page(req):
     if req.method == "POST":
 
         data = req.POST
-        with open("config.conf") as c:
-            for l in c.read().split("\n"):
-                e = l.split("=")
-                if len(e)==2:
-                    conf[e[0].strip()] = e[1].strip()
-                    if data.get(e[0].strip()):   
-                        conf[e[0].strip()] = data[e[0].strip()]
-
-        with open("config.conf", "w") as c:
-            c.truncate()
-            for x in conf:
-                c.write(x + " = " + conf[x] + "\n")
-
-        config_dest = os.path.join(settings.ENG_URL, "config.conf")
-
-        shutil.copyfile("config.conf", config_dest)
-        
+        prompt_type = data["prompt_type"]
         return render(req, "prompt_main_page.html", conf)
     else:
         return render(req, "prompt_main_page.html", {"exp":None})
+    
+def selection_change(req):
+    if req.method == "POST":
+        generator_labels = ["DCGAN", "SRGAN", "UnetGan", "Unet++",
+                            "Unet++ Conditional", "Unet++ Gan",
+                            "Unet++ Gan Conditional"]
+        generator_values = ["dcgan", "srgan", "image_cond",
+                            "unet_plus", "unet_plus_cond", "unet_plus_gan",
+                            "unet_plus_gan_cond"]
+        predictor_labels = ["Multi-layer Perceptron",
+                            "CNN-Augmented Mlp"]
+        predictor_values = ["mlp", "cnnmlp"]
+        data = req.POST
+        type_options = []
+        prompt_type = data.get("prompt_type")
+        model_type = data.get("prompt_model_type")
+        if prompt_type:
+            if prompt_type=="generator":
+                for l, v in zip(generator_labels, generator_values):
+                    opt = {"label": l, "value": v}
+                    type_options.append(opt)
+            if prompt_type=="predictor":
+                for l, v in zip(predictor_labels, predictor_values):
+                    opt = {"label": l, "value": v}
+                    type_options.append(opt)
+            if model_type:
+                print(model_type)
+        return JsonResponse({"type_options": type_options, "model": model_type})
 
 def generator_model(req):
     p_shot = None
