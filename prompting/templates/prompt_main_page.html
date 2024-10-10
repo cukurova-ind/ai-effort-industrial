@@ -31,14 +31,15 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label for="promt_model_version" class="form-label">Kayıtlı Modeller</label> 
-                <select name="promt_model_version" class="form-select">
-                    <option value="dcgan">Seçiniz</option>
+                <label for="prompt_model_version" class="form-label">Kayıtlı Modeller</label> 
+                <select name="prompt_model_version" class="form-select" id="prompt_model_version">
+                    <option value="">Seçiniz</option>
                 </select>
             </div>
-            
-            <button type="submit" class="btn btn-success">Yükle</button>
-            <a href="http://127.0.0.1:5000/inference-page" class="btn btn-primary" target="_blank">Devam</a>
+            <a href="#"
+             class="btn btn-primary is-hidden"
+             id="model_loading"
+             target="_blank">Yükle</a>
         </div>
     </form>
 </div> 

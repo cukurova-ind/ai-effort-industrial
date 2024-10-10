@@ -76,10 +76,100 @@ $(document).ready(function() {
                     $("#prompt_model_type").append("<option value=''>Seçiniz</option>");
                 }
 
+                if (res.versions.length>0){
+                    mv = res.versions;
+                    $("#prompt_model_version").empty();
+                    $("#prompt_model_version").append("<option value=''>Seçiniz</option>");
+                    for (var i in mv) {
+                        $("#prompt_model_version").append("<option value='"+ mv[i] +"'>" + mv[i] + "</option>");
+                    }
+                } else {
+                    $("#prompt_model_version").empty();
+                    $("#prompt_model_version").append("<option value=''>Seçiniz</option>");
+                }
+
+                if (res.status){
+                    $("#model_loading").removeClass("is-hidden");
+                    $("#model_loading").addClass("is-active");
+                } else {
+                    $("#model_loading").addClass("is-hidden");
+                    $("#model_loading").removeClass("is-active");
+                }
+
             },
             error: function(jqXHR, textStatus, errorMessage) {
                 alert(errorMessage);
             }
         });
     });
+
+    $("#prompt_model_type").on("change", function(){
+
+        var form_data = new FormData($("#model_selection")[0]);
+        $.ajax({
+            url: "/prompting/selection-change/",
+            type: 'POST',
+            data: form_data,
+            contentType: false,
+            processData: false,
+            cache: false,
+            success: function(res) {
+
+                if (res.versions.length>0){
+                    mv = res.versions;
+                    $("#prompt_model_version").empty();
+                    $("#prompt_model_version").append("<option value=''>Seçiniz</option>");
+                    for (var i in mv) {
+                        $("#prompt_model_version").append("<option value='"+ mv[i] +"'>" + mv[i] + "</option>");
+                    }
+                } else {
+                    $("#prompt_model_version").empty();
+                    $("#prompt_model_version").append("<option value=''>Seçiniz</option>");
+                }
+
+                if (res.status=="complete"){
+                    $("#model_loading").removeClass("is-hidden");
+                    $("#model_loading").addClass("is-active");
+                } else {
+                    $("#model_loading").addClass("is-hidden");
+                    $("#model_loading").removeClass("is-active");
+                }
+
+            },
+            error: function(jqXHR, textStatus, errorMessage) {
+                alert(errorMessage);
+            }
+        });
+    });
+
+    $("#prompt_model_version").on("change", function(){
+
+        var form_data = new FormData($("#model_selection")[0]);
+        $.ajax({
+            url: "/prompting/selection-change/",
+            type: 'POST',
+            data: form_data,
+            contentType: false,
+            processData: false,
+            cache: false,
+            success: function(res) {
+
+                if (res.status=="complete"){
+                    var q = "model=" + form_data.get("prompt_model_type") + "&version=" + form_data.get("prompt_model_version")
+                    var link = "http://127.0.0.1:5000/inference-page?" + q;
+                    $("#model_loading").removeClass("is-hidden");
+                    $("#model_loading").addClass("is-active");
+                    $("#model_loading").attr("href", link)
+                } else {
+                    $("#model_loading").addClass("is-hidden");
+                    $("#model_loading").removeClass("is-active");
+                }
+
+            },
+            error: function(jqXHR, textStatus, errorMessage) {
+                alert(errorMessage);
+            }
+        });
+    });
+
 });

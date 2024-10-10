@@ -34,9 +34,11 @@ def selection_change(req):
                             "CNN-Augmented Mlp"]
         predictor_values = ["mlp", "cnnmlp"]
         data = req.POST
-        type_options = []
+        status = ""
+        type_options, versions = [], []
         prompt_type = data.get("prompt_type")
         model_type = data.get("prompt_model_type")
+        model_version = data.get("prompt_model_version")
         if prompt_type:
             if prompt_type=="generator":
                 for l, v in zip(generator_labels, generator_values):
@@ -47,8 +49,16 @@ def selection_change(req):
                     opt = {"label": l, "value": v}
                     type_options.append(opt)
             if model_type:
-                print(model_type)
-        return JsonResponse({"type_options": type_options, "model": model_type})
+                model_path = os.path.join(settings.ENG_URL, "saved_models", model_type)
+                if os.path.exists(model_path):
+                    for mv in os.listdir(model_path):
+                        versions.append(mv)
+                if model_version:
+                    status = "complete"
+        return JsonResponse({"type_options": type_options,
+                            "model": model_type,
+                            "versions": versions,
+                            "status": status})
 
 def generator_model(req):
     p_shot = None

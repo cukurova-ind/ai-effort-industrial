@@ -96,6 +96,8 @@ def data_settings(req):
         df_input = pd.DataFrame.from_records(qs)
         df_target = pd.DataFrame.from_records(qs)
         input_list, target_list, input_types = [], [], []
+        input_maxs, input_mins = [], []
+        n_features = 0
         for p in postdata:
             if util.get(p):
                 if util.get(p) in [e.name for e in Experiment._meta.get_fields()]:
@@ -117,6 +119,15 @@ def data_settings(req):
 
                     typ = str(utility.get(p))
                     qs = pd.DataFrame.from_records(qi)
+                    if typ=="cont":
+                        input_maxs.append(str(qs.max().values[0]))
+                        input_mins.append(str(qs.min().values[0]))
+                        n_features += 1
+                    else:
+                        input_maxs.append("1")
+                        input_mins.append("0")
+                        n_features += len(pd.get_dummies(qs).columns)
+                        print(pd.get_dummies(qs).columns)
                     df_input = df_input.join(qs)
                     input_list.append(field)
                     input_types.append(typ)
@@ -209,17 +220,12 @@ def data_settings(req):
                             os.unlink(dest_path)
                             if r == 0:
                                 print(r, f)
-            
-        # with open("config.conf") as c:
-        #     for l in c.read().split("\n"):
-        #         e = l.split("=")
-        #         if len(e)==2:
-        #             conf[e[0].strip()] = e[1].strip()
-        #             if postdata.get(e[0].strip()):   
-        #                 conf[e[0].strip()] = postdata[e[0].strip()]
         
+        conf["n_features"] = str(n_features)
         conf["input_features"] = ",".join(input_list)
         conf["input_feature_types"] = ",".join(input_types)
+        conf["input_maxs"] = ",".join(input_maxs)
+        conf["input_mins"] = ",".join(input_mins)
         conf["target_features"] = ",".join(target_list)
 
         with open("config.conf", "w") as c:
