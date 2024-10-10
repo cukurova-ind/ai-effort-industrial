@@ -20,6 +20,13 @@ class Fabric(models.Model):
         ("indigo", "indigo"),
         ("Vat dye", "Vat dye")
     ]
+    knitting_type = [
+        ("2/1 Z", "2/1 Z"),
+        ("3/1 Z", "3/1 Z"),
+        ("3/1 RHT", "3/1 RHT"),
+        ("4/1 SATEN 3 ATLA", "4/1 SATEN 3 ATLA"),
+        ("3/1 KIRIK DİMİ", "3/1 KIRIK DİMİ"),
+    ]
     id = models.IntegerField(primary_key=True)
     material = models.CharField(null=True)
     material_text = models.CharField(null=True)
@@ -30,7 +37,7 @@ class Fabric(models.Model):
     composition = models.CharField(null=True)
     yarn_number = models.FloatField(null=True)
     frequency = models.FloatField(null=True)
-    knitting = models.CharField(null=True)
+    knitting = models.CharField(null=True, choices=knitting_type)
     onyzd = models.FloatField(null=True)
     onyzd_washed = models.FloatField(null=True)
     product_color = models.CharField(null=True)
