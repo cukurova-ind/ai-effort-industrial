@@ -96,7 +96,7 @@ def data_settings(req):
         df_input = pd.DataFrame.from_records(qs)
         df_target = pd.DataFrame.from_records(qs)
         input_list, target_list, input_types = [], [], []
-        input_maxs, input_mins = [], []
+        input_maxs, input_mins, categories = [], [], []
         n_features = 0
         for p in postdata:
             if util.get(p):
@@ -123,11 +123,12 @@ def data_settings(req):
                         input_maxs.append(str(qs.max().values[0]))
                         input_mins.append(str(qs.min().values[0]))
                         n_features += 1
+                        categories.append("0")
                     else:
                         input_maxs.append("1")
                         input_mins.append("0")
                         n_features += len(pd.get_dummies(qs).columns)
-                        print(pd.get_dummies(qs).columns)
+                        categories.append("|".join(pd.get_dummies(qs).columns))
                     df_input = df_input.join(qs)
                     input_list.append(field)
                     input_types.append(typ)
@@ -227,6 +228,7 @@ def data_settings(req):
         conf["input_maxs"] = ",".join(input_maxs)
         conf["input_mins"] = ",".join(input_mins)
         conf["target_features"] = ",".join(target_list)
+        conf["input_categories"] = ",".join(categories)
 
         with open("config.conf", "w") as c:
             c.truncate()
