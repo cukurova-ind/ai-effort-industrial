@@ -1,0 +1,51 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Kumaş Verisi Giriş
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid import-area">
+    <div class="data-form">
+        <form method="post" id="grand_form">
+            {% csrf_token %}
+            <p><strong>Veri Girişi | {{ what }}</strong></p>
+            <hr>
+            <p><strong>Reçete Numarası:</strong></p>
+            <div class="col-3">
+                {{ form.recipe_id }}
+            </div>
+            <hr>
+            <p><strong>Değişkenler:</strong></p>
+            <hr>
+
+            <div class="row mb-3">
+                <div class="col-3">
+                    <label class="form-label" for="{{ form.bleaching.auto_id }}">Ağartma Sayısı</label>
+                    {{ form.bleaching }}
+                </div>
+                <div class="col-3">
+                    <label class="form-label" for="{{ form.duration.auto_id }}">Süre</label>
+                    {{ form.duration }}
+                </div>
+                <div class="col-3">
+                    <label class="form-label" for="{{ form.temperature.auto_id }}">Sıcaklık</label>
+                    {{ form.temperature }}
+                </div>
+                <div class="col-3">
+                    <label class="form-label" for="{{ form.concentration.auto_id }}">Konsantrasyon</label>
+                    {{ form.concentration }}
+                </div>
+            </div>
+
+            <button class="btn btn-success text-center"
+                id="fabric-form-button"
+                type="submit">Ekle | Güncelle
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

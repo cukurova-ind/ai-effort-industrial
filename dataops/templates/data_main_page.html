@@ -1,0 +1,108 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Data
+
+{% endblock %}
+
+
+{% block content %}
+
+  
+<div class="container-fluid data-page-main">
+    <div class="link-info">
+        <div class="row">
+            <div class="col-md-2">
+                <p><i>Data İşlemleri &nbsp;<i class="fa fa-angle-right"></i></i></p>
+            </div>
+            <div class="col-md-2">
+                <a href="" data-bs-toggle="dropdown"><p>Receçete Girişi <i
+                    class="fa fa-angle-double-down"></i></p></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li><a class="dropdown-item" href="{% url 'data_entry' 'recipe' %}">Form</a></li>
+                    <li><a class="dropdown-item" href="{% url 'data_import' 'recipe'%}">Dosyadan</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2">
+                <a href="" data-bs-toggle="dropdown"><p>Kumaş Özellikleri Girişi <i
+                    class="fa fa-angle-double-down"></i></p></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li><a class="dropdown-item" href="{% url 'data_entry' 'fabric' %}">Form</a></li>
+                    <li><a class="dropdown-item" href="{% url 'data_import' 'fabric' %}">Dosyadan</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2">
+                <a href="#" data-bs-toggle="dropdown"><p>Sonuç Girişi <i
+                    class="fa fa-angle-double-down"></i></p></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li><a class="dropdown-item" href="{% url 'data_entry' 'experiment' %}">Veri Girişi (Elle)</a></li>
+                    <li><a class="dropdown-item" href="{% url 'data_import' 'gramaj' %}">Gramaj</a></li>
+                    <li><a class="dropdown-item" href="{% url 'data_import' 'weft' %}">Yırtılma Mukavemeti (Atkı)</a></li>
+                    <li><a class="dropdown-item" href="{% url 'data_import' 'warp' %}">Yırtılma Mukavemeti (Çözgü)</a></li>
+                    <li><a class="dropdown-item" href="{% url 'data_import' 'elasticity' %}">Elastikiyet</a></li>
+                    <li><a class="dropdown-item" href="{% url 'data_import' 'potluk' %}">Potluk</a></li>
+                    <li><a class="dropdown-item" href="{% url 'data_import' 'cielab' %}">CIELab</a></li>
+                    <li><a class="dropdown-item" href="{% url 'image_upload' %}">Görüntüler</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid data-page-support">
+    <div class="data-info">
+        <div class="row">
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">{{ r }}</h4>
+                        <p class="card-text">Receçete Sayısı</p>
+                        <a href="#!" class="btn btn-primary">Detaylar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">{{ f }}</h4>
+                        <p class="card-text">Kumaş Tipi</p>
+                        <a href="#!" class="btn btn-primary">Detaylar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">{{ e.total }}</h4>
+                        <p class="card-text">Toplam Deney Kaydı</p>
+                        <p>Gramaj: {{ e.gramaj }} </p>
+                        <p>Yırtılma Mukavemeti (Atkı): {{ e.weft }} </p>
+                        <p>Yırtılma Mukavemeti (Çözgü): {{ e.warp }} </p>
+                        <p>Elastikiyet: {{ e.elas }} </p>
+                        <p>Potluk: {{ e.pot }} </p>
+                        <p>CieLAB-L: {{ cielab.l }} </p>
+                        <p>CieLAB-a: {{ cielab.a }} </p>
+                        <p>CieLAB-b: {{ cielab.b }} </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ i.total }}</h5>
+                        <p class="card-text">Görüntü Adedi</p>
+                        <p>Ham: {{ i.raw }} </p>
+                        <p>Hypo öncesi: {{ i.hypo }} </p>
+                        <p>Çıktı: {{ i.output }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        
+{% endblock %}

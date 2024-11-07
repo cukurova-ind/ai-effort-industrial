@@ -1,0 +1,33 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Görüntüler
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid data-import-main">
+    <div class="data-form">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <p><strong>Veri Yükleme | Görüntüler</strong></p>
+            <hr>
+            <div class="mb-3">
+                <div>
+                    <label class="form-label" for="id_data_file">Görüntü Klasörü</label>
+                </div>
+                {{ form.folder }}
+            </div>
+            <button class="btn btn-success text-center" type="submit">Yükle</button>
+        </form>
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}  
+    </div>
+</div>
+
+{% endblock %}

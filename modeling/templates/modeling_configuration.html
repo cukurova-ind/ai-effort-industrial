@@ -1,0 +1,163 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Model Ayarları
+
+{% endblock %}
+
+
+{% block content %}
+
+  
+<div class="container-fluid d-flex justify-content-center align-items-center modeling-configuration">
+    
+    <form method="post" id="config-form">
+        <div class="row">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="model_type" class="form-label">Model Tipi</label> 
+                <select name="model" class="form-select" id="model_type">
+
+                    {% if model == "mlp" %}
+                    <option value="mlp" selected>Multilayer Perceptron</option>
+                    {% else %}
+                    <option value="mlp">Multilayer Perceptron</option>
+                    {% endif %}
+
+                    {% if model == "cnnmlp" %}
+                    <option value="cnnmlp" selected>CNN-Augmented MLP</option>
+                    {% else %}
+                    <option value="cnnmlp">CNN-Augmented MLP</option>
+                    {% endif %}
+
+                    {% if model == "dcgan" %}
+                    <option value="dcgan" selected>DCGAN</option>
+                    {% else %}
+                    <option value="dcgan">DCGAN</option>
+                    {% endif %}
+
+                    {% if model == "srgan" %}
+                    <option value="srgan" selected>SRGAN</option>
+                    {% else %}
+                    <option value="srgan">SRGAN</option>
+                    {% endif %}
+
+                    {% if model == "unet_plus" %}
+                    <option value="unet_plus" selected>Unet++</option>
+                    {% else %}
+                    <option value="unet_plus">Unet++</option>
+                    {% endif %}
+
+                    {% if model == "unet_plus_cond" %}
+                    <option value="unet_plus_cond" selected>Unet++ Conditional</option>
+                    {% else %}
+                    <option value="unet_plus_cond">Unet++ Conditional</option>
+                    {% endif %}
+
+                    {% if model == "unet_plus_gan" %}
+                    <option value="unet_plus_gan" selected>Unet++ Gan</option>
+                    {% else %}
+                    <option value="unet_plus_gan">Unet++ Gan</option>
+                    {% endif %}
+
+                    {% if model == "unet_plus_gan_cond" %}
+                    <option value="unet_plus_gan_cond" selected>Unet++ Gan Conditional</option>
+                    {% else %}
+                    <option value="unet_plus_gan_cond">Unet++ Gan Conditional</option>
+                    {% endif %}
+
+                    {% if model == "image_cond" %}
+                    <option value="image_cond" selected>UnetGan</option>
+                    {% else %}
+                    <option value="image_cond">UnetGan</option>
+                    {% endif %}
+                        
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="re-train" class="form-label">Yeniden Eğitim</label>
+                <div class="form-check form-switch py-3" id="re-train">
+                    {% if hlink %}
+                    <input class="form-check-input" type="checkbox" role="switch" id="retrain" name="retrain" checked>
+                    {% else %}
+                    <input class="form-check-input" type="checkbox" role="switch" id="retrain" name="retrain">
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="saved_model" class="form-label">Kayıtlı Model</label> 
+                <select name="saved_model" class="form-select" id="saved_model" disabled>
+                    {% if hlink %}
+                    <option value="{{ version }}">{{ version }}</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="scale" class="form-label">Veri Seti Ölçekleme</label> 
+                <select name="input_scaling" class="form-select">
+                    {% if input_scaling == "norm1" %}
+                    <option value="norm1" selected>Normalizasyon [0,1]</option>
+                    {% else %}
+                    <option value="norm1">Normalizasyon [0,1]</option>
+                    {% endif %}
+
+                    {% if input_scaling == "norm2" %}
+                    <option value="norm2" selected>Normalizasyon [-1,1]</option>
+                    {% else %}
+                    <option value="norm2">Normalizasyon [-1,1]</option>
+                    {% endif %}
+
+                    {% if input_scaling == "off" %}
+                    <option value="off" selected>Yok</option>
+                    {% else %}
+                    <option value="off">Yok</option>
+                    {% endif %}
+
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="batch" class="form-label">Veri Seti Batch Büyüklüğü</label> 
+                <input name="batch_size" type="number" class="form-control" id="batch" value="{{ batch_size }}"> 
+            </div>
+            
+            <div class="mb-3">
+                <label for="epoch" class="form-label">Training Epoch Sayısı</label> 
+                <input name="n_epochs" type="number" class="form-control" id="epoch" value="{{ n_epochs }}">
+            </div>
+
+            <div class="mb-3">
+                <label for="step" class="form-label">Epoch Step Sayısı</label>
+                <div class="form-check form-switch py-3">
+                    {% if max_steps == "on" %}
+                    <input class="form-check-input" type="checkbox" role="switch" id="max_steps" name="max_steps" checked>
+                    {% else %}
+                    <input class="form-check-input" type="checkbox" role="switch" id="max_steps" name="max_steps">
+                    {% endif %}
+                    <label class="form-check-label" for="max_steps">Max-Steps (Sample Size / Batch Size)</label> 
+                </div>
+                
+                {% if max_steps == "on" %}
+                <input name="n_steps" type="number" class="form-control" id="step" value="{{ n_steps }}" disabled>
+                {% else %}
+                <input name="n_steps" type="number" class="form-control" id="step" value="{{ n_steps }}">
+                {% endif %}
+            </div>
+        
+            <div class="mb-3">
+                <label for="step" class="form-label">Validation Size [0, 0.9]</label>
+                <input name="val_size" type="number" min="0" max="0.9" step="0.05" class="form-control" id="val_size" value="{{ val_size }}">
+            </div>
+            <button type="submit" class="btn btn-success">Uygula</button>
+            {% if hlink %}
+                <a href="{{ hlink }}" class="btn btn-primary" target="_blank">Devam</a>
+            {% else %}
+                <a href="http://127.0.0.1:5000/" class="btn btn-primary" target="_blank">Devam</a>
+            {% endif %}
+        </div>
+    </form>
+</div> 
+
+        
+{% endblock %}

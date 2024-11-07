@@ -1,0 +1,99 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Sonuç Verisi Girişi
+
+{% endblock %}
+
+
+{% block content %}
+  
+<div class="container-fluid entry-page-main">
+    <div class="data-form">
+        
+        <form method="post" enctype="multipart/form-data" id="grand_form">
+            {% csrf_token %}
+            <p><strong>Veri Girişi | {{ what }}</strong></p>
+            <hr>
+            <p><strong>Kumaş Tipi:</strong></p>
+            <hr>
+            <div class="row mb-3">
+                <div class="col-4">
+                    {{ form.type_number }}
+                </div>
+                <div class="col-4">
+                    <a class="text-warning" href="{% url 'data_entry' 'fabric' %}">Yeni Kumaş Tipi</a>
+                </div>
+            </div>
+
+            <p><strong>Reçete:</strong></p>
+            <hr>
+            <div class="row mb-3">               
+                <div class="col-4">
+                    {{ form.recipe_id }}
+                </div>
+                <div class="col-4">
+                    <a class="text-warning" href="{% url 'data_entry' 'recipe' %}">Yeni Reçete</a>
+                </div>
+            </div>
+
+            <p><strong>Ölçüm Değerleri:</strong></p>
+            <hr>
+
+            <div class="row mb-3">
+                <div class="col-4">
+                    <label class="form-label" for="id_gramaj">Gramaj</label>
+                    {{ form.gramaj }}
+                </div>
+                <div class="col-4">
+                    <label class="form-label" for="id_tearing_strength_weft">Yırtılma Mukavemeti (Atkı)</label>
+                    {{ form.tearing_strength_weft }}
+                </div>
+                <div class="col-4">
+                    <label class="form-label" for="id_tearing_strength_warp">Yırtılma Mukavemeti (Çözgü)</label>
+                    {{ form.tearing_strength_warp }}
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-4">
+                    <label class="form-label" for="id_elasticity">Elastikiyet</label>
+                    {{ form.elasticity }}
+                </div>
+                <div class="col-4">
+                    <label class="form-label" for="id_pot">Potluk</label>
+                    {{ form.pot }}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+             
+                <label class="form-label">CIELab</label>
+                <div class="col-4">
+                    <label class="form-label" for="id_cielab_l">L</label>
+                    {{ form.cielab_l }}
+                </div>
+                <div class="col-4">
+                    <label class="form-label" for="id_cielab_a">a</label>
+                    {{ form.cielab_a }}
+                </div>
+                <div class="col-4">
+                    <label class="form-label" for="id_cielab_b">b</label>
+                    {{ form.cielab_b }}
+                </div>
+              
+            </div>
+            <button class="btn btn-success text-center"
+                id="data-form-button"
+                type="submit">Ekle
+            </button>
+        </form>
+        
+    </div>
+    
+    
+</div>
+        
+{% endblock %}

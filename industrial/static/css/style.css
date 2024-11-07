@@ -1,0 +1,402 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300');
+
+html, body {
+  font-family : 'Open Sans Condensed', sans-serif;
+  height : 100%;
+}
+
+a, a:hover, a:visited, a:active, a:focus {
+  text-decoration : none;
+  color : black;
+}
+
+.row{
+  padding: 0;
+}
+
+.is-hidden {
+  display: none!important;
+}
+
+.is-active {
+  display: block;
+}
+
+.top {
+  width: 100%;
+  height: 10%;
+  color : white;
+  background-color: black;
+}
+
+.top nav {
+  width: 80%;
+  height: 100%;
+  margin: 0 auto;
+  background-color: black;
+}
+
+.top .navbar-nav a {
+  color: white;
+}
+
+.top .navbar-collapse {
+  background-color: black;
+  z-index: 999;
+  padding: 1%;
+}
+
+.top .navbar-toggler {
+  border: 1px solid white;
+}
+
+.top .navbar-toggler-icon {
+  border: 1px solid white;
+}
+
+.top img {
+  width: 32%;
+}
+
+.top .logo {
+  display: block;
+  width: 20%;
+}
+
+.top .navbar-nav .avat {
+  width: 30%;
+  border: 1px solid black;
+}
+
+.horizontal-line {
+  width: 100%;
+  height: 0.1%;
+  background: white;
+  opacity: .8;
+}
+
+/* main-page */
+.main-page-main {
+  width: 80%;
+  height: 89.9%;
+  padding: 0;
+}
+
+.home-header {
+  width: 100%;
+  height: 45%;
+  background-color: lightgray;
+  background-size: cover;
+  background-image: url('https://baykandenim.com/wp-content/uploads/2014/11/wd1.jpg');
+  background-position: center center;
+}
+
+.welcome-card {
+  background-color: #EC643C;
+  color: white;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: -20%;
+  margin-left: 10%;
+  padding: 2%;
+  border-radius: 4px;
+  height: 100%;
+}
+
+.welcome-card-title {
+  color: inherit;
+  font-size: 2.36rem;
+  line-height: 1.5;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 13px;
+  max-width: 100%;
+}
+
+.welcome-card-description {
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: normal;
+  color: inherit;
+  margin-top: 13px;
+  margin-bottom: 26px;
+  max-width: 100%;
+}
+
+.welcome-card-link {
+  color: inherit;
+  font-weight: bold;
+  margin-top: auto;
+  -webkit-transition: all .2s;
+  -o-transition: all .2s;
+  transition: all .2s;
+  opacity: 1;
+  max-width: 100%
+}
+
+.welcome-card-link .fa {
+  position: relative;
+  left: 0;
+  -webkit-transition: all .2s;
+  -o-transition: all .2s;
+  transition: all .2s;
+}
+
+.welcome-card-link:hover {
+  opacity: .7;
+  text-decoration: none;
+}
+
+.welcome-card-link:hover .fa {
+  left: 3px;
+}
+
+.kpi-card {
+  background-color: #f6f8fb;
+  height: 100%;
+  padding: 39px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  text-align: center;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.kpi-icon {
+  color: #142E7B;
+  font-size: 4rem;
+  margin-top: 0;
+  margin-bottom: 13px;
+  max-width: 100%;
+}
+
+.kpi-title {
+  font-weight: normal;
+  color: #EC643C;
+  font-size: 3.2rem;
+  margin-top: 0;
+  margin-bottom: 13px;
+  max-width: 100%;
+}
+
+.kpi-description {
+  color: #333333;
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: normal;
+  margin-top: 0;
+  margin-bottom: 0;
+  max-width: 100%;
+}
+
+/* data */
+.data-page-main {
+  width: 100%;
+  height: 9.9%;
+  padding: 0;
+}
+
+.data-page-main .link-info {
+  width: 80%;
+  margin: 0 auto;
+  margin-top: 2%;
+}
+
+.data-page-support {
+  width: 100%;
+  height: 80%;
+  padding: 0;
+}
+
+.data-page-support .data-info {
+  width: 80%;
+  margin: 0 auto;
+}
+
+/* data-page */
+.entry-page-main .data-form form select,
+.entry-page-main .data-form form input,
+.entry-page-main .data-form form button {
+  border-radius: 0;
+}
+
+.entry-page-main, .data-import-main, .import-area {
+  width: 100%;
+  min-height: 89.9%;
+  padding: 0;
+}
+
+.entry-page-main .data-form, .data-import-main .data-form, .import-area .data-form {
+  width: 50%;
+  margin: 0 auto;
+}
+
+/* data */
+.modeling-page-main {
+  width: 100%;
+  height: 89.9%;
+  padding: 0;
+}
+
+.modeling-page-main .dataset {
+  width: 15%;
+  height: 25%;
+  margin: 1%;
+}
+
+.modeling-page-main .dataset .card {
+  border: 1px solid red;
+  background: darkorange;
+  height: 100%;
+  transition: 0.3s;
+}
+
+.modeling-page-main .dataset .card:hover {
+  opacity: 0.7;
+  box-shadow: 2px 2px 1px 1px;
+}
+
+.data-settings, .image-settings {
+  width: 80%;
+  min-height: 89.9%;
+  padding: 0%;
+}
+
+.process-section:hover{
+  border: 2px solid rgba(0, 0, 255, 0.212);
+  border-radius: 2%;
+}
+
+.data-settings form button,
+.data-settings form a,
+.modeling-configuration form button,
+.modeling-configuration form a {
+  width: 20%;
+  margin: 0 auto;
+}
+
+table {
+  table-layout: fixed;
+  word-wrap: break-word;
+  overflow-x: scroll;
+}
+
+.samples img {
+  width: 8.5%;
+  height: 80%;
+  margin: 1%;
+}
+
+/* prompt */
+.model-page-main {
+  width: 80%;
+  height: 89.9%;
+  padding: 0;
+}
+
+.prompt-page-main{
+  width: 80%;
+  height: 89.9%;
+  padding: 0;
+}
+
+.prompt-page-main .model {
+  width: 45%;
+  height: 25%;
+  margin: 1%;
+}
+
+.prompt-page-main .model .card {
+  border: 1px solid red;
+  background: darkorange;
+  height: 100%;
+  opacity: 0.8;
+  transition: 1s;
+}
+
+.prompt-page-main .model .card:hover {
+  opacity: 1;
+}
+
+.model-page-main .model-form,
+.model-page-main .model-selection {
+  border-right: 2px solid gray;
+  padding: 2%;
+}
+
+.model-page-main .model-selection a {
+  width: 85%;
+  margin: 0 auto;
+  margin-top: 1%;
+}
+
+.model-page-main .model-selection a,
+.model-page-main .model-form form select,
+.model-page-main .model-form form input,
+.model-page-main .model-form form button {
+  border-radius: 0;
+}
+
+.model-page-main .model-response {
+  padding: 2%;
+  min-height: 50%;
+}
+
+.model-page-main .model-response .input-img {
+  width: 300px;
+  height: 300px;
+  padding: 2%;
+  margin: 1% auto;
+  border: 1px solid black;
+}
+
+.model-page-main .model-response img {
+  width: 256px;
+  height: 256px;
+}
+
+/* configuration */
+.modeling-configuration {
+  width: 100%;
+  height: 89.9%;
+  padding: 0;
+}
+
+/* footer */
+.bottom {
+  height: 20%;
+  background-color: black;
+  color: white;
+  font-size: small;
+}
+
+.bottom .upper-footer {
+  width: 80%;
+  margin: 0 auto;
+  padding: 1%;
+}
+
+.bottom .upper-footer a{
+  color: white;
+}
+
+.bottom .upper-footer a:hover{
+  font-weight: bold;
+}
+
+.bottom .low-footer {
+  width: 80%;
+  margin: 0 auto;
+}
