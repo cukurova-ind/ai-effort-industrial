@@ -43,24 +43,34 @@ Sonuç Verisi Girişi
             <hr>
 
             <div class="row mb-3">
-                <div class="col-4">
+                <div class="col-3">
                     <label class="form-label" for="id_gramaj">Gramaj</label>
                     {{ form.gramaj }}
                 </div>
-                <div class="col-4">
+                <div class="col-3">
                     <label class="form-label" for="id_tearing_strength_weft">Yırtılma Mukavemeti (Atkı)</label>
                     {{ form.tearing_strength_weft }}
                 </div>
-                <div class="col-4">
+                <div class="col-3">
                     <label class="form-label" for="id_tearing_strength_warp">Yırtılma Mukavemeti (Çözgü)</label>
                     {{ form.tearing_strength_warp }}
                 </div>
+                <div class="col-3">
+                    <label class="form-label" for="id_elasticity">Elastikiyet</label>
+                    {{ form.elasticity }}
+                </div>
             </div>
+
+            
             
             <div class="row mb-3">
                 <div class="col-4">
-                    <label class="form-label" for="id_elasticity">Elastikiyet</label>
-                    {{ form.elasticity }}
+                    <label class="form-label" for="id_breaking_strength_weft">Kopma Mukavemeti (Atkı)</label>
+                    {{ form.breaking_strength_weft }}
+                </div>
+                <div class="col-4">
+                    <label class="form-label" for="id_breaking_strength_warp">Kopma Mukavemeti (Çözgü)</label>
+                    {{ form.breaking_strength_warp }}
                 </div>
                 <div class="col-4">
                     <label class="form-label" for="id_pot">Potluk</label>

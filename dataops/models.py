@@ -7,7 +7,6 @@ class Recipe(models.Model):
     id = models.IntegerField(primary_key=True)
     bleaching = models.IntegerField(null=False, default=1)
     duration = models.IntegerField(null=False, default=5)
-    temperature = models.IntegerField(null=False, default=50)
     concentration = models.IntegerField(null=False, default=4000)
 
     def __str__(self):
@@ -28,20 +27,12 @@ class Fabric(models.Model):
         ("3/1 KIRIK DİMİ", "3/1 KIRIK DİMİ"),
     ]
     id = models.IntegerField(primary_key=True)
-    material = models.CharField(null=True)
-    material_text = models.CharField(null=True)
-    coloring = models.CharField(null=True)
     coloring_type = models.CharField(null=False, choices=coloring_type)
-    elastan = models.CharField(null=True)
-    elasticity = models.IntegerField(null=True)
-    composition = models.CharField(null=True)
+    fabric_elasticity = models.IntegerField(null=True)
     yarn_number = models.FloatField(null=True)
     frequency = models.FloatField(null=True)
     knitting = models.CharField(null=True, choices=knitting_type)
-    onyzd = models.FloatField(null=True)
-    onyzd_washed = models.FloatField(null=True)
-    product_color = models.CharField(null=True)
-    width = models.CharField(null=True)
+    onzyd = models.FloatField(null=True)
 
     def __str__(self):
         return str(self.id)
@@ -71,6 +62,12 @@ class Input(models.Model):
 
     tearing_strength_warp_raw = models.IntegerField(null=True, blank=True)
     tearing_strength_warp_hypo = models.IntegerField(null=True, blank=True)
+
+    breaking_strength_weft_raw = models.IntegerField(null=True, blank=True)
+    breaking_strength_weft_hypo = models.IntegerField(null=True, blank=True)
+
+    breaking_strength_warp_raw = models.IntegerField(null=True, blank=True)
+    breaking_strength_warp_hypo = models.IntegerField(null=True, blank=True)
 
     elasticity_raw = models.IntegerField(null=True, blank=True)
     elasticity_hypo = models.IntegerField(null=True, blank=True)
@@ -104,6 +101,8 @@ class Experiment(models.Model):
     gramaj = models.IntegerField(null=True, blank=True)
     tearing_strength_weft = models.IntegerField(null=True, blank=True)
     tearing_strength_warp = models.IntegerField(null=True, blank=True)
+    breaking_strength_weft = models.IntegerField(null=True, blank=True)
+    breaking_strength_warp = models.IntegerField(null=True, blank=True)
     elasticity = models.IntegerField(null=True, blank=True)
     pot = models.IntegerField(null=True, blank=True)
     cielab_l = models.FloatField(null=True, blank=True)

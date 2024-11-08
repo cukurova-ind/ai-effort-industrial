@@ -27,73 +27,31 @@ Kumaş Verisi Giriş
 
             <div class="row mb-3">
                 <div class="col-4">
-                    <label class="form-label" for="id_material">Malzeme</label>
-                    {{ form.material }}
-                </div>
-                <div class="col-4">
-                    <label class="form-label" for="id_material_text">Malzeme Metni</label>
-                    {{ form.material_text }}
-                </div>
-                <div class="col-4">
-                    <label class="form-label" for="id_coloring">Boyama</label>
-                    {{ form.coloring }}
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-4">
                     <label class="form-label" for="id_coloring_type">Boyama Tipi</label>
                     {{ form.coloring_type }}
                 </div>
                 <div class="col-4">
-                    <label class="form-label" for="id_elastan">Elastanlık</label>
-                    {{ form.elastan }}
-                </div>
-                <div class="col-4">
                     <label class="form-label" for="id_elasticity">Atkı Elastikiyet Ortalaması</label>
-                    {{ form.elasticity }}
-                </div>
-                
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-4">
-                    <label class="form-label" for="id_composition">Kompozisyon</label>
-                    {{ form.composition }}
+                    {{ form.fabric_elasticity }}
                 </div>
                 <div class="col-4">
                     <label class="form-label" for="id_yarn_number">İplik Numarası</label>
                     {{ form.yarn_number }}
                 </div>
+                
+            </div>
+            <div class="row mb-3">
                 <div class="col-4">
                     <label class="form-label" for="id_siklik">Sıklık</label>
                     {{ form.frequency }}
                 </div>
-            </div>
-
-            <div class="row mb-3">
                 <div class="col-4">
                     <label class="form-label" for="id_knitting">Örgü</label>
                     {{ form.knitting }}
                 </div>
                 <div class="col-4">
                     <label class="form-label" for="id_onzyd">Onz/yd2</label>
-                    {{ form.onyzd }}
-                </div>
-                <div class="col-4">
-                    <label class="form-label" for="id_onzyd_washed">Onz/yd2 Washed</label>
-                    {{ form.onyzd_washed }}
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-4">
-                    <label class="form-label" for="id_product_color">Mamul Rengi</label>
-                    {{ form.product_color }}
-                </div>
-                <div class="col-4">
-                    <label class="form-label" for="id_width">En (cm)</label>
-                    {{ form.width }}
+                    {{ form.onzyd }}
                 </div>
             </div>
             <button class="btn btn-success text-center"

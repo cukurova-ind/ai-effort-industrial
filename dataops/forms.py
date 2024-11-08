@@ -110,22 +110,14 @@ class FabricForm(forms.Form):
                     "class": "form-select",
                     "name": "coloring_type",
                 }), choices=coloring_types)
-    
-    elastan = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
-                "class": "form-control",
-                "type": "text",
-                "name": "elastan",
-            }))
-    
-    elasticity = forms.IntegerField(
+        
+    fabric_elasticity = forms.IntegerField(
         widget=forms.NumberInput(
             attrs={
                 "class": "form-control",
                 "type": "number",
                 "value": 0,
-                "name": "elasticity",
+                "name": "fabric_elasticity",
             }))
     
     composition = forms.CharField(
@@ -160,13 +152,13 @@ class FabricForm(forms.Form):
                 "name": "knitting",
             }), choices=knittings)
     
-    onyzd = forms.FloatField(
+    onzyd = forms.FloatField(
         widget=forms.NumberInput(
             attrs={
                 "class": "form-control",
                 "type": "number",
                 "value": 0.0,
-                "name": "onyzd",
+                "name": "onzyd",
             }))
     
     onyzd_washed = forms.FloatField(
@@ -253,6 +245,24 @@ class ExperimentForm(forms.Form):
                 "type": "number",
                 "value": 0,
                 "name": "tearing_strength_warp",
+            }))
+    
+    breaking_strength_weft = forms.IntegerField(
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "type": "number",
+                "value": 0,
+                "name": "breaking_strength_weft",
+            }))
+    
+    breaking_strength_warp = forms.IntegerField(
+        widget=forms.NumberInput(
+            attrs={
+                "class": "form-control",
+                "type": "number",
+                "value": 0,
+                "name": "breaking_strength_warp",
             }))
     
     elasticity = forms.IntegerField(

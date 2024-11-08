@@ -49,7 +49,7 @@ def main_page(req):
 class Import(View):
 
     template_name = "import_page.html"
-    whats = ["recipe", "fabric", "cielab", "gramaj", "weft", "warp", "elasticity", "potluk"]
+    whats = ["recipe", "fabric", "cielab", "gramaj", "weft", "warp", "elasticity", "potluk", "overall"]
 
     def get(self, req, *args, **kwargs):
         what = kwargs.get("what")
@@ -81,11 +81,15 @@ class Import(View):
         if req.FILES:
             myfile = req.FILES["data_file"]
             content = myfile.content_type
-            if content != "text/csv":
-                message = "error: provide a csv file"
+            contents = ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"]
+            if content not in contents:
+                message = "error: provide a csv or xlsx file"
             else:
                 try:
-                    df = pd.read_csv(myfile)
+                    if content == "text/csv":
+                        df = pd.read_csv(myfile)
+                    else:
+                        df = pd.read_excel(myfile)
                     Recipe.objects.all().delete()
                     for d in df.itertuples():
                         recipe = Recipe.objects.create(
@@ -106,30 +110,25 @@ class Import(View):
         if req.FILES:
             myfile = req.FILES["data_file"]
             content = myfile.content_type
-            if content != "text/csv":
-                message = "error: provide a csv file"
+            contents = ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"]
+            if content not in contents:
+                message = "error: provide a csv or xlsx file"
             else:
                 try:
-                    #df = pd.read_excel(myfile)
-                    df = pd.read_csv(myfile)
+                    if content == "text/csv":
+                        df = pd.read_csv(myfile)
+                    else:
+                        df = pd.read_excel(myfile)
                     Fabric.objects.all().delete()
                     for d in df.itertuples():
                         fabric = Fabric.objects.create(
                             id=d.tip,
-                            material=d.malzeme,
-                            material_text=d.malzeme_metni, 
-                            coloring=d.boyama,
                             coloring_type=d.boyama_tipi,
-                            elastan=d.elastanlik,
-                            elasticity=d.elastikiyet,
-                            composition=d.kompozisyon,
+                            fabric_elasticity=d.elastikiyet,
                             yarn_number=d.iplik_no_ne,
                             frequency=d.siklik,
                             knitting=d.orgu,
-                            onyzd=d.onzyd2,
-                            onyzd_washed=d.onzyd2_washed,
-                            product_color=d.mamul_renk,
-                            width=d.en)           
+                            onzyd=d.onzyd2)           
                         fabric.save()
                     count = Fabric.objects.count()
                     message = "success: " + str(count) + " data imported"
@@ -142,126 +141,198 @@ class Import(View):
     def result_import(self, req, imp=None):
         if req.FILES and req.FILES["data_file"]:
             myfile = req.FILES["data_file"]
+            message = ""
             content = myfile.content_type
-            if content != "text/csv":
-                message = "error: provide a csv file"
+            contents = ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "text/csv"]
+            if content not in contents:
+                message = "error: provide a csv or xlsx file"
             else:
                 try:
-                    if imp=="cielab":
-                        df = pd.read_csv(myfile, header=[0,1])
-
-                        df2 = df.iloc[:, :7]
-                        df2.columns = ["Tip", "ham_L", "ham_a", "ham_b", "prehypo_L", "prehypo_a", "prehypo_b"]
-                        df2["Tip"] = df2["Tip"].str.partition("p")[2].astype(int)
-                        df2 = df2.sort_values(["Tip"])
-                        df2.fillna(0, inplace=True)
-                        df2["ham_L"] = df2["ham_L"].astype(str).str.replace(",", ".").astype(float)
-                        df2["ham_a"] = df2["ham_a"].astype(str).str.replace(",", ".").astype(float)
-                        df2["ham_b"] = df2["ham_b"].astype(str).str.replace(",", ".").astype(float)
-                        df2["prehypo_L"] = df2["prehypo_L"].astype(str).str.replace(",", ".").astype(float)
-                        df2["prehypo_a"] = df2["prehypo_a"].astype(str).str.replace(",", ".").astype(float)
-                        df2["prehypo_b"] = df2["prehypo_b"].astype(str).str.replace(",", ".").astype(float)
-
-                        df = df.set_index(df.columns[0])
-                        df1 = df.iloc[:, 6:]
-
-                        df1 = df1.stack(1).reset_index()
-                        df1 = df1.set_index(df1.columns[0])
-
-                        df1 = df1.melt(id_vars=df1.columns[:1], var_name="recipe", value_name='value', ignore_index=False)
-                        df1 = df1.rename_axis("Tip").reset_index()
-                        df1 = df1.rename(columns={"level_1":"cielab"})
-                        df1.loc[df1["recipe"].str.contains("ete"), "recipe"] = df1.loc[df1["recipe"].str.contains("ete"), "recipe"].str.partition("te")[2]
-                        df1["Tip"] = df1["Tip"].str.partition("p")[2].astype(int)
-                        df1["recipe"] = df1["recipe"].astype(int)
-                        df1 = df1.sort_values(["recipe", "Tip"])
-                        df1 = df1.set_index(["Tip", "recipe", "cielab"]).unstack(2).reset_index()
-                        df1.columns = ["Tip", "recipe", "L", "a", "b"]
-                        df1.fillna(0, inplace=True)
-
-                        df1["L"] = df1["L"].astype(str).str.replace(",", ".").astype(float)
-                        df1["a"] = df1["a"].astype(str).str.replace(",", ".").astype(float)
-                        df1["b"] = df1["b"].astype(str).str.replace(",", ".").astype(float)
-                    else:
-                        df = pd.read_csv(myfile, header=[0])
+                    if imp=="overall":
+                        if content == "text/csv":
+                            df = pd.read_csv(myfile)
+                        else:
+                            df = pd.read_excel(myfile)
                         
-                        df1 = df.set_index(df.columns[0]).iloc[:,2:]
-                        df2 = df.set_index(df.columns[0]).iloc[:,:2]
-                        df1 = df1.melt(var_name='recipe', value_name='value', ignore_index=False)
-                        df1 = df1.rename_axis("Tip").reset_index()
-                        df2 = df2.rename_axis("Tip").reset_index()
-                        df2["Tip"] = df2["Tip"].str.partition("p")[2].astype(int)
+                        for d2 in df.itertuples():
                         
-                        df1.loc[df1["recipe"].str.contains("ete"), "recipe"] = df1.loc[df1["recipe"].str.contains("ete"), "recipe"].str.partition("te")[2]
-                        df1["Tip"] = df1["Tip"].str.partition("p")[2].astype(int)
-                        df1["recipe"] = df1["recipe"].astype(int)
-                        df1 = df1.sort_values(["recipe", "Tip"])
-                        df1.fillna(0, inplace=True)
+                            fabric = Fabric.objects.get(pk=d2.type)
+                            inp = {"type": fabric}
 
-                    for d2 in df2.itertuples():
+                            inp["gramaj_raw"] = d2.gramage_raw
+                            inp["gramaj_hypo"] = d2.gramage_prehypo
+
+                            inp["tearing_strength_weft_raw"] = d2.tearing_strength_weft_raw
+                            inp["tearing_strength_weft_hypo"] = d2.tearing_strength_weft_prehypo
+
+                            inp["tearing_strength_warp_raw"] = d2.tearing_strength_warp_raw
+                            inp["tearing_strength_warp_hypo"] = d2.tearing_strength_warp_prehypo
+
+                            inp["breaking_strength_weft_raw"] = d2.breaking_strength_weft_raw
+                            inp["breaking_strength_weft_hypo"] = d2.breaking_strength_weft_prehypo
+
+                            inp["breaking_strength_warp_raw"] = d2.breaking_strength_warp_raw
+                            inp["breaking_strength_warp_hypo"] = d2.breaking_strength_warp_prehypo
+
+                            inp["elasticity_raw"] = d2.elasticity_raw
+                            inp["elasticity_hypo"] = d2.elasticity_prehypo
+
+                            inp["pot_raw"] = d2.pot_raw
+                            inp["pot_hypo"] = d2.pot_prehypo
+
+                            inp["cielab_l_raw"] = d2.cielab_l_raw
+                            inp["cielab_a_raw"] = d2.cielab_a_raw
+                            inp["cielab_b_raw"] = d2.cielab_b_raw
+                            inp["cielab_l_hypo"] = d2.cielab_l_prehypo
+                            inp["cielab_a_hypo"] = d2.cielab_a_prehypo
+                            inp["cielab_b_hypo"] = d2.cielab_b_prehypo
+
+                            ip, _ = Input.objects.update_or_create(
+                                    type=fabric,
+                                    defaults=inp)
+
+                            Input.save(ip)
+
+                            oinput = Input.objects.get(type=d2.type)
+                            recipe = Recipe.objects.get(id=d2.recipe)
+                            
+                            exp = {"input": oinput,
+                                    "recipe": recipe}
+
+                            exp["gramaj"] = d2.gramage_posthypo
+                            exp["tearing_strength_weft"] = d2.tearing_strength_weft_posthypo
+                            exp["tearing_strength_warp"] = d2.tearing_strength_warp_posthypo
+                            exp["breaking_strength_weft"] = d2.breaking_strength_weft_posthypo
+                            exp["breaking_strength_warp"] = d2.breaking_strength_warp_posthypo
+                            exp["elasticity"] = d2.elasticity_posthypo
+                            exp["pot"] = d2.pot_posthypo
+                            exp["cielab_l"] = d2.cielab_l_posthypo
+                            exp["cielab_a"] = d2.cielab_a_posthypo
+                            exp["cielab_b"] = d2.cielab_b_posthypo
+
+                            ex, _ = Experiment.objects.update_or_create(
+                                    pk=str(d2.type) + "-" + str(d2.recipe),
+                                    defaults=exp)
+
+                            Experiment.save(ex)
+
+                            message = "success"
+                # try:
+                #     if imp=="cielab":
+                #         df = pd.read_csv(myfile, header=[0,1])
+
+                #         df2 = df.iloc[:, :7]
+                #         df2.columns = ["Tip", "ham_L", "ham_a", "ham_b", "prehypo_L", "prehypo_a", "prehypo_b"]
+                #         df2["Tip"] = df2["Tip"].str.partition("p")[2].astype(int)
+                #         df2 = df2.sort_values(["Tip"])
+                #         df2.fillna(0, inplace=True)
+                #         df2["ham_L"] = df2["ham_L"].astype(str).str.replace(",", ".").astype(float)
+                #         df2["ham_a"] = df2["ham_a"].astype(str).str.replace(",", ".").astype(float)
+                #         df2["ham_b"] = df2["ham_b"].astype(str).str.replace(",", ".").astype(float)
+                #         df2["prehypo_L"] = df2["prehypo_L"].astype(str).str.replace(",", ".").astype(float)
+                #         df2["prehypo_a"] = df2["prehypo_a"].astype(str).str.replace(",", ".").astype(float)
+                #         df2["prehypo_b"] = df2["prehypo_b"].astype(str).str.replace(",", ".").astype(float)
+
+                #         df = df.set_index(df.columns[0])
+                #         df1 = df.iloc[:, 6:]
+
+                #         df1 = df1.stack(1).reset_index()
+                #         df1 = df1.set_index(df1.columns[0])
+
+                #         df1 = df1.melt(id_vars=df1.columns[:1], var_name="recipe", value_name='value', ignore_index=False)
+                #         df1 = df1.rename_axis("Tip").reset_index()
+                #         df1 = df1.rename(columns={"level_1":"cielab"})
+                #         df1.loc[df1["recipe"].str.contains("ete"), "recipe"] = df1.loc[df1["recipe"].str.contains("ete"), "recipe"].str.partition("te")[2]
+                #         df1["Tip"] = df1["Tip"].str.partition("p")[2].astype(int)
+                #         df1["recipe"] = df1["recipe"].astype(int)
+                #         df1 = df1.sort_values(["recipe", "Tip"])
+                #         df1 = df1.set_index(["Tip", "recipe", "cielab"]).unstack(2).reset_index()
+                #         df1.columns = ["Tip", "recipe", "L", "a", "b"]
+                #         df1.fillna(0, inplace=True)
+
+                #         df1["L"] = df1["L"].astype(str).str.replace(",", ".").astype(float)
+                #         df1["a"] = df1["a"].astype(str).str.replace(",", ".").astype(float)
+                #         df1["b"] = df1["b"].astype(str).str.replace(",", ".").astype(float)
+                #     else:
+                #         df = pd.read_csv(myfile, header=[0])
                         
-                        fabric = Fabric.objects.get(pk=d2.Tip)
-                        inp = {"type": fabric}
-
-                        if imp=="gramaj":
-                            inp["gramaj_raw"] = d2.ham
-                            inp["gramaj_hypo"] = d2.prehypo
-                        if imp=="weft":
-                            inp["tearing_strength_weft_raw"] = d2.ham
-                            inp["tearing_strength_weft_hypo"] = d2.prehypo
-                        if imp=="warp":
-                            inp["tearing_strength_warp_raw"] = d2.ham
-                            inp["tearing_strength_warp_hypo"] = d2.prehypo
-                        if imp=="elasticity":
-                            inp["elasticity_raw"] = d2.ham
-                            inp["elasticity_hypo"] = d2.prehypo
-                        if imp=="potluk":
-                            inp["pot_raw"] = d2.ham
-                            inp["pot_hypo"] = d2.prehypo
-                        if imp=="cielab":
-                            inp["cielab_l_raw"] = d2.ham_L
-                            inp["cielab_a_raw"] = d2.ham_a
-                            inp["cielab_b_raw"] = d2.ham_b
-                            inp["cielab_l_hypo"] = d2.prehypo_L
-                            inp["cielab_a_hypo"] = d2.prehypo_a
-                            inp["cielab_b_hypo"] = d2.prehypo_b
-
-                        ip, _ = Input.objects.update_or_create(
-                                type=fabric,
-                                defaults=inp)
-
-                        Input.save(ip)
-
-                    for d1 in df1.itertuples():
+                #         df1 = df.set_index(df.columns[0]).iloc[:,2:]
+                #         df2 = df.set_index(df.columns[0]).iloc[:,:2]
+                #         df1 = df1.melt(var_name='recipe', value_name='value', ignore_index=False)
+                #         df1 = df1.rename_axis("Tip").reset_index()
+                #         df2 = df2.rename_axis("Tip").reset_index()
+                #         df2["Tip"] = df2["Tip"].str.partition("p")[2].astype(int)
                         
-                        oinput = Input.objects.get(type=d1.Tip)
-                        recipe = Recipe.objects.get(id=d1.recipe)
+                #         df1.loc[df1["recipe"].str.contains("ete"), "recipe"] = df1.loc[df1["recipe"].str.contains("ete"), "recipe"].str.partition("te")[2]
+                #         df1["Tip"] = df1["Tip"].str.partition("p")[2].astype(int)
+                #         df1["recipe"] = df1["recipe"].astype(int)
+                #         df1 = df1.sort_values(["recipe", "Tip"])
+                #         df1.fillna(0, inplace=True)
+
+                #     for d2 in df2.itertuples():
                         
-                        exp = {"input": oinput,
-                               "recipe": recipe}
+                #         fabric = Fabric.objects.get(pk=d2.Tip)
+                #         inp = {"type": fabric}
+
+                #         if imp=="gramaj":
+                #             inp["gramaj_raw"] = d2.ham
+                #             inp["gramaj_hypo"] = d2.prehypo
+                #         if imp=="weft":
+                #             inp["tearing_strength_weft_raw"] = d2.ham
+                #             inp["tearing_strength_weft_hypo"] = d2.prehypo
+                #         if imp=="warp":
+                #             inp["tearing_strength_warp_raw"] = d2.ham
+                #             inp["tearing_strength_warp_hypo"] = d2.prehypo
+                #         if imp=="elasticity":
+                #             inp["elasticity_raw"] = d2.ham
+                #             inp["elasticity_hypo"] = d2.prehypo
+                #         if imp=="potluk":
+                #             inp["pot_raw"] = d2.ham
+                #             inp["pot_hypo"] = d2.prehypo
+                #         if imp=="cielab":
+                #             inp["cielab_l_raw"] = d2.ham_L
+                #             inp["cielab_a_raw"] = d2.ham_a
+                #             inp["cielab_b_raw"] = d2.ham_b
+                #             inp["cielab_l_hypo"] = d2.prehypo_L
+                #             inp["cielab_a_hypo"] = d2.prehypo_a
+                #             inp["cielab_b_hypo"] = d2.prehypo_b
+
+                #         ip, _ = Input.objects.update_or_create(
+                #                 type=fabric,
+                #                 defaults=inp)
+
+                #         Input.save(ip)
+
+                #     for d1 in df1.itertuples():
                         
-                        if imp=="gramaj":
-                            exp["gramaj"] = d1.value
-                        if imp=="weft":
-                            exp["tearing_strength_weft"] = d1.value
-                        if imp=="warp":
-                            exp["tearing_strength_warp"] = d1.value
-                        if imp=="elasticity":
-                            exp["elasticity"] = d1.value
-                        if imp=="potluk":
-                            exp["pot"] = d1.value
-                        if imp=="cielab":
-                            exp["cielab_l"] = d1.L
-                            exp["cielab_a"] = d1.a
-                            exp["cielab_b"] = d1.b
+                #         oinput = Input.objects.get(type=d1.Tip)
+                #         recipe = Recipe.objects.get(id=d1.recipe)
+                        
+                #         exp = {"input": oinput,
+                #                "recipe": recipe}
+                        
+                #         if imp=="gramaj":
+                #             exp["gramaj"] = d1.value
+                #         if imp=="weft":
+                #             exp["tearing_strength_weft"] = d1.value
+                #         if imp=="warp":
+                #             exp["tearing_strength_warp"] = d1.value
+                #         if imp=="elasticity":
+                #             exp["elasticity"] = d1.value
+                #         if imp=="potluk":
+                #             exp["pot"] = d1.value
+                #         if imp=="cielab":
+                #             exp["cielab_l"] = d1.L
+                #             exp["cielab_a"] = d1.a
+                #             exp["cielab_b"] = d1.b
 
-                        ex, _ = Experiment.objects.update_or_create(
-                                pk=str(d1.Tip) + "-" + str(d1.recipe),
-                                defaults=exp)
+                #         ex, _ = Experiment.objects.update_or_create(
+                #                 pk=str(d1.Tip) + "-" + str(d1.recipe),
+                #                 defaults=exp)
 
-                        Experiment.save(ex)
+                #         Experiment.save(ex)
 
-                    message = "success"
+                #     message = "success"
                 except Exception as e:
                     message = e
         else:
@@ -325,7 +396,6 @@ class Entry(View):
                     rec = Recipe(form.cleaned_data["recipe_id"],
                                  form.cleaned_data["bleaching"],
                                  form.cleaned_data["duration"],
-                                 form.cleaned_data["temperature"],
                                  form.cleaned_data["concentration"])
                     rec.save()
                 return HttpResponseRedirect("/dataops")
@@ -333,20 +403,12 @@ class Entry(View):
                 form = FabricForm(data=req.POST, ids=f)
                 if form.is_valid():
                     fab = Fabric(form.cleaned_data["fabric_id"],
-                                 form.cleaned_data["material"],
-                                 form.cleaned_data["material_text"],
-                                 form.cleaned_data["coloring"],
                                  form.cleaned_data["coloring_type"],
-                                 form.cleaned_data["elastan"],
-                                 form.cleaned_data["elasticity"],
-                                 form.cleaned_data["composition"],
+                                 form.cleaned_data["fabric_elasticity"],
                                  form.cleaned_data["yarn_number"],
                                  form.cleaned_data["frequency"],
                                  form.cleaned_data["knitting"],
-                                 form.cleaned_data["onyzd"],
-                                 form.cleaned_data["onyzd_washed"],
-                                 form.cleaned_data["product_color"],
-                                 form.cleaned_data["width"],)
+                                 form.cleaned_data["onzyd"],)
                     fab.save()
                 return HttpResponseRedirect("/dataops")
             else:

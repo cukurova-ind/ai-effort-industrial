@@ -88,7 +88,7 @@ def data_settings(req):
         os.makedirs(csv_input_path)
         os.makedirs(csv_target_path)
 
-    image_extensions = ('.png', '.jpg', '.jpeg')
+    image_extensions = ('.png', '.jpg', '.jpeg', '.JPG')
 
     if req.method == "POST":
         postdata = req.POST
