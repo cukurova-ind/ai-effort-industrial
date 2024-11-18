@@ -9,7 +9,6 @@ Veri seti
 
 
 {% block content %}
-
 <div class="container-fluid d-flex justify-content-center align-items-center data-settings">
     
     <form method="post">
@@ -39,8 +38,8 @@ Veri seti
                         <label for="id_knitting" class="form-label">Örgü</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="id_elasticity" name="elasticity">
-                        <label for="id_elasticity_raw" class="form-label">Elastanlık</label>
+                        <input class="form-check-input" type="checkbox" value="" id="id_elasticity_raw" name="elasticity">
+                        <label for="id_elasticity_raw" class="form-label">Elastikiyet</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_tearing_weft_raw" name="tearing_weft_raw">
@@ -121,7 +120,7 @@ Veri seti
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_cielab_l_raw" name="cielab_l_raw">
-                        <label for="id_cielab_l_raw_target" class="form-label">Ham kumaş CIELab-L*</label>
+                        <label for="id_cielab_l_raw" class="form-label">Ham kumaş CIELab-L*</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_cielab_l_hypo" name="cielab_l_hypo">
@@ -194,7 +193,7 @@ Veri seti
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_elasticity_target" name="elasticity_target">
-                        <label for="id_elasticity_target" class="form-label">Elastanlık</label>
+                        <label for="id_elasticity_target" class="form-label">Elastikiyet</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_tearing_weft_raw_target" name="tearing_weft_raw_target">
@@ -414,6 +413,9 @@ Veri seti
                         </tbody>
                     </table>
                 </div>
+                <div class="d-flex justify-content-center align-items-center mb-3">
+                    <a href="{% url 'download_input' %}" class="btn btn-primary text-center">İndir (.xlsx)</a>
+                </div>
             </div>
             <div class="input-group">
                 <span class="input-group-text" id="id_ctp_span">Hedef</span>
@@ -442,6 +444,9 @@ Veri seti
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <div class="d-flex justify-content-center align-items-center mb-3">
+                <a href="{% url 'download_target' %}" class="btn btn-primary text-center">İndir (.xlsx)</a>
             </div>
         </div>
         <div class="row mb-3">

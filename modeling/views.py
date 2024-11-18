@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db.models import Q
 from dataops.models import Experiment, Input, Fabric, Recipe
 from .image_processor import Preprocessor
-from .utils import util, utility
+from .utils import util, discretes
 
 raw_image_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
 hypo_image_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
@@ -95,30 +95,58 @@ def data_settings(req):
         qs = Experiment.objects.values("id")
         df_input = pd.DataFrame.from_records(qs)
         df_target = pd.DataFrame.from_records(qs)
-        input_list, target_list, input_types = [], [], []
+        input_list, target_list, input_types, target_types = [], [], [], []
         input_maxs, input_mins, categories = [], [], []
         n_features = 0
         for p in postdata:
-            if util.get(p):
-                if util.get(p) in [e.name for e in Experiment._meta.get_fields()]:
-                    qt = Experiment.objects.values(util.get(p))
-                    qs = pd.DataFrame.from_records(qt)
-                    df_target = df_target.join(qs)
-                    target_list.append(util.get(p))
-                    
-                else:
-                    if util.get(p) in [i.name for i in Input._meta.get_fields()]:
-                        field = "input__" + str(util.get(p))
-                        qi = Experiment.objects.values(field)
-                    if util.get(p) in [r.name for r in Recipe._meta.get_fields()]:
-                        field = "recipe__" + str(util.get(p))
-                        qi = Experiment.objects.values(field)
-                    if util.get(p) in [f.name for f in Fabric._meta.get_fields()]:
-                        field = "input__type__" + str(util.get(p))
-                        qi = Experiment.objects.values(field)
+            if p.split("_")[-1]=="target":
+                p = "_".join(p.split("_")[:-1])
+                if util.get(p):
+                    if util.get(p) in [e.name for e in Experiment._meta.get_fields()]:
+                        qt = Experiment.objects.values(util.get(p))
+                        qs = pd.DataFrame.from_records(qt)
+                        df_target = df_target.join(qs)
+                        target_list.append(util.get(p))
+                    else:
+                        if util.get(p) in [i.name for i in Input._meta.get_fields()]:
+                            field = "input__" + str(util.get(p))
+                            qi = Experiment.objects.values(field)
+                        if util.get(p) in [r.name for r in Recipe._meta.get_fields()]:
+                            field = "recipe__" + str(util.get(p))
+                            qi = Experiment.objects.values(field)
+                        if util.get(p) in [f.name for f in Fabric._meta.get_fields()]:
+                            field = "input__type__" + str(util.get(p))
+                            qi = Experiment.objects.values(field)
+                        qs = pd.DataFrame.from_records(qi)
+                        qs.rename(columns={field:util.get(p)}, inplace=True)
+                        df_target = df_target.join(qs)
+                        target_list.append(util.get(p))
 
-                    typ = str(utility.get(p))
-                    qs = pd.DataFrame.from_records(qi)
+                    typ = "discrete" if p in discretes else "cont"
+                    target_types.append(typ)
+            else:
+                if util.get(p):
+                    if util.get(p) in [e.name for e in Experiment._meta.get_fields()]:
+                        qt = Experiment.objects.values(util.get(p))
+                        qs = pd.DataFrame.from_records(qt)
+                        df_input = df_input.join(qs)
+                        input_list.append(util.get(p))
+                    else:
+                        if util.get(p) in [i.name for i in Input._meta.get_fields()]:
+                            field = "input__" + str(util.get(p))
+                            qi = Experiment.objects.values(field)
+                        if util.get(p) in [r.name for r in Recipe._meta.get_fields()]:
+                            field = "recipe__" + str(util.get(p))
+                            qi = Experiment.objects.values(field)
+                        if util.get(p) in [f.name for f in Fabric._meta.get_fields()]:
+                            field = "input__type__" + str(util.get(p))
+                            qi = Experiment.objects.values(field)
+                        qs = pd.DataFrame.from_records(qi)
+                        qs.rename(columns={field:util.get(p)}, inplace=True)
+                        df_input = df_input.join(qs)
+                        input_list.append(util.get(p))
+
+                    typ = "discrete" if p in discretes else "cont"
                     if typ=="cont":
                         input_maxs.append(str(qs.max().values[0]))
                         input_mins.append(str(qs.min().values[0]))
@@ -129,8 +157,6 @@ def data_settings(req):
                         input_mins.append("0")
                         n_features += len(pd.get_dummies(qs).columns)
                         categories.append("|".join(pd.get_dummies(qs).columns))
-                    df_input = df_input.join(qs)
-                    input_list.append(field)
                     input_types.append(typ)
         
         df_input["type"] = df_input["id"].apply(lambda x: int(x.split("-")[0]))
@@ -141,7 +167,7 @@ def data_settings(req):
         new_cols.insert(0, df_input.columns.tolist()[-2])
         df_input = df_input[new_cols]
         features_path = os.path.join(csv_input_path, conf["input_file_name"])
-        df_input.to_csv(features_path, index=False)
+        df_input.to_csv(features_path, index=False, encoding="utf-8-sig")
 
         df_target["type"] = df_target["id"].apply(lambda x: int(x.split("-")[0]))
         df_target["recipe"] = df_target["id"].apply(lambda x: int(x.split("-")[1]))
@@ -151,7 +177,7 @@ def data_settings(req):
         new_cols.insert(0, df_target.columns.tolist()[-2])
         df_target = df_target[new_cols]
         target_path = os.path.join(csv_target_path, conf["target_file_name"])
-        df_target.to_csv(target_path, index=False)
+        df_target.to_csv(target_path, index=False, encoding="utf-8-sig")
 
         it = int(postdata["image_type"].split(" ")[-1])
         if "raw_image" in postdata:
@@ -336,3 +362,21 @@ def training_settings(req):
     if req.method == "GET":
  
         return render(req, "modeling_configuration.html", conf)
+
+def download_input(req):
+    input_file_path = os.path.join(csv_input_path, "training_features.csv")
+
+    with open(input_file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=training_features.csv'
+        response['Content-Type'] = 'application/vnd.ms-excel; charset=utf-16'
+        return response
+
+def download_target(req):
+    target_file_path = os.path.join(csv_target_path, "training_target.csv")
+
+    with open(target_file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment; filename=training_target.csv'
+        response['Content-Type'] = 'application/vnd.ms-excel; charset=utf-16'
+        return response
