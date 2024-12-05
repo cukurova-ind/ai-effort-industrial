@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 import shutil
 from django.shortcuts import render
@@ -15,12 +16,21 @@ from .utils import util, discretes
 raw_image_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
 hypo_image_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
 output_image_path = os.path.join(settings.MEDIA_ROOT, "data", "output")
+image_cache_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "cache")
 image_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "training")
+image_val_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "validation")
+image_input_cache = os.path.join(image_cache_path, "input")
+image_target_cache = os.path.join(image_cache_path, "target")
 image_input_path = os.path.join(image_training_path, "input")
 image_target_path = os.path.join(image_training_path, "target")
+image_input_val_path = os.path.join(image_val_path, "input")
+image_target_val_path = os.path.join(image_val_path, "target")
 csv_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "training")
+csv_val_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "validation")
 csv_input_path = os.path.join(csv_training_path, "input")
 csv_target_path = os.path.join(csv_training_path, "target")
+csv_input_val_path = os.path.join(csv_val_path, "input")
+csv_target_val_path = os.path.join(csv_val_path, "target")
 
 def main_page(req):
 
@@ -184,6 +194,10 @@ def data_settings(req):
             for root, dirs, files in os.walk(image_input_path):
                 for f in files:
                     os.unlink(os.path.join(root, f))
+            for root, dirs, files in os.walk(image_input_cache):
+                for f in files:
+                    os.unlink(os.path.join(root, f))
+
             for root, dirs, files in os.walk(raw_image_path):
                 for file in files:
                     if file.lower().endswith(image_extensions):
@@ -194,15 +208,30 @@ def data_settings(req):
                         
                         if tip==it:
                             source_path = os.path.join(root, file)
-                            dest_path = os.path.join(image_input_path, file)
-                            shutil.copyfile(source_path, dest_path)
-                            p = Preprocessor(dest_path, image_input_path)
-                            r, f = p.process()
-                            os.unlink(dest_path)
-                            if r == 0:
-                                print(r, f)
+                            image_name = ".".join(file.split(".")[:-1])
+                            for r in range(24):
+                                dest_path = os.path.join(image_input_cache, image_name + "recete" + str(r+1) + ".JPG")
+                                shutil.copyfile(source_path, dest_path)
+                                p = Preprocessor(dest_path, image_input_path)
+                                r, f = p.process()
+                                os.unlink(dest_path)
+                                if r == 0:
+                                    print(r, f)
+                            source = image_input_path
+                            dest = image_input_cache
+                            if os.path.exists(dest):
+                                shutil.rmtree(dest)
+                            shutil.copytree(source, dest)
+                                
         
         if "hypo_image" in postdata:
+            for root, dirs, files in os.walk(image_input_path):
+                for f in files:
+                    os.unlink(os.path.join(root, f))
+            for root, dirs, files in os.walk(image_input_cache):
+                for f in files:
+                    os.unlink(os.path.join(root, f))
+
             for root, dirs, files in os.walk(hypo_image_path):
                 for file in files:
                     if file.lower().endswith(image_extensions):
@@ -213,17 +242,28 @@ def data_settings(req):
                         
                         if tip==it:
                             source_path = os.path.join(root, file)
-                            dest_path = os.path.join(image_input_path, file)
-                            shutil.copyfile(source_path, dest_path)
-                            p = Preprocessor(dest_path, image_input_path)
-                            r, f = p.process()
-                            os.unlink(dest_path)
-                            if r == 0:
-                                print(r, f)
+                            image_name = ".".join(file.split(".")[:-1])
+                            for r in range(24):
+                                dest_path = os.path.join(image_input_cache, image_name + "recete" + str(r+1) + ".JPG")
+                                shutil.copyfile(source_path, dest_path)
+                                p = Preprocessor(source_path, image_input_path)
+                                r, f = p.process()
+                                os.unlink(dest_path)
+                                if r == 0:
+                                    print(r, f)
+                                source = image_input_path
+                                dest = image_input_cache
+                                if os.path.exists(dest):
+                                    shutil.rmtree(dest)
+                                shutil.copytree(source, dest)
 
         if "hypo_image" in postdata or "raw_image" in postdata:
 
             for root, dirs, files in os.walk(image_target_path):
+                for f in files:
+                    os.unlink(os.path.join(root, f))
+            
+            for root, dirs, files in os.walk(image_target_cache):
                 for f in files:
                     os.unlink(os.path.join(root, f))
 
@@ -240,14 +280,25 @@ def data_settings(req):
                             image_name = ".".join(file.split(".")[:-1]) 
                             folder_name = root.split("/")[-1]
                             source_path = os.path.join(root, file)
-                            dest_path = os.path.join(image_target_path, image_name + folder_name + ".JPG")
+                            dest_path = os.path.join(image_target_cache, image_name + folder_name + ".JPG")
                             shutil.copyfile(source_path, dest_path)
                             p = Preprocessor(dest_path, image_target_path)
                             r, f = p.process()
                             os.unlink(dest_path)
                             if r == 0:
                                 print(r, f)
-        
+                        source = image_target_path
+                        dest = image_target_cache
+                        if os.path.exists(dest):
+                            shutil.rmtree(dest)
+                        shutil.copytree(source, dest)
+                            
+        source = image_cache_path
+        dest = image_training_path
+        if os.path.exists(image_training_path):
+            shutil.rmtree(image_training_path)
+        shutil.copytree(source, dest)
+
         conf["n_features"] = str(n_features)
         conf["input_features"] = ",".join(input_list)
         conf["input_feature_types"] = ",".join(input_types)
@@ -344,13 +395,60 @@ def training_settings(req):
         config_dest = os.path.join(settings.ENG_URL, "config.conf")
         image_train_dest = os.path.join(settings.ENG_URL, "dataset", "train", "image")
         csv_train_dest = os.path.join(settings.ENG_URL, "dataset", "train", "csv")
+        image_val_dest = os.path.join(settings.ENG_URL, "dataset", "val", "image")
+        csv_val_dest = os.path.join(settings.ENG_URL, "dataset", "val", "csv")
+
         shutil.copyfile("config.conf", config_dest)
+        if float(conf["val_size"])>0:
+            input_path = os.path.join(csv_input_path, conf["input_file_name"])
+            target_path = os.path.join(csv_target_path, conf["target_file_name"])
+            input_df = pd.read_csv(input_path)
+            target_df = pd.read_csv(target_path)
+            n = len(input_df)
+            val_size = int(n*float(conf["val_size"]))
+            ids = np.sort(np.random.randint(n, size=(val_size)))
+            input_train, target_train = input_df[~input_df.index.isin(ids)], target_df[~target_df.index.isin(ids)]
+            input_val, target_val = input_df[input_df.index.isin(ids)], target_df[target_df.index.isin(ids)]
+            input_train.to_csv(input_path, index=False)
+            target_train.to_csv(target_path, index=False)
+            input_val_path = os.path.join(csv_input_val_path, conf["input_file_name"])
+            target_val_path = os.path.join(csv_target_val_path, conf["target_file_name"])
+            input_val.to_csv(input_val_path, index=False)
+            target_val.to_csv(target_val_path, index=False)
+            for fn in os.listdir(image_input_val_path):
+                fp = os.path.join(image_input_val_path, fn)
+                if os.path.isfile(fp) or os.path.islink(fp):
+                    os.unlink(fp)
+            for fn in os.listdir(image_target_val_path):
+                fp = os.path.join(image_target_val_path, fn)
+                if os.path.isfile(fp) or os.path.islink(fp):
+                    os.unlink(fp)
+            for iv in input_val[["type", "recipe"]].values:
+                image_name = "tip" + str(iv[0]) + "recete" + str(iv[1]) + ".jpg"
+                source1 = os.path.join(image_input_path, image_name)
+                dest1 = os.path.join(image_input_val_path, image_name)
+                if os.path.exists(source1):
+                    shutil.copyfile(source1, dest1)
+                    os.unlink(source1)
+                source2 = os.path.join(image_target_path, image_name)
+                dest2 = os.path.join(image_target_val_path, image_name)
+                if os.path.exists(source2):
+                    shutil.copyfile(source2, dest2)
+                    os.unlink(source2)
+
         if os.path.exists(image_train_dest):
             shutil.rmtree(image_train_dest)
         shutil.copytree(image_training_path, image_train_dest)
         if os.path.exists(csv_train_dest):
             shutil.rmtree(csv_train_dest)
         shutil.copytree(csv_training_path, csv_train_dest)
+        if os.path.exists(image_val_dest):
+            shutil.rmtree(image_val_dest)
+        shutil.copytree(image_val_path, image_val_dest)
+        if os.path.exists(csv_val_dest):
+            shutil.rmtree(csv_val_dest)
+        shutil.copytree(csv_val_path, csv_val_dest)
+
         vs = data.get("saved_model")
         mt = data.get("model")
         if vs:
@@ -364,19 +462,19 @@ def training_settings(req):
         return render(req, "modeling_configuration.html", conf)
 
 def download_input(req):
-    input_file_path = os.path.join(csv_input_path, "training_features.csv")
+    input_file_path = os.path.join(csv_input_path, "input_features.csv")
 
     with open(input_file_path, 'rb') as f:
         response = HttpResponse(f.read(), content_type='application/vnd.ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=training_features.csv'
+        response['Content-Disposition'] = 'attachment; filename=input_features.csv'
         response['Content-Type'] = 'application/vnd.ms-excel; charset=utf-16'
         return response
 
 def download_target(req):
-    target_file_path = os.path.join(csv_target_path, "training_target.csv")
+    target_file_path = os.path.join(csv_target_path, "target_features.csv")
 
     with open(target_file_path, 'rb') as f:
         response = HttpResponse(f.read(), content_type='application/vnd.ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=training_target.csv'
+        response['Content-Disposition'] = 'attachment; filename=target_features.csv'
         response['Content-Type'] = 'application/vnd.ms-excel; charset=utf-16'
         return response

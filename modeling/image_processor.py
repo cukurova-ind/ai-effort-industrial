@@ -5,7 +5,8 @@ import numpy as np
 class Preprocessor:
     def __init__(self, image_path, save_path):
         self.image = cv2.imread(image_path)
-        self.image_name = ".".join(image_path.split("\\")[-1].split(".")[:-1])
+        #self.image_name = ".".join(image_path.split("\\")[-1].split(".")[:-1])
+        self.image_name = ".".join(image_path.split("/")[-1].split(".")[:-1])
         self.save_path = save_path
         self.hh, self.ww = self.image.shape[:2]
         self.lower = np.array([235, 235, 235])
@@ -43,6 +44,7 @@ class Preprocessor:
     def clip_image(self, boxes):
 
         save_file = os.path.join(self.save_path, self.image_name + ".jpg")
+
         if len(boxes) == 0:
             return 0, save_file
         
@@ -57,7 +59,7 @@ class Preprocessor:
         clip_image = self.image[y:y + h, x:x + w]
         save_file = os.path.join(self.save_path, self.image_name + ".jpg")
         cv2.imwrite(save_file, clip_image)
-
+        
         return 1, save_file
     
     def process(self):
