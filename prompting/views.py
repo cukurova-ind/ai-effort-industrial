@@ -31,8 +31,9 @@ def selection_change(req):
                             "unet_plus", "unet_plus_cond", "unet_plus_gan",
                             "unet_plus_gan_cond"]
         predictor_labels = ["Multi-layer Perceptron",
-                            "CNN-Augmented Mlp"]
-        predictor_values = ["mlp", "cnnmlp"]
+                            "CNN-Augmented Mlp",
+                            "Machine Learning Models"]
+        predictor_values = ["mlp", "cnnmlp", "ml"]
         data = req.POST
         status = ""
         type_options, versions = [], []

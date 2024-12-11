@@ -32,6 +32,12 @@ Model Ayarları
                     <option value="cnnmlp">CNN-Augmented MLP</option>
                     {% endif %}
 
+                    {% if model == "ml" %}
+                    <option value="ml" selected>Machine Learning Collection</option>
+                    {% else %}
+                    <option value="ml">Machine Learning Collection</option>
+                    {% endif %}
+
                     {% if model == "dcgan" %}
                     <option value="dcgan" selected>DCGAN</option>
                     {% else %}

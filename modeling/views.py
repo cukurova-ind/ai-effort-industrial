@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import shutil
+from sklearn.model_selection import train_test_split
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, HttpResponseRedirect
@@ -407,6 +408,9 @@ def training_settings(req):
             n = len(input_df)
             val_size = int(n*float(conf["val_size"]))
             ids = np.sort(np.random.randint(n, size=(val_size)))
+            
+            #train_ids, test_ids = train_test_split(data, test_size=float(conf["val_size"]), random_state=42)
+
             input_train, target_train = input_df[~input_df.index.isin(ids)], target_df[~target_df.index.isin(ids)]
             input_val, target_val = input_df[input_df.index.isin(ids)], target_df[target_df.index.isin(ids)]
             input_train.to_csv(input_path, index=False)
