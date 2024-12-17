@@ -312,8 +312,26 @@ class ExperimentForm(forms.Form):
 
 class Folder(forms.Form):
 
-    folder = forms.FileField(
+    raw_folder = forms.FileField(
+        required=False,
         widget=forms.FileInput(
             attrs={
-                "accept": ".zip"
+                "id": "raw_folder",
+                "webkitdirectory": "",
+            }))
+    
+    hypo_folder = forms.FileField(
+        required=False,
+        widget=forms.FileInput(
+            attrs={
+                "id": "hypo_folder",
+                "webkitdirectory": "",
+            }))
+    
+    exp_folder = forms.FileField(
+        required=False,
+        widget=forms.FileInput(
+            attrs={
+                "id": "exp_folder",
+                "webkitdirectory": "",
             }))

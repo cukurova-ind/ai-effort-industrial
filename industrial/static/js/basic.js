@@ -223,6 +223,78 @@ $(document).ready(function() {
         retrain();
     });
 
+    // let raw_files = [];
+    // let hypo_files = [];
+    // let exp_files = [];
+    // document.getElementById("raw_folder").addEventListener(
+    //     "change",
+    //     (event) => {
+
+    //         raw_files = Array.from(event.target.files);
+    //         if (raw_files.length === 0) {
+    //             alert("No files selected.");
+    //             return;
+    //         }
+    //     },
+    //     false,
+    // );
+
+    // document.getElementById("hypo_folder").addEventListener(
+    //     "change",
+    //     (event) => {
+
+    //         hypo_files = Array.from(event.target.files);
+    //         if (hypo_files.length === 0) {
+    //             alert("No files selected.");
+    //             return;
+    //         }
+    //     },
+    //     false,
+    // );
+
+    // document.getElementById("exp_folder").addEventListener(
+    //     "change",
+    //     (event) => {
+
+    //         exp_files = Array.from(event.target.files);
+    //         if (exp_files.length === 0) {
+    //             alert("No files selected.");
+    //             return;
+    //         }
+    //     },
+    //     false,
+    // );
+
+    // $("#image_upload_button").on("click", function(){
+    //     const form_data = new FormData($("#image_upload")[0]);
+    //     // raw_files.forEach(file => {
+    //     //     form_data.append("raw_files[]", file, file.webkitRelativePath);
+    //     // });
+    //     // hypo_files.forEach(file => {
+    //     //     form_data.append("hypo_files[]", file, file.webkitRelativePath);
+    //     // });
+    //     // exp_files.forEach(file => {
+    //     //     form_data.append("exp_files[]", file, file.webkitRelativePath);
+    //     // });
+
+
+    //     $.ajax({
+    //         url: "/dataops/import/image",
+    //         type: 'POST',
+    //         data: form_data,
+    //         contentType: false,
+    //         processData: false,
+    //         cache: false,
+    //         success: function(res) {
+    //             console.log(res);
+
+    //         },
+    //         error: function(jqXHR, textStatus, errorMessage) {
+    //             alert(errorMessage);
+    //         }
+    //     });
+    // });
+
 
 
 });

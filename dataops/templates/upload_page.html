@@ -12,22 +12,36 @@ Görüntüler
 
 <div class="container-fluid data-import-main">
     <div class="data-form">
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="image_upload">
             {% csrf_token %}
             <p><strong>Veri Yükleme | Görüntüler</strong></p>
             <hr>
             <div class="mb-3">
                 <div>
-                    <label class="form-label" for="id_data_file">Görüntü Klasörü</label>
+                    <label class="form-label" for="raw_folder">Ham Kumaş Görüntü Klasörü</label>
                 </div>
-                {{ form.folder }}
+                {{ form.raw_folder }}
             </div>
-            <button class="btn btn-success text-center" type="submit">Yükle</button>
+            <div class="mb-3">
+                <div>
+                    <label class="form-label" for="hypo_folder">Hipo Öncesi Görüntü Klasörü</label>
+                </div>
+                {{ form.hypo_folder }}
+            </div>
+            <div class="mb-3">
+                <div>
+                    <label class="form-label" for="exp_folder">Deney Sonuçları Görüntü Klasörü</label>
+                </div>
+                {{ form.exp_folder }}
+            </div>
+            <button class="btn btn-success text-center" type="submit" id="image_upload_button">Yükle</button>
         </form>
         {% if message %}
             <p>{{ message }}</p>
         {% endif %}  
     </div>
+    
+
 </div>
 
 {% endblock %}

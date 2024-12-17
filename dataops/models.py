@@ -42,18 +42,6 @@ class Input(models.Model):
 
     type = models.ForeignKey(Fabric, null=True, on_delete=models.CASCADE)
 
-    raw_image_0 = models.ImageField(upload_to="data/raw/", null=True)
-    raw_image_1 = models.ImageField(upload_to="data/raw/", null=True)
-    raw_image_2 = models.ImageField(upload_to="data/raw/", null=True)
-    raw_image_3 = models.ImageField(upload_to="data/raw/", null=True)
-    raw_image_4 = models.ImageField(upload_to="data/raw/", null=True)
-
-    hypo_image_0 = models.ImageField(upload_to="data/hypo/", null=True)
-    hypo_image_1 = models.ImageField(upload_to="data/hypo/", null=True)
-    hypo_image_2 = models.ImageField(upload_to="data/hypo/", null=True)
-    hypo_image_3 = models.ImageField(upload_to="data/hypo/", null=True)
-    hypo_image_4 = models.ImageField(upload_to="data/hypo/", null=True)
-
     gramaj_raw = models.IntegerField(null=True, blank=True)
     gramaj_hypo = models.IntegerField(null=True, blank=True)
 
@@ -91,12 +79,6 @@ class Experiment(models.Model):
 
     input = models.ForeignKey(Input, null=True, on_delete=models.CASCADE)    
     recipe = models.ForeignKey(Recipe, null=True, on_delete=models.CASCADE) 
-    
-    output_image_0 = models.ImageField(upload_to="data/output/", null=True)
-    output_image_1 = models.ImageField(upload_to="data/output/", null=True)
-    output_image_2 = models.ImageField(upload_to="data/output/", null=True)
-    output_image_3 = models.ImageField(upload_to="data/output/", null=True)
-    output_image_4 = models.ImageField(upload_to="data/output/", null=True)
 
     gramaj = models.IntegerField(null=True, blank=True)
     tearing_strength_weft = models.IntegerField(null=True, blank=True)

@@ -151,9 +151,15 @@ Model Ayarları
                 {% endif %}
             </div>
         
-            <div class="mb-3">
-                <label for="step" class="form-label">Validation Size [0, 0.9]</label>
-                <input name="val_size" type="number" min="0" max="0.9" step="0.05" class="form-control" id="val_size" value="{{ val_size }}">
+            <div class="mb-3 row">
+                <div class="col-9">
+                    <label for="val_size" class="form-label">Validation Size [0, 0.9]</label>
+                    <input name="val_size" type="number" min="0" max="0.9" step="0.05" class="form-control" id="val_size" value="{{ val_size }}">
+                </div>
+                <div class="col-3">
+                    <label for="random_state" class="form-label">Random State (Optional)</label>
+                    <input name="random_state" type="number" min="1" max="111" step="1" class="form-control" id="random_state">
+                </div>
             </div>
             <button type="submit" class="btn btn-success">Uygula</button>
             {% if hlink %}

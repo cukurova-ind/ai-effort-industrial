@@ -406,13 +406,13 @@ def training_settings(req):
             input_df = pd.read_csv(input_path)
             target_df = pd.read_csv(target_path)
             n = len(input_df)
-            val_size = int(n*float(conf["val_size"]))
-            ids = np.sort(np.random.randint(n, size=(val_size)))
             
-            #train_ids, test_ids = train_test_split(data, test_size=float(conf["val_size"]), random_state=42)
+            rs = int(data.get("random_state", None)) if data.get("random_state", None) else None
+            _, val_ids = train_test_split(range(n), test_size=float(conf["val_size"]), random_state=rs)
+            val_ids = np.sort(val_ids)
 
-            input_train, target_train = input_df[~input_df.index.isin(ids)], target_df[~target_df.index.isin(ids)]
-            input_val, target_val = input_df[input_df.index.isin(ids)], target_df[target_df.index.isin(ids)]
+            input_train, target_train = input_df[~input_df.index.isin(val_ids)], target_df[~target_df.index.isin(val_ids)]
+            input_val, target_val = input_df[input_df.index.isin(val_ids)], target_df[target_df.index.isin(val_ids)]
             input_train.to_csv(input_path, index=False)
             target_train.to_csv(target_path, index=False)
             input_val_path = os.path.join(csv_input_val_path, conf["input_file_name"])

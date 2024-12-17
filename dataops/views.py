@@ -24,21 +24,12 @@ def main_page(req):
     ca = Experiment.objects.filter(Q(cielab_a__isnull=False)).count()
     cb = Experiment.objects.filter(Q(cielab_b__isnull=False)).count()
     output, raw, hypo, total = 0, 0, 0, 0
-    output += Experiment.objects.filter(~Q(output_image_0="")).count()
-    output += Experiment.objects.filter(~Q(output_image_1="")).count()
-    output += Experiment.objects.filter(~Q(output_image_2="")).count()
-    output += Experiment.objects.filter(~Q(output_image_3="")).count()
-    output += Experiment.objects.filter(~Q(output_image_4="")).count()
-    raw += Input.objects.filter(~Q(raw_image_0="")).count()
-    raw += Input.objects.filter(~Q(raw_image_1="")).count()
-    raw += Input.objects.filter(~Q(raw_image_2="")).count()
-    raw += Input.objects.filter(~Q(raw_image_3="")).count()
-    raw += Input.objects.filter(~Q(raw_image_4="")).count()
-    hypo += Input.objects.filter(~Q(hypo_image_0="")).count()
-    hypo += Input.objects.filter(~Q(hypo_image_1="")).count()
-    hypo += Input.objects.filter(~Q(hypo_image_2="")).count()
-    hypo += Input.objects.filter(~Q(hypo_image_3="")).count()
-    hypo += Input.objects.filter(~Q(hypo_image_4="")).count()
+    raw_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
+    raw = len([r for r in os.listdir(raw_path) if os.path.isfile(os.path.join(raw_path, r))])
+    hypo_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
+    hypo = len([h for h in os.listdir(hypo_path) if os.path.isfile(os.path.join(hypo_path, h))])
+    exp_path = os.path.join(settings.MEDIA_ROOT, "data", "output")
+    output = len([e for e in os.listdir(exp_path) if os.path.isfile(os.path.join(exp_path, e))])
     total = output + raw + hypo
     return render(req, "data_main_page.html", 
                   {"r": r1, "f": f1,
@@ -217,122 +208,7 @@ class Import(View):
                             Experiment.save(ex)
 
                             message = "success"
-                # try:
-                #     if imp=="cielab":
-                #         df = pd.read_csv(myfile, header=[0,1])
 
-                #         df2 = df.iloc[:, :7]
-                #         df2.columns = ["Tip", "ham_L", "ham_a", "ham_b", "prehypo_L", "prehypo_a", "prehypo_b"]
-                #         df2["Tip"] = df2["Tip"].str.partition("p")[2].astype(int)
-                #         df2 = df2.sort_values(["Tip"])
-                #         df2.fillna(0, inplace=True)
-                #         df2["ham_L"] = df2["ham_L"].astype(str).str.replace(",", ".").astype(float)
-                #         df2["ham_a"] = df2["ham_a"].astype(str).str.replace(",", ".").astype(float)
-                #         df2["ham_b"] = df2["ham_b"].astype(str).str.replace(",", ".").astype(float)
-                #         df2["prehypo_L"] = df2["prehypo_L"].astype(str).str.replace(",", ".").astype(float)
-                #         df2["prehypo_a"] = df2["prehypo_a"].astype(str).str.replace(",", ".").astype(float)
-                #         df2["prehypo_b"] = df2["prehypo_b"].astype(str).str.replace(",", ".").astype(float)
-
-                #         df = df.set_index(df.columns[0])
-                #         df1 = df.iloc[:, 6:]
-
-                #         df1 = df1.stack(1).reset_index()
-                #         df1 = df1.set_index(df1.columns[0])
-
-                #         df1 = df1.melt(id_vars=df1.columns[:1], var_name="recipe", value_name='value', ignore_index=False)
-                #         df1 = df1.rename_axis("Tip").reset_index()
-                #         df1 = df1.rename(columns={"level_1":"cielab"})
-                #         df1.loc[df1["recipe"].str.contains("ete"), "recipe"] = df1.loc[df1["recipe"].str.contains("ete"), "recipe"].str.partition("te")[2]
-                #         df1["Tip"] = df1["Tip"].str.partition("p")[2].astype(int)
-                #         df1["recipe"] = df1["recipe"].astype(int)
-                #         df1 = df1.sort_values(["recipe", "Tip"])
-                #         df1 = df1.set_index(["Tip", "recipe", "cielab"]).unstack(2).reset_index()
-                #         df1.columns = ["Tip", "recipe", "L", "a", "b"]
-                #         df1.fillna(0, inplace=True)
-
-                #         df1["L"] = df1["L"].astype(str).str.replace(",", ".").astype(float)
-                #         df1["a"] = df1["a"].astype(str).str.replace(",", ".").astype(float)
-                #         df1["b"] = df1["b"].astype(str).str.replace(",", ".").astype(float)
-                #     else:
-                #         df = pd.read_csv(myfile, header=[0])
-                        
-                #         df1 = df.set_index(df.columns[0]).iloc[:,2:]
-                #         df2 = df.set_index(df.columns[0]).iloc[:,:2]
-                #         df1 = df1.melt(var_name='recipe', value_name='value', ignore_index=False)
-                #         df1 = df1.rename_axis("Tip").reset_index()
-                #         df2 = df2.rename_axis("Tip").reset_index()
-                #         df2["Tip"] = df2["Tip"].str.partition("p")[2].astype(int)
-                        
-                #         df1.loc[df1["recipe"].str.contains("ete"), "recipe"] = df1.loc[df1["recipe"].str.contains("ete"), "recipe"].str.partition("te")[2]
-                #         df1["Tip"] = df1["Tip"].str.partition("p")[2].astype(int)
-                #         df1["recipe"] = df1["recipe"].astype(int)
-                #         df1 = df1.sort_values(["recipe", "Tip"])
-                #         df1.fillna(0, inplace=True)
-
-                #     for d2 in df2.itertuples():
-                        
-                #         fabric = Fabric.objects.get(pk=d2.Tip)
-                #         inp = {"type": fabric}
-
-                #         if imp=="gramaj":
-                #             inp["gramaj_raw"] = d2.ham
-                #             inp["gramaj_hypo"] = d2.prehypo
-                #         if imp=="weft":
-                #             inp["tearing_strength_weft_raw"] = d2.ham
-                #             inp["tearing_strength_weft_hypo"] = d2.prehypo
-                #         if imp=="warp":
-                #             inp["tearing_strength_warp_raw"] = d2.ham
-                #             inp["tearing_strength_warp_hypo"] = d2.prehypo
-                #         if imp=="elasticity":
-                #             inp["elasticity_raw"] = d2.ham
-                #             inp["elasticity_hypo"] = d2.prehypo
-                #         if imp=="potluk":
-                #             inp["pot_raw"] = d2.ham
-                #             inp["pot_hypo"] = d2.prehypo
-                #         if imp=="cielab":
-                #             inp["cielab_l_raw"] = d2.ham_L
-                #             inp["cielab_a_raw"] = d2.ham_a
-                #             inp["cielab_b_raw"] = d2.ham_b
-                #             inp["cielab_l_hypo"] = d2.prehypo_L
-                #             inp["cielab_a_hypo"] = d2.prehypo_a
-                #             inp["cielab_b_hypo"] = d2.prehypo_b
-
-                #         ip, _ = Input.objects.update_or_create(
-                #                 type=fabric,
-                #                 defaults=inp)
-
-                #         Input.save(ip)
-
-                #     for d1 in df1.itertuples():
-                        
-                #         oinput = Input.objects.get(type=d1.Tip)
-                #         recipe = Recipe.objects.get(id=d1.recipe)
-                        
-                #         exp = {"input": oinput,
-                #                "recipe": recipe}
-                        
-                #         if imp=="gramaj":
-                #             exp["gramaj"] = d1.value
-                #         if imp=="weft":
-                #             exp["tearing_strength_weft"] = d1.value
-                #         if imp=="warp":
-                #             exp["tearing_strength_warp"] = d1.value
-                #         if imp=="elasticity":
-                #             exp["elasticity"] = d1.value
-                #         if imp=="potluk":
-                #             exp["pot"] = d1.value
-                #         if imp=="cielab":
-                #             exp["cielab_l"] = d1.L
-                #             exp["cielab_a"] = d1.a
-                #             exp["cielab_b"] = d1.b
-
-                #         ex, _ = Experiment.objects.update_or_create(
-                #                 pk=str(d1.Tip) + "-" + str(d1.recipe),
-                #                 defaults=exp)
-
-                #         Experiment.save(ex)
-
-                #     message = "success"
                 except Exception as e:
                     message = e
         else:
@@ -430,62 +306,100 @@ class Entry(View):
                 return HttpResponseRedirect("/dataops")
 
 def image_upload(req):
+    form = Folder()
     if req.method == "POST":
+        image_extensions = ("png", "jpg", "jpeg", "JPG")
         if req.FILES:
             message = "ok"
-            folder_zip = req.FILES["folder"]
-            content = folder_zip.content_type
-            contents = ["application/zip", "application/x-zip-compressed"]
-            if not content in contents:
-                message = "error: provide a .zip file"
-            else:
-                try:
-                    with zipfile.ZipFile(folder_zip, 'r') as zip_ref:
+            try:
+                raw_images = req.FILES.getlist("raw_folder")
+                if raw_images:
+                    raw_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
+                    for root, _, files in os.walk(raw_path):
+                        for f in files:
+                            os.unlink(os.path.join(root, f))
+                    for file in raw_images:
+                        if file.name.lower().endswith(image_extensions):
+                            raw_name = os.path.join("data", "raw", file.name)
+                            default_storage.save(raw_name, file)
 
-                        for i, info in enumerate(zip_ref.infolist()):
-                            if i>0 and not info.is_dir():
-                                file_type = info.filename.split('.')[-1]
-                                file_type = file_type.lower()
-                                if file_type in ["png", "jpg", "jpeg"]:
+                hypo_images = req.FILES.getlist("hypo_folder")
+                if hypo_images:
+                    hypo_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
+                    for root, _, files in os.walk(hypo_path):
+                        for f in files:
+                            os.unlink(os.path.join(root, f))
+                    for file in hypo_images:
+                        if file.name.lower().endswith(image_extensions):
+                            hypo_name = os.path.join("data", "hypo", file.name)
+                            default_storage.save(hypo_name, file)
+                exp_images = req.FILES.getlist("exp_folder")
+                if exp_images:
+                    exp_path = os.path.join(settings.MEDIA_ROOT, "data", "output")
+                    for root, _, files in os.walk(exp_path):
+                        for f in files:
+                            os.unlink(os.path.join(root, f))
+                    for file in exp_images:
+                        if file.name.lower().endswith(image_extensions):
+                            exp_name = os.path.join("data", "output", file.name)
+                            default_storage.save(exp_name, file)
+                return HttpResponseRedirect("/dataops")
+            except Exception as e:
+                message = e 
+            
+
+            # folder_zip = req.FILES["folder"]
+            # content = folder_zip.content_type
+            # contents = ["application/zip", "application/x-zip-compressed"]
+            # if not content in contents:
+            #     message = "error: provide a .zip file"
+            # else:
+            #     try:
+            #         with zipfile.ZipFile(folder_zip, 'r') as zip_ref:
+
+            #             for i, info in enumerate(zip_ref.infolist()):
+            #                 if i>0 and not info.is_dir():
+            #                     file_type = info.filename.split('.')[-1]
+            #                     file_type = file_type.lower()
+            #                     if file_type in ["png", "jpg", "jpeg"]:
                                        
-                                    folder = info.filename.split("/")[-2]
-                                    tip = int(info.filename.split("/")[-1].split(".")[0].split("p")[-1])
-                                    region = info.filename.split("/")[-1].split(".")[1]
-                                    if region=="JPG":
-                                        region = 0
-                                    else:
-                                        region = int(region)
+            #                         folder = info.filename.split("/")[-2]
+            #                         tip = int(info.filename.split("/")[-1].split(".")[0].split("p")[-1])
+            #                         region = info.filename.split("/")[-1].split(".")[1]
+            #                         if region=="JPG":
+            #                             region = 0
+            #                         else:
+            #                             region = int(region)
 
-                                    if folder=="ham":
-                                        img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "raw")) 
-                                        fabric = Fabric.objects.get(pk=tip)
-                                        inp = {"raw_image_" + str(region): os.path.join("data", "raw", info.filename)}
-                                        ip, _ = Input.objects.update_or_create(
-                                                    type=fabric,
-                                                    defaults=inp)
-                                        Input.save(ip)
-                                    if folder=="hypo":
-                                        img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "hypo")) 
-                                        fabric = Fabric.objects.get(pk=tip)
-                                        inp = {"hypo_image_" + str(region): os.path.join("data", "hypo", info.filename)}
-                                        ip, _ = Input.objects.update_or_create(
-                                                    type=fabric,
-                                                    defaults=inp)
-                                        Input.save(ip)
-                                    if folder.startswith("recete"):
-                                        img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "output"))
-                                        recipe = folder.split("ete")[-1]
-                                        exp = {"output_image_" + str(region): os.path.join("data", "output", info.filename)}
-                                        ex, _ = Experiment.objects.update_or_create(
-                                                    id=str(tip) + "-" + recipe,
-                                                    defaults=exp)
-                                        Experiment.save(ex)
-                    return HttpResponseRedirect("/dataops")
-                except Exception as e:
-                    message = e   
+            #                         if folder=="ham":
+            #                             img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "raw")) 
+            #                             fabric = Fabric.objects.get(pk=tip)
+            #                             inp = {"raw_image_" + str(region): os.path.join("data", "raw", info.filename)}
+            #                             ip, _ = Input.objects.update_or_create(
+            #                                         type=fabric,
+            #                                         defaults=inp)
+            #                             Input.save(ip)
+            #                         if folder=="hypo":
+            #                             img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "hypo")) 
+            #                             fabric = Fabric.objects.get(pk=tip)
+            #                             inp = {"hypo_image_" + str(region): os.path.join("data", "hypo", info.filename)}
+            #                             ip, _ = Input.objects.update_or_create(
+            #                                         type=fabric,
+            #                                         defaults=inp)
+            #                             Input.save(ip)
+            #                         if folder.startswith("recete"):
+            #                             img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "output"))
+            #                             recipe = folder.split("ete")[-1]
+            #                             exp = {"output_image_" + str(region): os.path.join("data", "output", info.filename)}
+            #                             ex, _ = Experiment.objects.update_or_create(
+            #                                         id=str(tip) + "-" + recipe,
+            #                                         defaults=exp)
+            #                             Experiment.save(ex)
+            #         return HttpResponseRedirect("/dataops")
+            #     except Exception as e:
+            #         message = e   
         else:
-            message = "error: provide a csv file"
-        return render(req, "upload_page.html", {"message": message})
+            message = "error: provide image folders"
+        return render(req, "upload_page.html", {"form": form, "message": message})
     else:
-        form = Folder()
         return render(req, "upload_page.html", {"form": form})

@@ -101,3 +101,5 @@ ENG_URL =  os.path.join(APP_DIR, 'engineering')
 MEDIA_URL = '/media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+DATA_UPLOAD_MAX_NUMBER_FILES = 7000
