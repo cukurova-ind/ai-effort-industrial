@@ -40,21 +40,9 @@ def main_page(req):
 def image_settings(req):
     
     output, raw, hypo, total = 0, 0, 0, 0
-    output += Experiment.objects.filter(~Q(output_image_0="")).count()
-    output += Experiment.objects.filter(~Q(output_image_1="")).count()
-    output += Experiment.objects.filter(~Q(output_image_2="")).count()
-    output += Experiment.objects.filter(~Q(output_image_3="")).count()
-    output += Experiment.objects.filter(~Q(output_image_4="")).count()
-    raw += Input.objects.filter(~Q(raw_image_0="")).count()
-    raw += Input.objects.filter(~Q(raw_image_1="")).count()
-    raw += Input.objects.filter(~Q(raw_image_2="")).count()
-    raw += Input.objects.filter(~Q(raw_image_3="")).count()
-    raw += Input.objects.filter(~Q(raw_image_4="")).count()
-    hypo += Input.objects.filter(~Q(hypo_image_0="")).count()
-    hypo += Input.objects.filter(~Q(hypo_image_1="")).count()
-    hypo += Input.objects.filter(~Q(hypo_image_2="")).count()
-    hypo += Input.objects.filter(~Q(hypo_image_3="")).count()
-    hypo += Input.objects.filter(~Q(hypo_image_4="")).count()
+    raw = len([r for r in os.listdir(raw_image_path) if os.path.isfile(os.path.join(raw_image_path, r))])
+    hypo = len([h for h in os.listdir(hypo_image_path) if os.path.isfile(os.path.join(hypo_image_path, h))])
+    output = len([e for e in os.listdir(output_image_path) if os.path.isfile(os.path.join(output_image_path, e))])
     total = output + raw + hypo
 
     if req.method == "GET":
@@ -202,10 +190,10 @@ def data_settings(req):
             for root, dirs, files in os.walk(raw_image_path):
                 for file in files:
                     if file.lower().endswith(image_extensions):
-                        if len(file.split("."))==2:
+                        if len(file.split("-")[0].split("."))==2:
                             tip = 0
-                        if len(file.split("."))==3:
-                            tip = int(file.split(".")[1])
+                        if len(file.split("-")[0].split("."))==3:
+                            tip = int(file.split("-")[0].split(".")[1])
                         
                         if tip==it:
                             source_path = os.path.join(root, file)
