@@ -1,15 +1,17 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 APP_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = 'django-insecure-5b_0d+-4ek%8ue_ooyhwp9q%as%4bee5ou0b+s%q^qxk9h&jy('
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-DEBUG = True
+DEBUG = bool(os.environ.get("DEBUG", default=0))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1").split(",")
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -21,8 +23,7 @@ INSTALLED_APPS = [
 
     'industrial',
     'dataops',
-    #'prompting',
-    'prompting.apps.PromptingConfig',
+    'prompting',
     'modeling'
 ]
 
@@ -58,13 +59,13 @@ WSGI_APPLICATION = 'industrial.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+         'ENGINE': os.getenv('DATABASE_ENGINE'),
+         'NAME': os.getenv('DATABASE_NAME'),
+         'USER': os.getenv('DATABASE_USERNAME'),
+         'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+         'HOST': os.getenv('DATABASE_HOST', '127.0.0.1'),
+         'PORT': os.getenv('DATABASE_PORT', 5432),
+     }
 }
 
 AUTH_PASSWORD_VALIDATORS = [

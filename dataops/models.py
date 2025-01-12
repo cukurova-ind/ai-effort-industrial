@@ -27,11 +27,11 @@ class Fabric(models.Model):
         ("3/1 KIRIK DİMİ", "3/1 KIRIK DİMİ"),
     ]
     id = models.IntegerField(primary_key=True)
-    coloring_type = models.CharField(null=False, choices=coloring_type)
+    coloring_type = models.CharField(null=False, choices=coloring_type, max_length=180)
     fabric_elasticity = models.IntegerField(null=True)
     yarn_number = models.FloatField(null=True)
     frequency = models.FloatField(null=True)
-    knitting = models.CharField(null=True, choices=knitting_type)
+    knitting = models.CharField(null=True, choices=knitting_type, max_length=180)
     onzyd = models.FloatField(null=True)
 
     def __str__(self):
