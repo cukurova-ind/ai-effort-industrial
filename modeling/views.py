@@ -26,10 +26,13 @@ image_input_path = os.path.join(image_training_path, "input")
 image_target_path = os.path.join(image_training_path, "target")
 image_input_val_path = os.path.join(image_val_path, "input")
 image_target_val_path = os.path.join(image_val_path, "target")
+csv_all_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "all")
 csv_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "training")
 csv_val_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "validation")
-csv_input_path = os.path.join(csv_training_path, "input")
-csv_target_path = os.path.join(csv_training_path, "target")
+csv_input_path = os.path.join(csv_all_path, "input")
+csv_target_path = os.path.join(csv_all_path, "target")
+csv_input_train_path = os.path.join(csv_training_path, "input")
+csv_target_train_path = os.path.join(csv_training_path, "target")
 csv_input_val_path = os.path.join(csv_val_path, "input")
 csv_target_val_path = os.path.join(csv_val_path, "target")
 
@@ -401,8 +404,10 @@ def training_settings(req):
 
             input_train, target_train = input_df[~input_df.index.isin(val_ids)], target_df[~target_df.index.isin(val_ids)]
             input_val, target_val = input_df[input_df.index.isin(val_ids)], target_df[target_df.index.isin(val_ids)]
-            input_train.to_csv(input_path, index=False)
-            target_train.to_csv(target_path, index=False)
+            input_train_path = os.path.join(csv_input_train_path, conf["input_file_name"])
+            target_train_path = os.path.join(csv_target_train_path, conf["target_file_name"])
+            input_train.to_csv(input_train_path, index=False)
+            target_train.to_csv(target_train_path, index=False)
             input_val_path = os.path.join(csv_input_val_path, conf["input_file_name"])
             target_val_path = os.path.join(csv_target_val_path, conf["target_file_name"])
             input_val.to_csv(input_val_path, index=False)
