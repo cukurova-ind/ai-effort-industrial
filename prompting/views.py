@@ -7,6 +7,10 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 
 def main_page(req):
+
+    return render(req, "prompt_main_page.html")
+
+def filtering_page(req, *args, **kwargs):
     conf = dict()
     with open("config.conf") as c:
         for l in c.read().split("\n"):
@@ -14,13 +18,23 @@ def main_page(req):
             if len(e)==2:
                 conf[e[0].strip()] = e[1].strip()
 
+    whatfor = kwargs.get("for")
+    wtf = None
+    if whatfor=="test":
+        wtf = "Test"
+    elif whatfor=="inference":
+        wtf = "Tahmin"
+    else:
+        wtf = None
     if req.method == "POST":
-
         data = req.POST
         prompt_type = data["prompt_type"]
-        return render(req, "prompt_main_page.html", conf)
+        return render(req, "filtering_page.html", {"conf":conf, "for":wtf, "wtf": whatfor})
     else:
-        return render(req, "prompt_main_page.html", {"exp":None})
+        if wtf:
+            return render(req, "filtering_page.html", {"exp":None, "for":wtf, "wtf": whatfor})
+        else:
+            return HttpResponseRedirect("/prompting")
     
 def selection_change(req):
     if req.method == "POST":

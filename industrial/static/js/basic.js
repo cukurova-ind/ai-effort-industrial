@@ -156,6 +156,8 @@ $(document).ready(function() {
 
                 if (res.status=="complete"){
                     var q = "model=" + form_data.get("prompt_model_type") + "&version=" + form_data.get("prompt_model_version")
+                    var f = $("#for-data").data("for");
+                    q += "&for=" + f;
                     var link = "http://127.0.0.1:5000/inference-page?" + q;
                     $("#model_loading").removeClass("is-hidden");
                     $("#model_loading").addClass("is-active");

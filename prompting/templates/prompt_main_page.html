@@ -3,7 +3,7 @@
 
 {% block title %}
 
-İstem Ayarları
+Sorgulama
 
 {% endblock %}
 
@@ -11,39 +11,35 @@
 {% block content %}
 
   
-
-<div class="container-fluid d-flex justify-content-center align-items-center modeling-configuration">
-    <form method="post" id="model_selection">
-        <div class="row">
-            {% csrf_token %}
-            <div class="mb-3">
-                <label for="prompt_type" class="form-label">İstem Tipi</label> 
-                <select name="prompt_type" class="form-select" id="prompt_type">
-                    <option value="">Seçiniz</option>
-                    <option value="generator">Üretici</option>
-                    <option value="predictor">Tahmin Edici</option>
-                </select>
+<div class="container-fluid d-flex justify-content-center align-items-center modeling-page-main">
+    <a href="{% url 'model_filtering' 'inference' %}">
+        <div class="dataset">
+            <div class="card">
+                <div class="card-body"> 
+                    <h5 class="card-title">Tahmin</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Prompt işlemleri</h6>
+                    <p class="card-text">Tek bir veri noktası ile sonuç alma işlemi
+                    </p>
+                    <a href="{% url 'model_filtering' 'inference' %}" class="card-link">
+                        <i class="fa fa-long-arrow-right"></i>Ayarlar</a>
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="prompt_model_type" class="form-label">Model Tipi</label> 
-                <select name="prompt_model_type" class="form-select" id="prompt_model_type">
-                    <option value="">Seçiniz</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="prompt_model_version" class="form-label">Kayıtlı Modeller</label> 
-                <select name="prompt_model_version" class="form-select" id="prompt_model_version">
-                    <option value="">Seçiniz</option>
-                </select>
-            </div>
-            <a href="#"
-             class="btn btn-primary is-hidden"
-             id="model_loading"
-             target="_blank">Yükle</a>
         </div>
-    </form>
-</div> 
-
-
-     
+    </a>
+    <a href="{% url 'model_filtering' 'test' %}">
+        <div class="dataset">
+            <div class="card">
+                <div class="card-body"> 
+                    <h5 class="card-title">Test</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">Test işlemleri</h6>
+                    <p class="card-text">Önceden ayrılmış test seti üzerinde performans denemesi 
+                    </p>
+                    <a href="{% url 'model_filtering' 'test' %}" class="card-link">
+                        <i class="fa fa-long-arrow-right"></i>Ayarlar</a>
+                </div>
+            </div>
+        </div>
+    </a>
+</div>
+        
 {% endblock %}

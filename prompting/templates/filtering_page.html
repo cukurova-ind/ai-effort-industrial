@@ -1,0 +1,52 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Model Filtreleme
+
+{% endblock %}
+
+
+{% block content %}
+
+  
+
+<div class="container-fluid d-flex justify-content-center align-items-center modeling-configuration">
+    <form method="post" id="model_selection">
+        <div class="row">
+            {% csrf_token %}
+            <div class="mb-3">
+                <h3 id="for-data" data-for="{{ wtf }}">{{ for }} için Kayıtlı Model Seçimi</h3> 
+            </div>
+            <div class="mb-3">
+                <label for="prompt_type" class="form-label">İstem Tipi</label> 
+                <select name="prompt_type" class="form-select" id="prompt_type">
+                    <option value="">Seçiniz</option>
+                    <option value="generator">Üretici</option>
+                    <option value="predictor">Tahmin Edici</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="prompt_model_type" class="form-label">Model Tipi</label> 
+                <select name="prompt_model_type" class="form-select" id="prompt_model_type">
+                    <option value="">Seçiniz</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="prompt_model_version" class="form-label">Kayıtlı Modeller</label> 
+                <select name="prompt_model_version" class="form-select" id="prompt_model_version">
+                    <option value="">Seçiniz</option>
+                </select>
+            </div>
+            <a href="#"
+             class="btn btn-primary is-hidden"
+             id="model_loading"
+             target="_blank">Yükle</a>
+        </div>
+    </form>
+</div> 
+
+
+     
+{% endblock %}
