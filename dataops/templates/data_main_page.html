@@ -42,6 +42,15 @@ Data
                     <li><a class="dropdown-item" href="{% url 'image_upload' %}">Görüntüler</a></li>
                 </ul>
             </div>
+            <div class="col-md-2">
+                <a href="#" data-bs-toggle="dropdown"><p>Dosya Şablonu İndir <i
+                    class="fa fa-angle-double-down"></i></p></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li><a class="dropdown-item" href="{% url 'download_format' 'recipe' %}">Reçete Formatı</a></li>
+                    <li><a class="dropdown-item" href="{% url 'download_format' 'fabric' %}">Kumaş Özellikleri Formatı</a></li>
+                    <li><a class="dropdown-item" href="{% url 'download_format' 'experiment' %}">Deney Sonuçları Formatı</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>

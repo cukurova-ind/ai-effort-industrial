@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import zipfile
+import xlwt
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, HttpResponseRedirect
@@ -345,61 +346,29 @@ def image_upload(req):
                             default_storage.save(exp_name, file)
                 return HttpResponseRedirect("/dataops")
             except Exception as e:
-                message = e 
-            
-
-            # folder_zip = req.FILES["folder"]
-            # content = folder_zip.content_type
-            # contents = ["application/zip", "application/x-zip-compressed"]
-            # if not content in contents:
-            #     message = "error: provide a .zip file"
-            # else:
-            #     try:
-            #         with zipfile.ZipFile(folder_zip, 'r') as zip_ref:
-
-            #             for i, info in enumerate(zip_ref.infolist()):
-            #                 if i>0 and not info.is_dir():
-            #                     file_type = info.filename.split('.')[-1]
-            #                     file_type = file_type.lower()
-            #                     if file_type in ["png", "jpg", "jpeg"]:
-                                       
-            #                         folder = info.filename.split("/")[-2]
-            #                         tip = int(info.filename.split("/")[-1].split(".")[0].split("p")[-1])
-            #                         region = info.filename.split("/")[-1].split(".")[1]
-            #                         if region=="JPG":
-            #                             region = 0
-            #                         else:
-            #                             region = int(region)
-
-            #                         if folder=="ham":
-            #                             img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "raw")) 
-            #                             fabric = Fabric.objects.get(pk=tip)
-            #                             inp = {"raw_image_" + str(region): os.path.join("data", "raw", info.filename)}
-            #                             ip, _ = Input.objects.update_or_create(
-            #                                         type=fabric,
-            #                                         defaults=inp)
-            #                             Input.save(ip)
-            #                         if folder=="hypo":
-            #                             img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "hypo")) 
-            #                             fabric = Fabric.objects.get(pk=tip)
-            #                             inp = {"hypo_image_" + str(region): os.path.join("data", "hypo", info.filename)}
-            #                             ip, _ = Input.objects.update_or_create(
-            #                                         type=fabric,
-            #                                         defaults=inp)
-            #                             Input.save(ip)
-            #                         if folder.startswith("recete"):
-            #                             img_file = zip_ref.extract(info.filename, os.path.join(settings.MEDIA_ROOT, "data", "output"))
-            #                             recipe = folder.split("ete")[-1]
-            #                             exp = {"output_image_" + str(region): os.path.join("data", "output", info.filename)}
-            #                             ex, _ = Experiment.objects.update_or_create(
-            #                                         id=str(tip) + "-" + recipe,
-            #                                         defaults=exp)
-            #                             Experiment.save(ex)
-            #         return HttpResponseRedirect("/dataops")
-            #     except Exception as e:
-            #         message = e   
+                message = e  
         else:
             message = "error: provide image folders"
         return render(req, "upload_page.html", {"form": form, "message": message})
     else:
         return render(req, "upload_page.html", {"form": form})
+    
+def download_format(req, *args, **kwargs):
+    what = kwargs.get("what")
+
+    response = HttpResponse(content_type="application/ms-excel")
+    response['Content-Disposition'] = f'attachment; filename="{what} format.xlsx"'
+ 
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet("sheet1")
+    row_num = 0
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+    columns = ['Column 1', 'Column 2', 'Column 3', 'Column 4', ]
+    
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+    
+    font_style = xlwt.XFStyle()
+    wb.save(response)
+    return response

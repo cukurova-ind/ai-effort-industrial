@@ -8,6 +8,7 @@ urlpatterns = [
     path('import/file/<str:what>', views.Import.as_view(), name="data_import"),
     path('entry/<str:what>', views.Entry.as_view(), name="data_entry"),
     path('import/image', views.image_upload, name="image_upload"),
+    path('format/download/<str:what>', views.download_format, name="download_format"),
 ]
 
 if settings.DEBUG:
