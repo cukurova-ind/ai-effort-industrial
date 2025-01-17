@@ -8,8 +8,8 @@ urlpatterns = [
     path('image/settings/', views.image_settings, name="image_settings"),
     path('dataset/settings/', views.data_settings, name="data_settings"),
     path('dataset/configure/', views.training_settings, name="training_settings"),
-    path('dataset/download/input/', views.download_input, name="download_input"),
-    path('dataset/download/target/', views.download_target, name="download_target"),
+    path('dataset/download/train/', views.download_train, name="download_train"),
+    path('dataset/download/test/', views.download_test, name="download_test"),
 ]
 
 if settings.DEBUG:

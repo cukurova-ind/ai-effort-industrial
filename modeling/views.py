@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import shutil
+import xlwt
 from sklearn.model_selection import train_test_split
 from django.shortcuts import render
 from django.views import View
@@ -304,6 +305,49 @@ def data_settings(req):
             for x in conf:
                 c.write(x + " = " + conf[x] + "\n")
 
+        if float(postdata.get("val_size"))>0:
+            input_path = os.path.join(csv_input_path, conf["input_file_name"])
+            target_path = os.path.join(csv_target_path, conf["target_file_name"])
+            input_df = pd.read_csv(input_path)
+            target_df = pd.read_csv(target_path)
+            n = len(input_df)
+            
+            rs = int(postdata.get("random_state", None)) if postdata.get("random_state", None) else None
+            _, val_ids = train_test_split(range(n), test_size=float(conf["val_size"]), random_state=rs)
+            val_ids = np.sort(val_ids)
+
+            input_train, target_train = input_df[~input_df.index.isin(val_ids)], target_df[~target_df.index.isin(val_ids)]
+            input_val, target_val = input_df[input_df.index.isin(val_ids)], target_df[target_df.index.isin(val_ids)]
+            input_train_path = os.path.join(csv_input_train_path, conf["input_file_name"])
+            target_train_path = os.path.join(csv_target_train_path, conf["target_file_name"])
+            input_train.to_csv(input_train_path, index=False)
+            target_train.to_csv(target_train_path, index=False)
+            input_val_path = os.path.join(csv_input_val_path, conf["input_file_name"])
+            target_val_path = os.path.join(csv_target_val_path, conf["target_file_name"])
+            input_val.to_csv(input_val_path, index=False)
+            target_val.to_csv(target_val_path, index=False)
+
+            for fn in os.listdir(image_input_val_path):
+                fp = os.path.join(image_input_val_path, fn)
+                if os.path.isfile(fp) or os.path.islink(fp):
+                    os.unlink(fp)
+            for fn in os.listdir(image_target_val_path):
+                fp = os.path.join(image_target_val_path, fn)
+                if os.path.isfile(fp) or os.path.islink(fp):
+                    os.unlink(fp)
+            for iv in input_val[["type", "recipe"]].values:
+                image_name = "tip" + str(iv[0]) + "recete" + str(iv[1]) + ".jpg"
+                source1 = os.path.join(image_input_path, image_name)
+                dest1 = os.path.join(image_input_val_path, image_name)
+                if os.path.exists(source1):
+                    shutil.copyfile(source1, dest1)
+                    os.unlink(source1)
+                source2 = os.path.join(image_target_path, image_name)
+                dest2 = os.path.join(image_target_val_path, image_name)
+                if os.path.exists(source2):
+                    shutil.copyfile(source2, dest2)
+                    os.unlink(source2)
+
         return HttpResponseRedirect("/modeling/dataset/settings/")
     
     if req.method == "GET":
@@ -391,48 +435,7 @@ def training_settings(req):
         csv_val_dest = os.path.join(settings.ENG_URL, "dataset", "val", "csv")
 
         shutil.copyfile("config.conf", config_dest)
-        if float(conf["val_size"])>0:
-            input_path = os.path.join(csv_input_path, conf["input_file_name"])
-            target_path = os.path.join(csv_target_path, conf["target_file_name"])
-            input_df = pd.read_csv(input_path)
-            target_df = pd.read_csv(target_path)
-            n = len(input_df)
-            
-            rs = int(data.get("random_state", None)) if data.get("random_state", None) else None
-            _, val_ids = train_test_split(range(n), test_size=float(conf["val_size"]), random_state=rs)
-            val_ids = np.sort(val_ids)
-
-            input_train, target_train = input_df[~input_df.index.isin(val_ids)], target_df[~target_df.index.isin(val_ids)]
-            input_val, target_val = input_df[input_df.index.isin(val_ids)], target_df[target_df.index.isin(val_ids)]
-            input_train_path = os.path.join(csv_input_train_path, conf["input_file_name"])
-            target_train_path = os.path.join(csv_target_train_path, conf["target_file_name"])
-            input_train.to_csv(input_train_path, index=False)
-            target_train.to_csv(target_train_path, index=False)
-            input_val_path = os.path.join(csv_input_val_path, conf["input_file_name"])
-            target_val_path = os.path.join(csv_target_val_path, conf["target_file_name"])
-            input_val.to_csv(input_val_path, index=False)
-            target_val.to_csv(target_val_path, index=False)
-            for fn in os.listdir(image_input_val_path):
-                fp = os.path.join(image_input_val_path, fn)
-                if os.path.isfile(fp) or os.path.islink(fp):
-                    os.unlink(fp)
-            for fn in os.listdir(image_target_val_path):
-                fp = os.path.join(image_target_val_path, fn)
-                if os.path.isfile(fp) or os.path.islink(fp):
-                    os.unlink(fp)
-            for iv in input_val[["type", "recipe"]].values:
-                image_name = "tip" + str(iv[0]) + "recete" + str(iv[1]) + ".jpg"
-                source1 = os.path.join(image_input_path, image_name)
-                dest1 = os.path.join(image_input_val_path, image_name)
-                if os.path.exists(source1):
-                    shutil.copyfile(source1, dest1)
-                    os.unlink(source1)
-                source2 = os.path.join(image_target_path, image_name)
-                dest2 = os.path.join(image_target_val_path, image_name)
-                if os.path.exists(source2):
-                    shutil.copyfile(source2, dest2)
-                    os.unlink(source2)
-
+        
         if os.path.exists(image_train_dest):
             shutil.rmtree(image_train_dest)
         shutil.copytree(image_training_path, image_train_dest)
@@ -448,8 +451,9 @@ def training_settings(req):
 
         vs = data.get("saved_model")
         mt = data.get("model")
+        conf["posted"] = True
         if vs:
-            conf["hlink"] = "http://127.0.0.1:5000?model=" + mt + "&version=" + vs
+            conf["hlink"] = "http://127.0.0.1:5000?model=" + mt + "&version=" + vs 
             conf["version"] = vs
 
         return render(req, "modeling_configuration.html", conf)
@@ -458,20 +462,75 @@ def training_settings(req):
  
         return render(req, "modeling_configuration.html", conf)
 
-def download_input(req):
-    input_file_path = os.path.join(csv_input_path, "input_features.csv")
+def download_train(req):
 
-    with open(input_file_path, 'rb') as f:
-        response = HttpResponse(f.read(), content_type='application/vnd.ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=input_features.csv'
-        response['Content-Type'] = 'application/vnd.ms-excel; charset=utf-16'
-        return response
+    conf = dict()
+    with open("config.conf") as c:
+        for l in c.read().split("\n"):
+            e = l.split("=")
+            if len(e)==2:
+                conf[e[0].strip()] = e[1].strip()
 
-def download_target(req):
-    target_file_path = os.path.join(csv_target_path, "target_features.csv")
+    input_train_path = os.path.join(csv_input_train_path, conf["input_file_name"])
+    target_train_path = os.path.join(csv_target_train_path, conf["target_file_name"])
+    train_input_df = pd.read_csv(input_train_path)
+    train_target_df = pd.read_csv(target_train_path)
+    df = pd.concat([train_input_df, train_target_df], axis=1)
+    response = HttpResponse(content_type="application/ms-excel")
+    response['Content-Disposition'] = 'attachment; filename="train.xlsx"'
 
-    with open(target_file_path, 'rb') as f:
-        response = HttpResponse(f.read(), content_type='application/vnd.ms-excel')
-        response['Content-Disposition'] = 'attachment; filename=target_features.csv'
-        response['Content-Type'] = 'application/vnd.ms-excel; charset=utf-16'
-        return response
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet("sheet1")
+
+    row_num = 0
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+
+    columns = df.columns.tolist()
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+
+    font_style = xlwt.XFStyle()
+    for row in df.itertuples(index=False):
+        row_num += 1
+        for col_num, value in enumerate(row):
+            ws.write(row_num, col_num, value, font_style)
+
+    wb.save(response)
+    return response
+
+def download_test(req):
+    conf = dict()
+    with open("config.conf") as c:
+        for l in c.read().split("\n"):
+            e = l.split("=")
+            if len(e)==2:
+                conf[e[0].strip()] = e[1].strip()
+
+    input_val_path = os.path.join(csv_input_val_path, conf["input_file_name"])
+    target_val_path = os.path.join(csv_target_val_path, conf["target_file_name"])
+    val_input_df = pd.read_csv(input_val_path)
+    val_target_df = pd.read_csv(target_val_path)
+    df = pd.concat([val_input_df, val_target_df], axis=1)
+    response = HttpResponse(content_type="application/ms-excel")
+    response['Content-Disposition'] = 'attachment; filename="test.xlsx"'
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet("sheet1")
+
+    row_num = 0
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+
+    columns = df.columns.tolist()
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+
+    font_style = xlwt.XFStyle()
+    for row in df.itertuples(index=False):
+        row_num += 1
+        for col_num, value in enumerate(row):
+            ws.write(row_num, col_num, value, font_style)
+
+    wb.save(response)
+    return response

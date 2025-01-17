@@ -13,9 +13,13 @@ Veri seti
     
     <form method="post">
         <div class="row">
+            <div class="col-5 text-center"><strong>Girdi Değişkenleri</strong></div>
+            <div class="col-5 text-center"><strong>Çıktı Değişkenleri</strong></div>
+            <div class="col-2 text-center"><strong>Görüntüler</strong></div>
+        </div>
+        <div class="row">
             {% csrf_token %}
-            <div class="col-md-3 process-section">
-                <label class="form-label"><strong>Açıklayıcı Değişkenler</strong></label>
+            <div class="col-3 process-section">
                 <div class="mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_coloring_type" name="coloring_type">
@@ -91,8 +95,7 @@ Veri seti
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 process-section">
-                <label class="form-label"></label>
+            <div class="col-2 process-section">
                 <div class="mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_gramaj_raw" name="gramaj_raw">
@@ -168,8 +171,7 @@ Veri seti
                     </div>
                 </div>
             </div>
-            <div class="col-md-3 process-section">
-                <label class="form-label"><strong>Açıklanan Değişkenler</strong></label>
+            <div class="col-3 process-section">
                 <div class="mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_coloring_type_target" name="coloring_type_target">
@@ -245,8 +247,7 @@ Veri seti
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 process-section">
-                <label class="form-label"></label>
+            <div class="col-2 process-section">
                 <div class="mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_gramaj_raw_target" name="gramaj_raw_target">
@@ -322,8 +323,7 @@ Veri seti
                     </div>
                 </div>
             </div>
-            <div class="col-md-2 process-section">
-                <label class="form-label"><strong>Görüntüler</strong></label>
+            <div class="col-2 process-section">
                 <div class="mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="" id="id_raw_image" name="raw_image">
@@ -344,6 +344,18 @@ Veri seti
                 </div>
             </div>
         </div>
+
+        <div class="mb-3 row">
+            <div class="col-9">
+                <label for="val_size" class="form-label">Validation Size [0, 0.9]</label>
+                <input name="val_size" type="number" min="0" max="0.9" step="0.05" class="form-control" id="val_size" value="{{ val_size }}">
+            </div>
+            <div class="col-3">
+                <label for="random_state" class="form-label">Random State (Optional)</label>
+                <input name="random_state" type="number" min="1" max="111" step="1" class="form-control" id="random_state">
+            </div>
+        </div>
+        
         <div class="row mb-3">
             
             <div class="d-flex justify-content-center align-items-center">
@@ -413,9 +425,6 @@ Veri seti
                         </tbody>
                     </table>
                 </div>
-                <div class="d-flex justify-content-center align-items-center mb-3">
-                    <a href="{% url 'download_input' %}" class="btn btn-primary text-center">İndir (.xlsx)</a>
-                </div>
             </div>
             <div class="input-group">
                 <span class="input-group-text" id="id_ctp_span">Hedef</span>
@@ -446,9 +455,14 @@ Veri seti
                 </div>
             </div>
             <div class="d-flex justify-content-center align-items-center mb-3">
-                <a href="{% url 'download_target' %}" class="btn btn-primary text-center">İndir (.xlsx)</a>
+                <a href="{% url 'download_train' %}" class="btn btn-primary text-center">Train Set İndir (.xlsx)</a>
+            </div>
+            <div class="d-flex justify-content-center align-items-center mb-3">
+                <a href="{% url 'download_test' %}" class="btn btn-primary text-center">Test Set İndir (.xlsx)</a>
             </div>
         </div>
+        
+
         <div class="row mb-3">
 
             <div class="d-flex justify-content-center align-items-center">
