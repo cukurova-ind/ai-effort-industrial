@@ -274,6 +274,10 @@ a, a:hover, a:visited, a:active, a:focus {
   padding: 0%;
 }
 
+.border-section {
+  border-right: 1px inset lightgray;
+}
+
 .process-section:hover{
   border: 2px solid rgba(0, 0, 255, 0.212);
   border-radius: 2%;
