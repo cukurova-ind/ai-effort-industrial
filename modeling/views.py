@@ -1,8 +1,8 @@
-import pandas as pd
-import numpy as np
 import os
 import shutil
-import xlwt
+import pandas as pd
+import numpy as np
+from openpyxl import Workbook
 from sklearn.model_selection import train_test_split
 from django.shortcuts import render
 from django.views import View
@@ -475,26 +475,18 @@ def download_train(req):
     target_train_path = os.path.join(csv_target_train_path, conf["target_file_name"])
     train_input_df = pd.read_csv(input_train_path)
     train_target_df = pd.read_csv(target_train_path)
-    df = pd.concat([train_input_df, train_target_df], axis=1)
-    response = HttpResponse(content_type="application/ms-excel")
+    df = pd.concat([train_input_df, train_target_df[train_target_df.columns[-1]]], axis=1)
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response['Content-Disposition'] = 'attachment; filename="train.xlsx"'
 
-    wb = xlwt.Workbook(encoding='utf-8')
-    ws = wb.add_sheet("sheet1")
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "sheet1"
 
-    row_num = 0
-    font_style = xlwt.XFStyle()
-    font_style.font.bold = True
+    ws.append(df.columns.tolist())
 
-    columns = df.columns.tolist()
-    for col_num in range(len(columns)):
-        ws.write(row_num, col_num, columns[col_num], font_style)
-
-    font_style = xlwt.XFStyle()
     for row in df.itertuples(index=False):
-        row_num += 1
-        for col_num, value in enumerate(row):
-            ws.write(row_num, col_num, value, font_style)
+        ws.append(row)
 
     wb.save(response)
     return response
@@ -511,26 +503,18 @@ def download_test(req):
     target_val_path = os.path.join(csv_target_val_path, conf["target_file_name"])
     val_input_df = pd.read_csv(input_val_path)
     val_target_df = pd.read_csv(target_val_path)
-    df = pd.concat([val_input_df, val_target_df], axis=1)
-    response = HttpResponse(content_type="application/ms-excel")
+    df = pd.concat([val_input_df, val_target_df[val_target_df.columns[-1]]], axis=1)
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response['Content-Disposition'] = 'attachment; filename="test.xlsx"'
 
-    wb = xlwt.Workbook(encoding='utf-8')
-    ws = wb.add_sheet("sheet1")
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "sheet1"
 
-    row_num = 0
-    font_style = xlwt.XFStyle()
-    font_style.font.bold = True
+    ws.append(df.columns.tolist())
 
-    columns = df.columns.tolist()
-    for col_num in range(len(columns)):
-        ws.write(row_num, col_num, columns[col_num], font_style)
-
-    font_style = xlwt.XFStyle()
     for row in df.itertuples(index=False):
-        row_num += 1
-        for col_num, value in enumerate(row):
-            ws.write(row_num, col_num, value, font_style)
+        ws.append(row)
 
     wb.save(response)
     return response
