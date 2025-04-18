@@ -26,58 +26,10 @@ Model Ayarları
                     <option value="mlp">Multilayer Perceptron</option>
                     {% endif %}
 
-                    {% if model == "cnnmlp" %}
-                    <option value="cnnmlp" selected>CNN-Augmented MLP</option>
-                    {% else %}
-                    <option value="cnnmlp">CNN-Augmented MLP</option>
-                    {% endif %}
-
                     {% if model == "ml" %}
                     <option value="ml" selected>Machine Learning Collection</option>
                     {% else %}
                     <option value="ml">Machine Learning Collection</option>
-                    {% endif %}
-
-                    {% if model == "dcgan" %}
-                    <option value="dcgan" selected>DCGAN</option>
-                    {% else %}
-                    <option value="dcgan">DCGAN</option>
-                    {% endif %}
-
-                    {% if model == "srgan" %}
-                    <option value="srgan" selected>SRGAN</option>
-                    {% else %}
-                    <option value="srgan">SRGAN</option>
-                    {% endif %}
-
-                    {% if model == "unet_plus" %}
-                    <option value="unet_plus" selected>Unet++</option>
-                    {% else %}
-                    <option value="unet_plus">Unet++</option>
-                    {% endif %}
-
-                    {% if model == "unet_plus_cond" %}
-                    <option value="unet_plus_cond" selected>Unet++ Conditional</option>
-                    {% else %}
-                    <option value="unet_plus_cond">Unet++ Conditional</option>
-                    {% endif %}
-
-                    {% if model == "unet_plus_gan" %}
-                    <option value="unet_plus_gan" selected>Unet++ Gan</option>
-                    {% else %}
-                    <option value="unet_plus_gan">Unet++ Gan</option>
-                    {% endif %}
-
-                    {% if model == "unet_plus_gan_cond" %}
-                    <option value="unet_plus_gan_cond" selected>Unet++ Gan Conditional</option>
-                    {% else %}
-                    <option value="unet_plus_gan_cond">Unet++ Gan Conditional</option>
-                    {% endif %}
-
-                    {% if model == "image_cond" %}
-                    <option value="image_cond" selected>UnetGan</option>
-                    {% else %}
-                    <option value="image_cond">UnetGan</option>
                     {% endif %}
                         
                 </select>

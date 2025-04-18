@@ -212,6 +212,7 @@ a, a:hover, a:visited, a:active, a:focus {
   width: 80%;
   margin: 0 auto;
   margin-top: 2%;
+  color: gray;
 }
 
 .data-page-support {

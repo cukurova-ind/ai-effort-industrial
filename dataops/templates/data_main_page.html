@@ -60,19 +60,132 @@ Data
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">{{ r }}</h4>
-                        <p class="card-text">Receçete Sayısı</p>
-                        <a href="#!" class="btn btn-primary">Detaylar</a>
+                    <div class="row p-3">
+                        <div class="col-md-4">
+                            <h4 class="card-title">{{ recipe_count }}</h4>
+                            <p class="card-text">Reçete Sayısı</p>
+                            <a href="{% url 'data_import' 'recipe'%}" class="btn btn-primary">Ekle</a>
+                            <a href="#!" class="btn btn-danger">Temizle</a>
+                        </div>
+                        <div class="col-md-8">
+                            <table class="table table-bordered table-sm text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Özellik</th>
+                                        <th>Sayı</th>
+                                        <th>Min</th>
+                                        <th>Max</th>
+                                        <th>Ortalama</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>ID</td>
+                                        <td>{{ id_count }}</td>
+                                        <td>{{ id_minmax.min_id|floatformat:2 }}</td>
+                                        <td>{{ id_minmax.max_id|floatformat:2 }}</td>
+                                        <td>{{ id_minmax.avg_id|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ağartma Sayısı</td>
+                                        <td>{{ bleaching_count }}</td>
+                                        <td>{{ bleaching_minmax.min_bleaching|floatformat:2 }}</td>
+                                        <td>{{ bleaching_minmax.max_bleaching|floatformat:2 }}</td>
+                                        <td>{{ bleaching_minmax.avg_bl|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Süre</td>
+                                        <td>{{ duration_count }}</td>
+                                        <td>{{ duration_minmax.min_duration|floatformat:2 }}</td>
+                                        <td>{{ duration_minmax.max_duration|floatformat:2 }}</td>
+                                        <td>{{ duration_minmax.avg_du|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Konsantrasyon</td>
+                                        <td>{{ concentration_count }}</td>
+                                        <td>{{ concentration_minmax.min_concentration|floatformat:2 }}</td>
+                                        <td>{{ concentration_minmax.max_concentration|floatformat:2 }}</td>
+                                        <td>{{ concentration_minmax.avg_c|floatformat:2 }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">{{ f }}</h4>
-                        <p class="card-text">Kumaş Tipi</p>
-                        <a href="#!" class="btn btn-primary">Detaylar</a>
+                    <div class="row p-3">
+                        <div class="col-md-4">
+                            <h4 class="card-title">{{ fabric_count }}</h4>
+                            <p class="card-text">Kumaş Sayısı</p>
+                            <a href="{% url 'data_import' 'fabric'%}" class="btn btn-primary">Ekle</a>
+                            <a href="#!" class="btn btn-danger">Temizle</a>
+                        </div>
+                        <div class="col-md-8">
+                            <table class="table table-bordered table-sm text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Özellik</th>
+                                        <th>Sayı</th>
+                                        <th>Min</th>
+                                        <th>Max</th>
+                                        <th>Ortalama</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>ID</td>
+                                        <td>{{ idf_count }}</td>
+                                        <td>{{ idf_minmax.min_idf|floatformat:2 }}</td>
+                                        <td>{{ idf_minmax.max_idf|floatformat:2 }}</td>
+                                        <td>{{ idf_minmax.avg_idf|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Boyama Biçimi</td>
+                                        <td>{{ coloring_count }}</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Elastanlık</td>
+                                        <td>{{ fabric_e_count }}</td>
+                                        <td>{{ fabric_e_minmax.min_fe|floatformat:2 }}</td>
+                                        <td>{{ fabric_e_minmax.max_fe|floatformat:2 }}</td>
+                                        <td>{{ fabric_e_minmax.avg_fe|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>İplik Numarası</td>
+                                        <td>{{ yarn_count }}</td>
+                                        <td>{{ yarn_minmax.min_yn|floatformat:2 }}</td>
+                                        <td>{{ yarn_minmax.max_yn|floatformat:2 }}</td>
+                                        <td>{{ yarn_minmax.avg_yn|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Sıkılık</td>
+                                        <td>{{ freq_count }}</td>
+                                        <td>{{ freq_minmax.min_fr|floatformat:2 }}</td>
+                                        <td>{{ freq_minmax.max_fr|floatformat:2 }}</td>
+                                        <td>{{ freq_minmax.avg_fr|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dokuma Türü</td>
+                                        <td>{{ knitting_count }}</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Onz/yd</td>
+                                        <td>{{ onzyd_count }}</td>
+                                        <td>{{ onzyd_minmax.min_onz|floatformat:2 }}</td>
+                                        <td>{{ onzyd_minmax.max_onz|floatformat:2 }}</td>
+                                        <td>{{ onzyd_minmax.avg_onz|floatformat:2 }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -80,28 +193,120 @@ Data
         <div class="row">
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-body">
-                        <h4 class="card-title">{{ e.total }}</h4>
-                        <p class="card-text">Toplam Deney Kaydı</p>
-                        <p>Gramaj: {{ e.gramaj }} </p>
-                        <p>Yırtılma Mukavemeti (Atkı): {{ e.weft }} </p>
-                        <p>Yırtılma Mukavemeti (Çözgü): {{ e.warp }} </p>
-                        <p>Elastikiyet: {{ e.elas }} </p>
-                        <p>Potluk: {{ e.pot }} </p>
-                        <p>CieLAB-L: {{ cielab.l }} </p>
-                        <p>CieLAB-a: {{ cielab.a }} </p>
-                        <p>CieLAB-b: {{ cielab.b }} </p>
+                    <div class="row p-3">
+                        <div class="col-md-4">
+                            <h4 class="card-title">{{ experiment_count }}</h4>
+                            <p class="card-text">Deney Sayısı</p>
+                            <a href="{% url 'data_import' 'overall'%}" class="btn btn-primary">Ekle</a>
+                            <a href="#!" class="btn btn-danger">Temizle</a>
+                        </div>
+                        <div class="col-md-8">
+                            <table class="table table-bordered table-sm text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Özellik</th>
+                                        <th>Sayı</th>
+                                        <th>Min</th>
+                                        <th>Max</th>
+                                        <th>Ortalama</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Gramaj</td>
+                                        <td>{{ gramaj_count }}</td>
+                                        <td>{{ gramaj_minmax.min_gramaj|floatformat:2 }}</td>
+                                        <td>{{ gramaj_minmax.max_gramaj|floatformat:2 }}</td>
+                                        <td>{{ gramaj_minmax.avg_g|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Weft Dayanım</td>
+                                        <td>{{ weft_count }}</td>
+                                        <td>{{ weft_minmax.min_weft|floatformat:2 }}</td>
+                                        <td>{{ weft_minmax.max_weft|floatformat:2 }}</td>
+                                        <td>{{ weft_minmax.avg_we|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Warp Dayanım</td>
+                                        <td>{{ warp_count }}</td>
+                                        <td>{{ warp_minmax.min_warp|floatformat:2 }}</td>
+                                        <td>{{ warp_minmax.max_warp|floatformat:2 }}</td>
+                                        <td>{{ warp_minmax.avg_wa|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Elastikiyet</td>
+                                        <td>{{ elasticity_count }}</td>
+                                        <td>{{ elasticity_minmax.min_elasticity|floatformat:2 }}</td>
+                                        <td>{{ elasticity_minmax.max_elasticity|floatformat:2 }}</td>
+                                        <td>{{ elasticity_minmax.avg_el|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Potluk</td>
+                                        <td>{{ pot_count }}</td>
+                                        <td>{{ pot_minmax.min_pot|floatformat:2 }}</td>
+                                        <td>{{ pot_minmax.max_pot|floatformat:2 }}</td>
+                                        <td>{{ pot_minmax.avg_p|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>L*</td>
+                                        <td>{{ cielab_l_count }}</td>
+                                        <td>{{ cielab_l_minmax.min_l|floatformat:2 }}</td>
+                                        <td>{{ cielab_l_minmax.max_l|floatformat:2 }}</td>
+                                        <td>{{ cielab_l_minmax.avg_cl|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>a*</td>
+                                        <td>{{ cielab_a_count }}</td>
+                                        <td>{{ cielab_a_minmax.min_a|floatformat:2 }}</td>
+                                        <td>{{ cielab_a_minmax.max_a|floatformat:2 }}</td>
+                                        <td>{{ cielab_a_minmax.avg_ca|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>b*</td>
+                                        <td>{{ cielab_b_count }}</td>
+                                        <td>{{ cielab_b_minmax.min_b|floatformat:2 }}</td>
+                                        <td>{{ cielab_b_minmax.max_b|floatformat:2 }}</td>
+                                        <td>{{ cielab_b_minmax.avg_cb|floatformat:2 }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ i.total }}</h5>
-                        <p class="card-text">Görüntü Adedi</p>
-                        <p>Ham: {{ i.raw }} </p>
-                        <p>Hypo öncesi: {{ i.hypo }} </p>
-                        <p>Çıktı: {{ i.output }}</p>
+                    <div class="row p-3">
+                        <div class="col-md-4">
+                            <h4 class="card-title">{{ total_images }}</h4>
+                            <p class="card-text">Fotoğraf Sayısı</p>
+                            <a href="{% url 'image_upload'%}" class="btn btn-primary">Ekle</a>
+                            <a href="#!" class="btn btn-danger">Temizle</a>
+                        </div>
+                        <div class="col-md-8">
+                            <table class="table table-bordered table-sm text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Özellik</th>
+                                        <th>Sayı</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Ham Kumaş</td>
+                                        <td>{{ raw_images }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Hipo Öncesi</td>
+                                        <td>{{ hypo_images}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Çıktı</td>
+                                        <td>{{ output_images}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

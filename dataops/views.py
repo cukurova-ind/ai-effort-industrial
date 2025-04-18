@@ -8,7 +8,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Min, Max, Avg
 from .models import Recipe, Input, Experiment, Fabric
 from .forms import RecipeForm, FabricForm, ExperimentForm, Folder
 
@@ -16,14 +16,62 @@ def main_page(req):
     r1 = Recipe.objects.count()
     f1 = Fabric.objects.count()
     e1 = Experiment.objects.count()
-    g = Experiment.objects.filter(Q(gramaj__isnull=False)).count()
-    we = Experiment.objects.filter(Q(tearing_strength_weft__isnull=False)).count()
-    wa = Experiment.objects.filter(Q(tearing_strength_warp__isnull=False)).count()
-    el = Experiment.objects.filter(Q(elasticity__isnull=False)).count()
-    p = Experiment.objects.filter(Q(pot__isnull=False)).count()
-    cl = Experiment.objects.filter(Q(cielab_l__isnull=False)).count()
-    ca = Experiment.objects.filter(Q(cielab_a__isnull=False)).count()
-    cb = Experiment.objects.filter(Q(cielab_b__isnull=False)).count()
+
+    id = Recipe.objects.filter(id__isnull=False).count()
+    id_minmax = Recipe.objects.aggregate(min_id=Min("id"), max_id=Max("id"), avg_id=Avg("id"))
+
+    b = Recipe.objects.filter(bleaching__isnull=False).count()
+    b_minmax = Recipe.objects.aggregate(min_bleaching=Min("bleaching"), max_bleaching=Max("bleaching"), avg_bl=Avg("bleaching"))
+
+    d = Recipe.objects.filter(duration__isnull=False).count()
+    d_minmax = Recipe.objects.aggregate(min_duration=Min("duration"), max_duration=Max("duration"), avg_du=Avg("duration"))
+
+    c = Recipe.objects.filter(concentration__isnull=False).count()
+    c_minmax = Recipe.objects.aggregate(min_concentration=Min("concentration"), max_concentration=Max("concentration"), avg_c=Avg("concentration"))
+
+    idf = Fabric.objects.filter(id__isnull=False).count()
+    idf_minmax = Fabric.objects.aggregate(min_idf=Min("id"), max_idf=Max("id"), avg_idf=Avg("id"))
+
+    ct = Fabric.objects.filter(coloring_type__isnull=False).count()
+
+    fe = Fabric.objects.filter(fabric_elasticity__isnull=False).count()
+    fe_minmax = Fabric.objects.aggregate(min_fe=Min("fabric_elasticity"), max_fe=Max("fabric_elasticity"), avg_fe=Avg("fabric_elasticity"))
+
+    yn = Fabric.objects.filter(yarn_number__isnull=False).count()
+    yn_minmax = Fabric.objects.aggregate(min_yn=Min("yarn_number"), max_yn=Max("yarn_number"), avg_yn=Avg("yarn_number"))
+
+    fr = Fabric.objects.filter(frequency__isnull=False).count()
+    fr_minmax = Fabric.objects.aggregate(min_fr=Min("frequency"), max_fr=Max("frequency"), avg_fr=Avg("frequency"))
+
+    knit = Fabric.objects.filter(knitting__isnull=False).count()
+
+    onz = Fabric.objects.filter(onzyd__isnull=False).count()
+    onz_minmax = Fabric.objects.aggregate(min_onz=Min("onzyd"), max_onz=Max("onzyd"), avg_onz=Avg("onzyd"))
+
+    g = Experiment.objects.filter(gramaj__isnull=False).count()
+    g_minmax = Experiment.objects.aggregate(min_gramaj=Min("gramaj"), max_gramaj=Max("gramaj"), avg_g=Avg("gramaj"))
+
+    we = Experiment.objects.filter(tearing_strength_weft__isnull=False).count()
+    we_minmax = Experiment.objects.aggregate(min_weft=Min("tearing_strength_weft"), max_weft=Max("tearing_strength_weft"), avg_we=Avg("tearing_strength_weft"))
+
+    wa = Experiment.objects.filter(tearing_strength_warp__isnull=False).count()
+    wa_minmax = Experiment.objects.aggregate(min_warp=Min("tearing_strength_warp"), max_warp=Max("tearing_strength_warp"), avg_wa=Avg("tearing_strength_warp"))
+
+    el = Experiment.objects.filter(elasticity__isnull=False).count()
+    el_minmax = Experiment.objects.aggregate(min_elasticity=Min("elasticity"), max_elasticity=Max("elasticity"), avg_el=Avg("elasticity"))
+
+    p = Experiment.objects.filter(pot__isnull=False).count()
+    p_minmax = Experiment.objects.aggregate(min_pot=Min("pot"), max_pot=Max("pot"), avg_p=Avg("pot"))
+
+    cl = Experiment.objects.filter(cielab_l__isnull=False).count()
+    cl_minmax = Experiment.objects.aggregate(min_l=Min("cielab_l"), max_l=Max("cielab_l"), avg_cl=Avg("cielab_l"))
+
+    ca = Experiment.objects.filter(cielab_a__isnull=False).count()
+    ca_minmax = Experiment.objects.aggregate(min_a=Min("cielab_a"), max_a=Max("cielab_a"), avg_ca=Avg("cielab_a"))
+
+    cb = Experiment.objects.filter(cielab_b__isnull=False).count()
+    cb_minmax = Experiment.objects.aggregate(min_b=Min("cielab_b"), max_b=Max("cielab_b"), avg_cb=Avg("cielab_b"))
+
     output, raw, hypo, total = 0, 0, 0, 0
     raw_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
     raw = len([r for r in os.listdir(raw_path) if os.path.isfile(os.path.join(raw_path, r))])
@@ -32,11 +80,54 @@ def main_page(req):
     exp_path = os.path.join(settings.MEDIA_ROOT, "data", "output")
     output = len([e for e in os.listdir(exp_path) if os.path.isfile(os.path.join(exp_path, e))])
     total = output + raw + hypo
-    return render(req, "data_main_page.html", 
-                  {"r": r1, "f": f1,
-                    "e": {"total": e1, "gramaj": g, "weft": we, "warp": wa, "elas": el, "pot": p},
-                    "cielab": {"l": cl, "a": ca, "b": cb},
-                    "i": {"total": total, "output": output, "raw": raw, "hypo": hypo}})
+
+    context = {
+        "recipe_count": r1,
+        "id_count": id,
+        "id_minmax": id_minmax,
+        "bleaching_count": b,
+        "bleaching_minmax": b_minmax,
+        "duration_count": d,
+        "duration_minmax": d_minmax,
+        "concentration_count": c,
+        "concentration_minmax": c_minmax,
+        "fabric_count": f1,
+        "idf_count": idf,
+        "idf_minmax": idf_minmax,
+        "coloring_count": ct,
+        "fabric_e_count": fe,
+        "fabric_e_minmax": fe_minmax,
+        "yarn_count": yn,
+        "yarn_minmax": yn_minmax,
+        "freq_count": fr,
+        "freq_minmax": fr_minmax,
+        "knitting_count": knit,
+        "onzyd_count": onz,
+        "onzyd_minmax": onz_minmax,
+        "experiment_count": e1,
+        "gramaj_count": g,
+        "gramaj_minmax": g_minmax,
+        "weft_count": we,
+        "weft_minmax": we_minmax,
+        "warp_count": wa,
+        "warp_minmax": wa_minmax,
+        "elasticity_count": el,
+        "elasticity_minmax": el_minmax,
+        "pot_count": p,
+        "pot_minmax": p_minmax,
+        "cielab_l_count": cl,
+        "cielab_l_minmax": cl_minmax,
+        "cielab_a_count": ca,
+        "cielab_a_minmax": ca_minmax,
+        "cielab_b_count": cb,
+        "cielab_b_minmax": cb_minmax,
+        "total_images": total,
+        "raw_images": raw,
+        "hypo_images": hypo,
+        "output_images": output
+    }
+
+    return render(req, "data_main_page.html", context)
 
 class Import(View):
 
