@@ -1,0 +1,55 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+Kumaş Verisi Giriş
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid import-area">
+    <div class="data-form" enctype="multipart/form-data" id="grand_form">
+        <form method="post">
+            {% csrf_token %}
+            <p><strong>Veri Silme | {{ what }}</strong></p>
+            <hr>
+            <p><strong>Aşağıdaki Veri Silinecektir!</strong></p>
+            {% if what == "image" %}
+
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="1" id="id_raw_image" name="raw_image">
+                <label for="id_raw_image" class="form-label">Ham kumaş -{{ raw_number }} adet</label>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="1" id="id_hypo_image" name="hypo_image">
+                <label for="id_hypo_image" class="form-label">Hipo öncesi -{{ hypo_number }} adet </label>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="1" id="id_out_image" name="out_image">
+                <label for="id_out_image" class="form-label">Çıktı -{{ out_number }} adet</label>
+            </div>
+
+            <input type="hidden" name="verify" value="{{ what }}" hidden>
+
+            {% else %}
+
+            <p>{{ number }} adet veri silinecektir</p>
+            <input type="hidden" name="verify" value="{{ what }}" hidden>
+            
+            {% endif %}
+            <hr>
+            <a class="btn btn-success text-center"
+                id="ignore-button"
+                href="{% url 'data_main_page' %}">Hayır
+            </a>
+            <button class="btn btn-danger text-center"
+                id="drop-button"
+                type="submit">Sil
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

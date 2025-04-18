@@ -65,7 +65,7 @@ Data
                             <h4 class="card-title">{{ recipe_count }}</h4>
                             <p class="card-text">Reçete Sayısı</p>
                             <a href="{% url 'data_import' 'recipe'%}" class="btn btn-primary">Ekle</a>
-                            <a href="#!" class="btn btn-danger">Temizle</a>
+                            <a href="{% url 'data_drop' 'recipe'%}" class="btn btn-danger">Temizle</a>
                         </div>
                         <div class="col-md-8">
                             <table class="table table-bordered table-sm text-center">
@@ -120,7 +120,7 @@ Data
                             <h4 class="card-title">{{ fabric_count }}</h4>
                             <p class="card-text">Kumaş Sayısı</p>
                             <a href="{% url 'data_import' 'fabric'%}" class="btn btn-primary">Ekle</a>
-                            <a href="#!" class="btn btn-danger">Temizle</a>
+                            <a href="{% url 'data_drop' 'fabric'%}" class="btn btn-danger">Temizle</a>
                         </div>
                         <div class="col-md-8">
                             <table class="table table-bordered table-sm text-center">
@@ -198,7 +198,7 @@ Data
                             <h4 class="card-title">{{ experiment_count }}</h4>
                             <p class="card-text">Deney Sayısı</p>
                             <a href="{% url 'data_import' 'overall'%}" class="btn btn-primary">Ekle</a>
-                            <a href="#!" class="btn btn-danger">Temizle</a>
+                            <a href="{% url 'data_drop' 'experiment'%}" class="btn btn-danger">Temizle</a>
                         </div>
                         <div class="col-md-8">
                             <table class="table table-bordered table-sm text-center">
@@ -268,6 +268,13 @@ Data
                                         <td>{{ cielab_b_minmax.max_b|floatformat:2 }}</td>
                                         <td>{{ cielab_b_minmax.avg_cb|floatformat:2 }}</td>
                                     </tr>
+                                    <tr>
+                                        <td>Output Image</td>
+                                        <td>{{ output_image }}</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -281,7 +288,7 @@ Data
                             <h4 class="card-title">{{ total_images }}</h4>
                             <p class="card-text">Fotoğraf Sayısı</p>
                             <a href="{% url 'image_upload'%}" class="btn btn-primary">Ekle</a>
-                            <a href="#!" class="btn btn-danger">Temizle</a>
+                            <a href="{% url 'data_drop' 'image'%}" class="btn btn-danger">Temizle</a>
                         </div>
                         <div class="col-md-8">
                             <table class="table table-bordered table-sm text-center">

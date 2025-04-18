@@ -70,6 +70,8 @@ class Input(models.Model):
     cielab_b_raw = models.FloatField(null=True, blank=True)
     cielab_b_hypo = models.FloatField(null=True, blank=True)
 
+    input_image = models.CharField(null=True, blank=True, max_length=180)
+
     def __str__(self):
         return str(self.type)
 
@@ -79,7 +81,7 @@ class Experiment(models.Model):
 
     input = models.ForeignKey(Input, null=True, on_delete=models.CASCADE)    
     recipe = models.ForeignKey(Recipe, null=True, on_delete=models.CASCADE) 
-
+    replication = models.IntegerField(null=True, blank=True, default=1)
     gramaj = models.IntegerField(null=True, blank=True)
     tearing_strength_weft = models.IntegerField(null=True, blank=True)
     tearing_strength_warp = models.IntegerField(null=True, blank=True)
@@ -91,11 +93,13 @@ class Experiment(models.Model):
     cielab_a = models.FloatField(null=True, blank=True)
     cielab_b = models.FloatField(null=True, blank=True)
 
+    output_image = models.CharField(null=True, blank=True, max_length=180)
+
     def __str__(self):
         return str(self.id)
     
     def save(self, *args, **kwargs):
         if not self.id:
-            self.id = str(self.input.type) + "-" + str(self.recipe)
+            self.id = str(self.input.type) + "-" + str(self.recipe) + "-" + str(self.replication)
         return super().save(*args, **kwargs)
     

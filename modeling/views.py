@@ -179,112 +179,121 @@ def data_settings(req):
         new_cols.insert(0, df_target.columns.tolist()[-1])
         new_cols.insert(0, df_target.columns.tolist()[-2])
         df_target = df_target[new_cols]
+
+        df = pd.concat([df_input, df_target])
+        df.to_csv(os.path.join(csv_all_path, conf["input_file_name"]))
         target_path = os.path.join(csv_target_path, conf["target_file_name"])
         df_target.to_csv(target_path, index=False, encoding="utf-8-sig")
 
-        it = int(postdata["image_type"].split(" ")[-1])
-        if "raw_image" in postdata:
-            for root, dirs, files in os.walk(image_input_path):
-                for f in files:
-                    os.unlink(os.path.join(root, f))
-            for root, dirs, files in os.walk(image_input_cache):
-                for f in files:
-                    os.unlink(os.path.join(root, f))
+        # it = int(postdata["image_type"].split(" ")[-1])
+        # if "raw_image" in postdata:
+        #     for root, dirs, files in os.walk(image_input_path):
+        #         for f in files:
+        #             os.unlink(os.path.join(root, f))
+        #     for root, dirs, files in os.walk(image_input_cache):
+        #         for f in files:
+        #             os.unlink(os.path.join(root, f))
 
-            for root, dirs, files in os.walk(raw_image_path):
-                for file in files:
-                    if file.lower().endswith(image_extensions):
-                        if len(file.split("-")[0].split("."))==2:
-                            tip = 0
-                        if len(file.split("-")[0].split("."))==3:
-                            tip = int(file.split("-")[0].split(".")[1])
+        #     for root, dirs, files in os.walk(raw_image_path):
+        #         for file in files:
+        #             if file.lower().endswith(image_extensions):
+        #                 if len(file.split("-")[0].split("."))==2:
+        #                     tip = 0
+        #                 if len(file.split("-")[0].split("."))==3:
+        #                     tip = int(file.split("-")[0].split(".")[1])
                         
-                        if tip==it:
-                            source_path = os.path.join(root, file)
-                            image_name = ".".join(file.split(".")[:-1])
-                            for r in range(24):
-                                dest_path = os.path.join(image_input_cache, image_name + "recete" + str(r+1) + ".JPG")
-                                shutil.copyfile(source_path, dest_path)
-                                p = Preprocessor(dest_path, image_input_path)
-                                r, f = p.process()
-                                os.unlink(dest_path)
-                                if r == 0:
-                                    print(r, f)
-                            source = image_input_path
-                            dest = image_input_cache
-                            if os.path.exists(dest):
-                                shutil.rmtree(dest)
-                            shutil.copytree(source, dest)
+        #                 if tip==it:
+        #                     source_path = os.path.join(root, file)
+        #                     image_name = ".".join(file.split(".")[:-1])
+        #                     for r in range(24):
+        #                         dest_path = os.path.join(image_input_cache, image_name + "recete" + str(r+1) + ".JPG")
+        #                         shutil.copyfile(source_path, dest_path)
+        #                         p = Preprocessor(dest_path, image_input_path)
+        #                         r, f = p.process()
+        #                         os.unlink(dest_path)
+        #                         if r == 0:
+        #                             print(r, f)
+        #                     source = image_input_path
+        #                     dest = image_input_cache
+        #                     if os.path.exists(dest):
+        #                         shutil.rmtree(dest)
+        #                     shutil.copytree(source, dest)
                                 
         
-        if "hypo_image" in postdata:
-            for root, dirs, files in os.walk(image_input_path):
-                for f in files:
-                    os.unlink(os.path.join(root, f))
-            for root, dirs, files in os.walk(image_input_cache):
-                for f in files:
-                    os.unlink(os.path.join(root, f))
+        # if "hypo_image" in postdata:
+        #     for root, dirs, files in os.walk(image_input_path):
+        #         for f in files:
+        #             os.unlink(os.path.join(root, f))
+        #     for root, dirs, files in os.walk(image_input_cache):
+        #         for f in files:
+        #             os.unlink(os.path.join(root, f))
 
-            for root, dirs, files in os.walk(hypo_image_path):
-                for file in files:
-                    if file.lower().endswith(image_extensions):
-                        if len(file.split("."))==2:
-                            tip = 0
-                        if len(file.split("."))==3:
-                            tip = int(file.split(".")[1])
+        #     for root, dirs, files in os.walk(hypo_image_path):
+        #         for file in files:
+        #             if file.lower().endswith(image_extensions):
+        #                 if len(file.split("."))==2:
+        #                     tip = 0
+        #                 if len(file.split("."))==3:
+        #                     tip = int(file.split(".")[1])
                         
-                        if tip==it:
-                            source_path = os.path.join(root, file)
-                            image_name = ".".join(file.split(".")[:-1])
-                            for r in range(24):
-                                dest_path = os.path.join(image_input_cache, image_name + "recete" + str(r+1) + ".JPG")
-                                shutil.copyfile(source_path, dest_path)
-                                p = Preprocessor(source_path, image_input_path)
-                                r, f = p.process()
-                                os.unlink(dest_path)
-                                if r == 0:
-                                    print(r, f)
-                                source = image_input_path
-                                dest = image_input_cache
-                                if os.path.exists(dest):
-                                    shutil.rmtree(dest)
-                                shutil.copytree(source, dest)
+        #                 if tip==it:
+        #                     source_path = os.path.join(root, file)
+        #                     image_name = ".".join(file.split(".")[:-1])
+        #                     for r in range(24):
+        #                         dest_path = os.path.join(image_input_cache, image_name + "recete" + str(r+1) + ".JPG")
+        #                         shutil.copyfile(source_path, dest_path)
+        #                         p = Preprocessor(source_path, image_input_path)
+        #                         r, f = p.process()
+        #                         os.unlink(dest_path)
+        #                         if r == 0:
+        #                             print(r, f)
+        #                         source = image_input_path
+        #                         dest = image_input_cache
+        #                         if os.path.exists(dest):
+        #                             shutil.rmtree(dest)
+        #                         shutil.copytree(source, dest)
 
-        if "hypo_image" in postdata or "raw_image" in postdata:
+        # if "hypo_image" in postdata or "raw_image" in postdata:
 
-            for root, dirs, files in os.walk(image_target_path):
-                for f in files:
-                    os.unlink(os.path.join(root, f))
+        #     for root, dirs, files in os.walk(image_target_path):
+        #         for f in files:
+        #             os.unlink(os.path.join(root, f))
             
-            for root, dirs, files in os.walk(image_target_cache):
+        #     for root, dirs, files in os.walk(image_target_cache):
+        #         for f in files:
+        #             os.unlink(os.path.join(root, f))
+
+        #     for root, dirs, files in os.walk(output_image_path):
+        #         for file in files:
+        #             if file.lower().endswith(image_extensions):
+                        
+        #                 if len(file.split("."))==2:
+        #                     tip = 0
+        #                 if len(file.split("."))==3:
+        #                     tip = int(file.split(".")[1])
+                        
+        #                 if tip==it:
+        #                     image_name = ".".join(file.split(".")[:-1]) 
+        #                     folder_name = root.split("/")[-1]
+        #                     source_path = os.path.join(root, file)
+        #                     dest_path = os.path.join(image_target_cache, image_name + folder_name + ".JPG")
+        #                     shutil.copyfile(source_path, dest_path)
+        #                     p = Preprocessor(dest_path, image_target_path)
+        #                     r, f = p.process()
+        #                     os.unlink(dest_path)
+        #                     if r == 0:
+        #                         print(r, f)
+        #                 source = image_target_path
+        #                 dest = image_target_cache
+        #                 if os.path.exists(dest):
+        #                     shutil.rmtree(dest)
+        #                 shutil.copytree(source, dest)
+
+        if "raw_image" in postdata:
+            for root, dirs, files in os.walk(image_cache_path):
                 for f in files:
                     os.unlink(os.path.join(root, f))
 
-            for root, dirs, files in os.walk(output_image_path):
-                for file in files:
-                    if file.lower().endswith(image_extensions):
-                        
-                        if len(file.split("."))==2:
-                            tip = 0
-                        if len(file.split("."))==3:
-                            tip = int(file.split(".")[1])
-                        
-                        if tip==it:
-                            image_name = ".".join(file.split(".")[:-1]) 
-                            folder_name = root.split("/")[-1]
-                            source_path = os.path.join(root, file)
-                            dest_path = os.path.join(image_target_cache, image_name + folder_name + ".JPG")
-                            shutil.copyfile(source_path, dest_path)
-                            p = Preprocessor(dest_path, image_target_path)
-                            r, f = p.process()
-                            os.unlink(dest_path)
-                            if r == 0:
-                                print(r, f)
-                        source = image_target_path
-                        dest = image_target_cache
-                        if os.path.exists(dest):
-                            shutil.rmtree(dest)
-                        shutil.copytree(source, dest)
                             
         source = image_cache_path
         dest = image_training_path

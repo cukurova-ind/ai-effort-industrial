@@ -72,6 +72,8 @@ def main_page(req):
     cb = Experiment.objects.filter(cielab_b__isnull=False).count()
     cb_minmax = Experiment.objects.aggregate(min_b=Min("cielab_b"), max_b=Max("cielab_b"), avg_cb=Avg("cielab_b"))
 
+    oi = Experiment.objects.filter(output_image__isnull=False).count()
+    
     output, raw, hypo, total = 0, 0, 0, 0
     raw_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
     raw = len([r for r in os.listdir(raw_path) if os.path.isfile(os.path.join(raw_path, r))])
@@ -121,6 +123,7 @@ def main_page(req):
         "cielab_a_minmax": ca_minmax,
         "cielab_b_count": cb,
         "cielab_b_minmax": cb_minmax,
+        "output_image": oi,
         "total_images": total,
         "raw_images": raw,
         "hypo_images": hypo,
@@ -151,8 +154,10 @@ class Import(View):
         if what:
             if what == "recipe":
                 message = self.recipe_import(req)
+                return HttpResponseRedirect("/dataops")
             elif what == "fabric":
                 message = self.fabric_import(req)
+                return HttpResponseRedirect("/dataops")
             else:
                 message = self.result_import(req, imp=what)
                 if message=="success":
@@ -173,16 +178,23 @@ class Import(View):
                         df = pd.read_csv(myfile)
                     else:
                         df = pd.read_excel(myfile)
-                    Recipe.objects.all().delete()
+                    
+                    new_count = 0
                     for d in df.itertuples():
-                        recipe = Recipe.objects.create(
-                            id=d.id,
-                            bleaching=d.bleaching,
-                            duration=d.duration, 
-                            concentration=d.concentration)           
-                        recipe.save()
+                        id=d.id
+                        recep = {
+                            "bleaching":d.bleaching,
+                            "duration":d.duration, 
+                            "concentration":d.concentration
+                        }
+                        rc, created = Recipe.objects.update_or_create(
+                            id=id,
+                            defaults=recep)
+                        Recipe.save(rc)
+                        if created:
+                            new_count += 1
                     count = Recipe.objects.count()
-                    message = "success: " + str(count) + " data imported"
+                    message = "success: " + str(new_count) + " data imported"
                 except Exception as e:
                     message = e   
         else:
@@ -202,19 +214,24 @@ class Import(View):
                         df = pd.read_csv(myfile)
                     else:
                         df = pd.read_excel(myfile)
-                    Fabric.objects.all().delete()
+                    new_count = 0
                     for d in df.itertuples():
-                        fabric = Fabric.objects.create(
-                            id=d.tip,
-                            coloring_type=d.boyama_tipi,
-                            fabric_elasticity=d.elastikiyet,
-                            yarn_number=d.iplik_no_ne,
-                            frequency=d.siklik,
-                            knitting=d.orgu,
-                            onzyd=d.onzyd2)           
-                        fabric.save()
+                        id = d.tip
+                        fabric = {
+                            "coloring_type":d.boyama_tipi,
+                            "fabric_elasticity":d.elastikiyet,
+                            "yarn_number":d.iplik_no_ne,
+                            "frequency":d.siklik,
+                            "knitting":d.orgu,
+                            "onzyd":d.onzyd2}  
+                        fb, created = Fabric.objects.update_or_create(
+                            id=id,
+                            defaults=fabric)         
+                        Fabric.save(fb)
+                        if created:
+                                new_count += 1
                     count = Fabric.objects.count()
-                    message = "success: " + str(count) + " data imported"
+                    message = "success: " + str(new_count) + " data imported"
                 except Exception as e:
                     message = e   
         else:
@@ -270,6 +287,9 @@ class Import(View):
                             inp["cielab_a_hypo"] = d2.cielab_a_prehypo
                             inp["cielab_b_hypo"] = d2.cielab_b_prehypo
 
+                            if hasattr(d2, "input_image"):
+                                inp["input_image"] = d2.input_image
+
                             ip, _ = Input.objects.update_or_create(
                                     type=fabric,
                                     defaults=inp)
@@ -278,9 +298,11 @@ class Import(View):
 
                             oinput = Input.objects.get(type=d2.type)
                             recipe = Recipe.objects.get(id=d2.recipe)
-                            
+                            replication = d2.replication
+
                             exp = {"input": oinput,
-                                    "recipe": recipe}
+                                    "recipe": recipe,
+                                    "replication": replication}
 
                             exp["gramaj"] = d2.gramage_posthypo
                             exp["tearing_strength_weft"] = d2.tearing_strength_weft_posthypo
@@ -293,8 +315,11 @@ class Import(View):
                             exp["cielab_a"] = d2.cielab_a_posthypo
                             exp["cielab_b"] = d2.cielab_b_posthypo
 
+                            if hasattr(d2, 'output_image'):
+                                exp["output_image"] = d2.output_image
+
                             ex, _ = Experiment.objects.update_or_create(
-                                    pk=str(d2.type) + "-" + str(d2.recipe),
+                                    pk=str(d2.type) + "-" + str(d2.recipe) + "-" + str(d2.replication),
                                     defaults=exp)
 
                             Experiment.save(ex)
@@ -397,6 +422,100 @@ class Entry(View):
                     exp.save()
                 return HttpResponseRedirect("/dataops")
 
+class Drop(View):
+
+    template_name = "drop_page.html"
+    whats = ["recipe", "fabric", "image", "experiment", "overall"]
+
+    def get(self, req, *args, **kwargs):
+        what = kwargs.get("what")
+        if what:
+            if what in self.whats:
+                context = {"what": what}
+                if what == "recipe":
+                    context["number"] = Recipe.objects.all().count() + Experiment.objects.all().count()
+                elif what == "fabric":
+                    context["number"] = Fabric.objects.all().count() + Experiment.objects.all().count()
+                elif what == "experiment":
+                    context["number"] = Experiment.objects.all().count()
+                elif what == "image":
+                    output, raw, hypo, total = 0, 0, 0, 0
+                    raw_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
+                    raw = len([r for r in os.listdir(raw_path) if os.path.isfile(os.path.join(raw_path, r))])
+                    hypo_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
+                    hypo = len([h for h in os.listdir(hypo_path) if os.path.isfile(os.path.join(hypo_path, h))])
+                    exp_path = os.path.join(settings.MEDIA_ROOT, "data", "output")
+                    output = len([e for e in os.listdir(exp_path) if os.path.isfile(os.path.join(exp_path, e))])
+                    total = output + raw + hypo
+                    context["raw_number"] = raw
+                    context["hypo_number"] = hypo
+                    context["out_number"] = output
+                return render(req, self.template_name, context)
+            else:
+                return HttpResponseRedirect("recipe")
+        else:
+            context = {"message": "ok"}
+            return render(req, self.template_name, context)
+    
+    def post(self, req, *args, **kwargs):
+        what = kwargs.get("what")
+        verify = req.POST["verify"]
+        if what:
+            if verify == "recipe":
+                message = self.recipe_drop(req)
+                return HttpResponseRedirect("/dataops")
+            elif verify == "fabric":
+                message = self.fabric_drop(req)
+                return HttpResponseRedirect("/dataops")
+            elif verify == "experiment":
+                message = self.experiment_drop(req)
+                return HttpResponseRedirect("/dataops")
+            elif verify == "image":
+                message = self.image_drop(req)
+                return HttpResponseRedirect("/dataops")
+            context = {"what": what} 
+            return render(req, self.template_name, context)
+    
+    def recipe_drop(self, req):
+        try:
+            Recipe.objects.all().delete()
+            message = "success"
+        except Exception as e:
+            message = e
+        return message
+    
+    def fabric_drop(self, req):
+        try:
+            Fabric.objects.all().delete()
+            message = "success"
+        except Exception as e:
+            message = e
+        return message
+    
+    def experiment_drop(self, req):
+        try:
+            Experiment.objects.all().delete()
+            message = "success"
+        except Exception as e:
+            message = e
+        return message
+    
+    def image_drop(self, req):
+        folders = []
+        if req.POST.get("raw_image"):
+            folders.append("raw")
+        if req.POST.get("hypo_image"):
+            folders.append("hypo")
+        if req.POST.get("out_image"):
+            folders.append("output")
+        if folders:
+            for f in folders:
+                fpath = os.path.join(settings.MEDIA_ROOT, "data", f)
+                for root, dirs, files in os.walk(fpath):
+                    for f in files:
+                        os.unlink(os.path.join(root, f))
+        return folders
+    
 def image_upload(req):
     form = Folder()
     if req.method == "POST":
