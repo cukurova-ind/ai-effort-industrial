@@ -47,4 +47,53 @@ util = {"gramaj_raw": "gramaj_raw",
         "knitting": "knitting",
         "elasticity": "fabric_elasticity"}
 
+label = {"gramaj_raw": "Ham Gramaj",
+        "gramaj_hypo": "Hipo Öncesi Gramaj",
+        "gramaj": "Gramaj",
+
+        "elasticity_raw": "Ham Elastikiyet",
+        "elasticity_hypo": "Hipo Öncesi Elastikiyet",
+        "elasticity": "Elastikiyet",
+
+        "pot_raw": "Ham Potluk",
+        "pot_hypo": "Hipo Öncesi Potluk",
+        "pot": "Potluk",
+
+        "cielab_l_raw": "Ham L*",
+        "cielab_l_hypo": "Hipo Öncesi L*",
+        "cielab_l": "L*",
+        "cielab_a_raw": "Ham a*",
+        "cielab_a_hypo": "Hipo Öncesi a*",
+        "cielab_a": "a*",
+        "cielab_b_raw": "Ham b*",
+        "cielab_b_hypo": "Hipo Öncesi b*",
+        "cielab_b": "b*",
+
+        "tearing_strength_weft_raw": "Ham Yırtılma Mukavemeti (Atkı)",
+        "tearing_strength_weft_hypo": "Hipo Ö. Yırtılma Mukavemeti (Atkı)",
+        "tearing_strength_weft": "Yırtılma Mukavemeti (Atkı)",
+        "tearing_strength_warp_raw": "Ham Yırtılma Mukavemeti (Çözgü)",
+        "tearing_strength_warp_hypo": "Hipo Ö. Yırtılma Mukavemeti (Çözgü)",
+        "tearing_strength_warp": "Yırtılma Mukavemeti (Çözgü)",
+
+        "breaking_strength_weft_raw": "Ham Kopma Mukavemeti (Atkı)",
+        "breaking_strength_weft_hypo": "Hipo Ö. Kopma Mukavemeti (Atkı)",
+        "breaking_strength_weft": "Kopma Mukavemeti (Atkı)",
+        "breaking_strength_warp_raw": "Ham Kopma Mukavemeti (Çözgü)",
+        "breaking_strength_warp_hypo": "Hipo Ö. Kopma Mukavemeti (Çözgü)",
+        "breaking_strength_warp": "Kopma Mukavemeti (Çözgü)",
+
+        "bleaching": "Ağartma Sayısı",
+        "duration": "Süre",
+        "concentration": "Konsantrasyon",
+
+        "type": "id",
+
+        "coloring_type": "Boyama Tipi",
+        "onzyd": "Onz/yd",
+        "yarn_number": "İplik Numarası",
+        "frequency": "Sıkılık",
+        "knitting": "Dokuma Türü",
+        "fabric_elasticity": "Elastanlık"}
+
 discretes = ["coloring_type", "knitting"]

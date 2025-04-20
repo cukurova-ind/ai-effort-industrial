@@ -275,6 +275,29 @@ a, a:hover, a:visited, a:active, a:focus {
   padding: 0%;
 }
 
+.data-settings .table-container {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.scroll-container {
+  overflow-x: auto;
+}
+
+.scroll-container th, td {
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.scroll-container th:hover{
+  background-color: lightgray;
+}
+
+.table-fixed {
+  table-layout: auto;
+}
+
+
 .border-section {
   border-right: 1px inset lightgray;
 }
@@ -290,12 +313,6 @@ a, a:hover, a:visited, a:active, a:focus {
 .modeling-configuration form a {
   width: 20%;
   margin: 0 auto;
-}
-
-table {
-  table-layout: fixed;
-  word-wrap: break-word;
-  overflow-x: scroll;
 }
 
 .samples img {

@@ -97,7 +97,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATIC_ROOT =  os.path.join(BASE_DIR, 'static')
 
-ENG_URL =  os.path.join(APP_DIR, 'engineering')
+ENG_URL =  os.path.join(APP_DIR, 'engineering-torch')
 
 MEDIA_URL = '/media/'
 
