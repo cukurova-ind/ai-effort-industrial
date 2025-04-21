@@ -11,7 +11,9 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 DEBUG = bool(os.environ.get("DEBUG", default=0))
 
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1").split(",")
+ALLOWED_HOSTS = ["*"]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -24,7 +26,9 @@ INSTALLED_APPS = [
     'industrial',
     'dataops',
     'prompting',
-    'modeling'
+    'modeling',
+    'channels',
+    'engine.apps.EngineConfig',
 ]
 
 MIDDLEWARE = [
@@ -32,9 +36,15 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    
     'django.contrib.messages.middleware.MessageMiddleware',
+    
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #----------------------------------
+    'engine.middleware.OneSessionPerUserMiddleware',
+    #----------------------------------
 ]
 
 ROOT_URLCONF = 'industrial.urls'
@@ -56,6 +66,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'industrial.wsgi.application'
+ASGI_APPLICATION = 'industrial.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND":
+      "channels.layers.InMemoryChannelLayer",
+    }
+}
 
 DATABASES = {
     'default': {
@@ -67,6 +85,8 @@ DATABASES = {
          'PORT': os.getenv('DATABASE_PORT', 5432),
      }
 }
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -92,6 +112,8 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+
+LOGIN_URL = "/login/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

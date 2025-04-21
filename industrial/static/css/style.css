@@ -75,6 +75,15 @@ a, a:hover, a:visited, a:active, a:focus {
   opacity: .8;
 }
 
+.login-page {
+  height: 89.9%;
+  padding: 0;
+}
+
+.login-page .login-row {
+  width: 80%;
+}
+
 /* main-page */
 .main-page-main {
   width: 80%;

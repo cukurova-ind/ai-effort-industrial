@@ -1,0 +1,58 @@
+{% extends "main_template.html" %}
+{% load static %}
+
+{% block title %}
+
+AI Effort | Login
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid d-flex justify-content-center align-items-center login-page">
+<div class="row login-row">
+{% if form.errors %}
+<span class="text-danger">Your username and password didn't match. Please try again.</span>
+{% endif %}
+
+
+{% if messages %}
+
+    {% for message in messages %}
+      <span class="text-danger">{{ message }}</span>
+    {% endfor %}
+  
+{% endif %}
+
+
+{% if next %}
+{% if user.is_authenticated %}
+  <span class="text-danger">Your account doesn't have access to this page. To proceed,
+  please login with an account that has access.</span>
+{% else %}
+  <span class="text-danger">Please login to see this page.</span>
+{% endif %}
+{% endif %}
+
+
+<form method="post" action="{% url 'custom_login' %}">
+{% csrf_token %}
+<table>
+  <tr>
+    <td>{{ form.username.label_tag }}</td>
+    <td>{{ form.username }}</td>
+  </tr>
+  <tr>
+    <td>{{ form.password.label_tag }}</td>
+    <td>{{ form.password }}</td>
+  </tr>
+</table>
+<input type="submit" value="login">
+<input type="hidden" name="next" value="{{ next }}">
+</form>
+
+</div>
+</div>
+        
+{% endblock %}

@@ -4,7 +4,11 @@ import pandas as pd
 import numpy as np
 from openpyxl import Workbook
 from sklearn.model_selection import train_test_split
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib.sessions.models import Session
+from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.files.storage import default_storage
@@ -12,6 +16,7 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 from django.db.models import Q
 from dataops.models import Experiment, Input, Fabric, Recipe
+from engine.models import LoggedInUser
 from .image_processor import Preprocessor
 from .utils import util, discretes, label
 
@@ -19,27 +24,17 @@ raw_image_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
 hypo_image_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
 output_image_path = os.path.join(settings.MEDIA_ROOT, "data", "output")
 image_cache_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "cache")
-# image_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "training")
-# image_val_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "validation")
-# image_input_cache = os.path.join(image_cache_path, "input")
-# image_target_cache = os.path.join(image_cache_path, "target")
-# image_input_path = os.path.join(image_training_path, "input")
-# image_target_path = os.path.join(image_training_path, "target")
-# image_input_val_path = os.path.join(image_val_path, "input")
-# image_target_val_path = os.path.join(image_val_path, "target")
 csv_all_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "all")
 csv_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "training")
 csv_test_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "test")
-# csv_input_path = os.path.join(csv_all_path, "input")
-# csv_target_path = os.path.join(csv_all_path, "target")
-# csv_input_train_path = os.path.join(csv_training_path, "input")
-# csv_target_train_path = os.path.join(csv_training_path, "target")
-# csv_input_val_path = os.path.join(csv_val_path, "input")
-# csv_target_val_path = os.path.join(csv_val_path, "target")
+
+
 
 def main_page(req):
-
-    return render(req, "modeling_main_page.html")
+    if req.user.is_authenticated:
+        return render(req, "modeling_main_page.html")
+    else:
+        return HttpResponseRedirect("/login/?next=/modeling/")
 
     
 def data_settings(req):
@@ -65,8 +60,6 @@ def data_settings(req):
     df_input = df_input.merge(df_rec, right_on="id", left_on="recipe_id", how="left")
     df_input.drop(columns=["id_x", "id_y", "input_id"], inplace=True)
     df_input.insert(0, "type_id", df_input.pop("type_id"))
-
-    image_extensions = ('.png', '.jpg', '.jpeg', '.JPG')
 
     if req.method == "POST":
         postdata = req.POST
