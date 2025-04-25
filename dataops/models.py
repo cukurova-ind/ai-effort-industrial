@@ -103,3 +103,7 @@ class Experiment(models.Model):
             self.id = str(self.input.type) + "-" + str(self.recipe) + "-" + str(self.replication)
         return super().save(*args, **kwargs)
     
+class CustomData(models.Model):
+    name = models.CharField(max_length=100)
+    form_data = models.JSONField()
+    
