@@ -1,6 +1,6 @@
 console.log("Sanity check from room.js.");
 
-const roomName = JSON.parse(document.getElementById('roomName').textContent);
+const userName = JSON.parse(document.getElementById('userName').textContent);
 
 let chatLog = document.querySelector("#chatLog");
 let chatMessageInput = document.querySelector("#chatMessageInput");
@@ -44,7 +44,7 @@ chatMessageSend.onclick = function() {
 let chatSocket = null;
 
 function connect() {
-    chatSocket = new WebSocket("ws://" + window.location.host + "/ws/engine/" + roomName + "/");
+    chatSocket = new WebSocket("ws://" + window.location.host + "/ws/engine/" + userName + "/");
 
     chatSocket.onopen = function(e) {
         console.log("Successfully connected to the WebSocket.");

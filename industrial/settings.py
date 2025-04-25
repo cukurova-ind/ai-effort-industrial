@@ -70,8 +70,7 @@ ASGI_APPLICATION = 'industrial.asgi.application'
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND":
-      "channels.layers.InMemoryChannelLayer",
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }
 
@@ -84,6 +83,14 @@ DATABASES = {
          'HOST': os.getenv('DATABASE_HOST'),
          'PORT': os.getenv('DATABASE_PORT', 5432),
      }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',  # fast in-memory, good for development
+        'LOCATION': 'unique-dataset-cache',
+        'TIMEOUT': None,  # Cache forever; set a value (e.g., 300) to expire in seconds
+    }
 }
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True

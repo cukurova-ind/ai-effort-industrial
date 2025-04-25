@@ -7,22 +7,17 @@ from django.utils import timezone
 from .models import Room
 
 
-def index_view(req):
-    print(get_current_users())
-    return render(req, "index.html")
+def main_board(req, profile_name=None):
+    if req.user.is_authenticated:
+        if profile_name:
+            profile_name = profile_name
+
+        return render(req, "trainboard.html", {"profile_name":profile_name})
+    else:
+        return HttpResponseRedirect("/login/?next=/engine/")
 
 def room_view(request, room_name):
     chat_room, created = Room.objects.get_or_create(name=room_name)
     return render(request, 'room.html', {
         'room': chat_room,
     })
-
-def get_current_users():
-    active_sessions = Session.objects.all()
-    user_id_list = []
-    for session in active_sessions:
-        data = session.get_decoded()
-        print(data)
-        user_id_list.append(data.get('_auth_user_id', None))
-    # Query all logged in users based on id list
-    return User.objects.filter(id__in=user_id_list)

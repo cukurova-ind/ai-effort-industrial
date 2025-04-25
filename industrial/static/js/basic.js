@@ -1,45 +1,3 @@
-// function handleFileSelect(e) {
-//     var files = e.target.files;
-//     if (files.length < 1) {
-//         alert('select a file...');
-//         return;
-//     }
-//     var file = files[0];
-//     var reader = new FileReader();
-//     reader.onload = onFileLoaded;
-//     reader.readAsDataURL(file);
-// }
-
-// function onFileLoaded(e) {
-//     var match = /^data:(.*);base64,(.*)$/.exec(e.target.result);
-//     if (match == null) {
-//         throw 'Could not parse result'; // should not happen
-//     }
-//     var mimeType = match[1];
-//     var content = match[2];
-//     alert(mimeType);
-//     alert(content);
-// }
-
-// $(function () {
-//     $('#import-pfx-button').click(function (e) {
-//         $('#file-input').click();
-//     });
-//     $('#file-input').change(handleFileSelect);
-// });
-
-// document.getElementById("filepicker").addEventListener(
-//     "change",
-//     (event) => {
-//       let output = document.getElementById("listing");
-//       for (const file of event.target.files) {
-//         let item = document.createElement("li");
-//         item.textContent = file.webkitRelativePath;
-//         output.appendChild(item);
-//       }
-//     },
-//     false,
-//   );
 
 $(document).ready(function() {
     $("#max_steps").on("change", function(){
@@ -225,78 +183,6 @@ $(document).ready(function() {
         retrain();
     });
 
-    // let raw_files = [];
-    // let hypo_files = [];
-    // let exp_files = [];
-    // document.getElementById("raw_folder").addEventListener(
-    //     "change",
-    //     (event) => {
-
-    //         raw_files = Array.from(event.target.files);
-    //         if (raw_files.length === 0) {
-    //             alert("No files selected.");
-    //             return;
-    //         }
-    //     },
-    //     false,
-    // );
-
-    // document.getElementById("hypo_folder").addEventListener(
-    //     "change",
-    //     (event) => {
-
-    //         hypo_files = Array.from(event.target.files);
-    //         if (hypo_files.length === 0) {
-    //             alert("No files selected.");
-    //             return;
-    //         }
-    //     },
-    //     false,
-    // );
-
-    // document.getElementById("exp_folder").addEventListener(
-    //     "change",
-    //     (event) => {
-
-    //         exp_files = Array.from(event.target.files);
-    //         if (exp_files.length === 0) {
-    //             alert("No files selected.");
-    //             return;
-    //         }
-    //     },
-    //     false,
-    // );
-
-    // $("#image_upload_button").on("click", function(){
-    //     const form_data = new FormData($("#image_upload")[0]);
-    //     // raw_files.forEach(file => {
-    //     //     form_data.append("raw_files[]", file, file.webkitRelativePath);
-    //     // });
-    //     // hypo_files.forEach(file => {
-    //     //     form_data.append("hypo_files[]", file, file.webkitRelativePath);
-    //     // });
-    //     // exp_files.forEach(file => {
-    //     //     form_data.append("exp_files[]", file, file.webkitRelativePath);
-    //     // });
-
-
-    //     $.ajax({
-    //         url: "/dataops/import/image",
-    //         type: 'POST',
-    //         data: form_data,
-    //         contentType: false,
-    //         processData: false,
-    //         cache: false,
-    //         success: function(res) {
-    //             console.log(res);
-
-    //         },
-    //         error: function(jqXHR, textStatus, errorMessage) {
-    //             alert(errorMessage);
-    //         }
-    //     });
-    // });
-
     const $checkboxes = $('.input_columns');
     const $outputField = $('#id_selection');
     
@@ -318,6 +204,16 @@ $(document).ready(function() {
     $checkboxes.on('change', updateSelectedColumns);
 
 
+    $('#checkAllBtn').click(function() {
+        $('.input_columns').prop('checked', true);
+        updateSelectedColumns()
+    });
+
+    $('#uncheckAllBtn').click(function() {
+        $('.input_columns').prop('checked', false);
+        updateSelectedColumns();
+    });
+
     const $outboxes = $('.output_columns');
     const $selectedField = $('#id_selection_output');
     
@@ -338,6 +234,61 @@ $(document).ready(function() {
     // Update on change
     $outboxes.on('change', updateSelected);
 
+    $('#saveUpdate').click(function() {
+        const profile = $('#currentProfile').val();
+
+        if (profile === 'unknownprofile') {
+            $('#namePrompt').slideDown();
+            return; // Stop here until user provides a name
+        }
+
+        var form_data = new FormData($("#settingsForm")[0]);
+        form_data.append("saveupdate", 1)
+        $.ajax({
+            url: "/modeling/dataset/settings/",
+            type: 'POST',
+            data: form_data,
+            contentType: false,
+            processData: false,
+            cache: false,
+            success: function(res) {
+                console.log(res);
+                window.location.href = "/engine/" + res.profile + "/";
+            },
+            error: function(jqXHR, textStatus, errorMessage) {
+                alert(errorMessage);
+            }
+        });
+    });
+
+    $('#newProfileName').on('change', function () {
+        const newName = $(this).val().trim();
+        if (newName !== '') {
+            $('#currentProfile').val(newName);
+            $('#namePrompt').slideUp();
+            $('#saveUpdate').click(); // Retry save
+        }
+    });
+
+    $('#noSave').click(function() {
+        var form_data = new FormData($("#settingsForm")[0]);
+
+        $.ajax({
+            url: "/modeling/dataset/settings/",
+            type: 'POST',
+            data: form_data,
+            contentType: false,
+            processData: false,
+            cache: false,
+            success: function(res) {
+                console.log(res);
+                window.location.href = "/engine/";
+            },
+            error: function(jqXHR, textStatus, errorMessage) {
+                alert(errorMessage);
+            }
+        });
+    });
 
 
 });

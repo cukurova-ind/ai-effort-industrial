@@ -279,9 +279,14 @@ a, a:hover, a:visited, a:active, a:focus {
 }
 
 .data-settings, .image-settings {
-  width: 80%;
+  width: 100%;
   min-height: 89.9%;
   padding: 0%;
+}
+
+.data-settings .main-container, .data-settings .top-container {
+  width: 90%;
+  margin: 0 auto;
 }
 
 .data-settings .table-container {

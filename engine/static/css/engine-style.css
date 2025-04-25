@@ -1,0 +1,98 @@
+
+html, body {
+    height : 100%;
+}
+
+.row {
+    padding: 0;
+}
+
+.is-hidden {
+    display: none!important;
+}
+
+.is-active {
+    display: block;
+}
+
+#pred img, #truth img {
+    width: 12%;
+    margin: 1px;
+}
+
+#shot-image img {
+    width: 512px;
+    height: 512px;
+    margin: 1px;
+}
+
+.progress {
+    height: 50px!important;
+    width: 95%;
+    margin: 1%;
+}
+
+#loading-image {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(192, 192, 192, 0.5);
+    background-image: url("https://i.sstatic.net/MnyxU.gif");
+    background-repeat: no-repeat;
+    background-position: center;}
+
+.main {
+    width: 50%;
+}
+
+.top-menu a {
+    margin: 0.5%;
+}
+
+.dashboard, .bars {
+    width: 100%;
+}
+
+.model-page-main {
+    width: 80%!important;
+    min-height: 100%;
+    padding: 0;
+}
+
+.model-page-main .model-form {
+  border-right: 2px solid gray;
+  padding: 2%;
+}
+
+.model-page-main .model-response {
+    padding: 2%;
+    min-height: 50%;
+}
+
+.model-page-main .input-img {
+    width: 256px;
+    height: 512px;
+    padding: 2%;
+    margin: 1% auto;
+    border: 1px solid black;
+  }
+  
+ .model-page-main .input-img img, .model-page-main .model-response img {
+    width: 220px;
+    height: 480px;
+  }
+
+  .naming input {
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid gray;
+  }
+
+  .naming button {
+    border-radius: 0;
+  }
+

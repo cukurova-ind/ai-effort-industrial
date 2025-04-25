@@ -35,6 +35,12 @@ def custom_login_view(request):
                 pass
 
             login(request, user)
+            
+            safe_folder_name = user.email.replace("@", "_at_").replace(".", "_dot_")
+            safe_profile_folder = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "profiles")
+            if not os.path.exists(safe_profile_folder):
+                os.makedirs(safe_profile_folder)
+
             if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
                 return redirect(next_url)
             return redirect("/")
