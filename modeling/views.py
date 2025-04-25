@@ -13,67 +13,34 @@ from django.conf import settings
 from django.db.models import Q
 from dataops.models import Experiment, Input, Fabric, Recipe
 from .image_processor import Preprocessor
-from .utils import util, discretes
+from .utils import util, discretes, label
 
 raw_image_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
 hypo_image_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
 output_image_path = os.path.join(settings.MEDIA_ROOT, "data", "output")
 image_cache_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "cache")
-image_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "training")
-image_val_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "validation")
-image_input_cache = os.path.join(image_cache_path, "input")
-image_target_cache = os.path.join(image_cache_path, "target")
-image_input_path = os.path.join(image_training_path, "input")
-image_target_path = os.path.join(image_training_path, "target")
-image_input_val_path = os.path.join(image_val_path, "input")
-image_target_val_path = os.path.join(image_val_path, "target")
+# image_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "training")
+# image_val_path = os.path.join(settings.MEDIA_ROOT, "modeling", "image", "validation")
+# image_input_cache = os.path.join(image_cache_path, "input")
+# image_target_cache = os.path.join(image_cache_path, "target")
+# image_input_path = os.path.join(image_training_path, "input")
+# image_target_path = os.path.join(image_training_path, "target")
+# image_input_val_path = os.path.join(image_val_path, "input")
+# image_target_val_path = os.path.join(image_val_path, "target")
 csv_all_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "all")
 csv_training_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "training")
-csv_val_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "validation")
-csv_input_path = os.path.join(csv_all_path, "input")
-csv_target_path = os.path.join(csv_all_path, "target")
-csv_input_train_path = os.path.join(csv_training_path, "input")
-csv_target_train_path = os.path.join(csv_training_path, "target")
-csv_input_val_path = os.path.join(csv_val_path, "input")
-csv_target_val_path = os.path.join(csv_val_path, "target")
+csv_test_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "test")
+# csv_input_path = os.path.join(csv_all_path, "input")
+# csv_target_path = os.path.join(csv_all_path, "target")
+# csv_input_train_path = os.path.join(csv_training_path, "input")
+# csv_target_train_path = os.path.join(csv_training_path, "target")
+# csv_input_val_path = os.path.join(csv_val_path, "input")
+# csv_target_val_path = os.path.join(csv_val_path, "target")
 
 def main_page(req):
 
     return render(req, "modeling_main_page.html")
 
-def image_settings(req):
-    
-    output, raw, hypo, total = 0, 0, 0, 0
-    raw = len([r for r in os.listdir(raw_image_path) if os.path.isfile(os.path.join(raw_image_path, r))])
-    hypo = len([h for h in os.listdir(hypo_image_path) if os.path.isfile(os.path.join(hypo_image_path, h))])
-    output = len([e for e in os.listdir(output_image_path) if os.path.isfile(os.path.join(output_image_path, e))])
-    total = output + raw + hypo
-
-    if req.method == "GET":
-        return render(req, "image_process.html", 
-                    {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo}})
-    
-    if req.method == "POST":
-        image_extensions = ('.png', '.jpg', '.jpeg')
-        folder_path = os.path.join(settings.MEDIA_ROOT, "data")
-        save_path = os.path.join(settings.MEDIA_ROOT, "modeling", "images")
-        err = []
-        for root, dirs, files in os.walk(folder_path):
-            for file in files:
-                if file.lower().endswith(image_extensions):
-                    file_path = os.path.join(root, file)
-                    folder_name = file_path.split("/")[-2]
-                    save_folder = os.path.join(save_path, folder_name)
-                    if not os.path.exists(save_folder):
-                        os.mkdir(save_folder)
-                    p = Preprocessor(file_path, save_folder)
-                    r, f = p.process()
-                    if r == 0:
-                        print(r, f)
-                        err.append(f)
-
-        return render(req, "image_process.html", 
-                    {"i": {"total": total, "output": output, "raw": raw, "hypo": hypo, "err": err}})
     
 def data_settings(req):
 
@@ -84,222 +51,46 @@ def data_settings(req):
             if len(e)==2:
                 conf[e[0].strip()] = e[1].strip()
     
-    if not os.path.exists(image_training_path):   
-        os.makedirs(image_input_path)
-        os.makedirs(image_target_path)
-    if not os.path.exists(csv_training_path):
-        os.makedirs(csv_input_path)
-        os.makedirs(csv_target_path)
+    qe = Experiment.objects.values()
+    df_exp = pd.DataFrame.from_records(qe)
+    qi = Input.objects.values()
+    df_inp = pd.DataFrame.from_records(qi)
+    qf = Fabric.objects.values()
+    df_fab = pd.DataFrame.from_records(qf)
+    qr = Recipe.objects.values()
+    df_rec = pd.DataFrame.from_records(qr)
+    df_inp = df_fab.merge(df_inp, right_on="type_id", left_on="id", how="left")
+    df_input = df_inp.merge(df_exp, right_on="input_id", left_on="id_y", how="right")
+    df_input.drop(columns=["id_x", "id_y"], inplace=True)
+    df_input = df_input.merge(df_rec, right_on="id", left_on="recipe_id", how="left")
+    df_input.drop(columns=["id_x", "id_y", "input_id"], inplace=True)
+    df_input.insert(0, "type_id", df_input.pop("type_id"))
 
     image_extensions = ('.png', '.jpg', '.jpeg', '.JPG')
 
     if req.method == "POST":
         postdata = req.POST
-        qs = Experiment.objects.values("id")
-        df_input = pd.DataFrame.from_records(qs)
-        df_target = pd.DataFrame.from_records(qs)
-        input_list, target_list, input_types, target_types = [], [], [], []
-        input_maxs, input_mins, categories = [], [], []
-        n_features = 0
+        input_list, target_list, input_types, input_maxs, input_mins, categories = [], [], [], [], [], []
         for p in postdata:
-            if p.split("_")[-1]=="target":
-                p = "_".join(p.split("_")[:-1])
-                if util.get(p):
-                    if util.get(p) in [e.name for e in Experiment._meta.get_fields()]:
-                        qt = Experiment.objects.values(util.get(p))
-                        qs = pd.DataFrame.from_records(qt)
-                        df_target = df_target.join(qs)
-                        target_list.append(util.get(p))
-                    else:
-                        if util.get(p) in [i.name for i in Input._meta.get_fields()]:
-                            field = "input__" + str(util.get(p))
-                            qi = Experiment.objects.values(field)
-                        if util.get(p) in [r.name for r in Recipe._meta.get_fields()]:
-                            field = "recipe__" + str(util.get(p))
-                            qi = Experiment.objects.values(field)
-                        if util.get(p) in [f.name for f in Fabric._meta.get_fields()]:
-                            field = "input__type__" + str(util.get(p))
-                            qi = Experiment.objects.values(field)
-                        qs = pd.DataFrame.from_records(qi)
-                        qs.rename(columns={field:util.get(p)}, inplace=True)
-                        df_target = df_target.join(qs)
-                        target_list.append(util.get(p))
-
-                    typ = "discrete" if p in discretes else "cont"
-                    target_types.append(typ)
-            else:
-                if util.get(p):
-                    if util.get(p) in [e.name for e in Experiment._meta.get_fields()]:
-                        qt = Experiment.objects.values(util.get(p))
-                        qs = pd.DataFrame.from_records(qt)
-                        df_input = df_input.join(qs)
-                        input_list.append(util.get(p))
-                    else:
-                        if util.get(p) in [i.name for i in Input._meta.get_fields()]:
-                            field = "input__" + str(util.get(p))
-                            qi = Experiment.objects.values(field)
-                        if util.get(p) in [r.name for r in Recipe._meta.get_fields()]:
-                            field = "recipe__" + str(util.get(p))
-                            qi = Experiment.objects.values(field)
-                        if util.get(p) in [f.name for f in Fabric._meta.get_fields()]:
-                            field = "input__type__" + str(util.get(p))
-                            qi = Experiment.objects.values(field)
-                        qs = pd.DataFrame.from_records(qi)
-                        qs.rename(columns={field:util.get(p)}, inplace=True)
-                        df_input = df_input.join(qs)
-                        input_list.append(util.get(p))
-
-                    typ = "discrete" if p in discretes else "cont"
-                    if typ=="cont":
-                        input_maxs.append(str(qs.max().values[0]))
-                        input_mins.append(str(qs.min().values[0]))
-                        n_features += 1
-                        categories.append("0")
-                    else:
-                        input_maxs.append("1")
-                        input_mins.append("0")
-                        n_features += len(pd.get_dummies(qs).columns)
-                        categories.append("|".join(pd.get_dummies(qs).columns))
-                    input_types.append(typ)
+            if p.split("_")[0]=="inp":
+                input_list.append(postdata[p])
+                if postdata[p] in discretes:
+                    cats = df_input[postdata[p]].value_counts().keys().values
+                    categories.append("|".join(cats))
+                    input_types.append("disc")
+                    input_maxs.append("0")
+                    input_mins.append("0")
+                else:
+                    categories.append("0")
+                    input_types.append("cont")
+                    input_maxs.append(str(df_input[postdata[p]].max()))
+                    input_mins.append(str(df_input[postdata[p]].min()))
+            elif p.split("_")[0]=="out":
+                target_list.append(postdata[p])
         
-        df_input["type"] = df_input["id"].apply(lambda x: int(x.split("-")[0]))
-        df_input["recipe"] = df_input["id"].apply(lambda x: int(x.split("-")[1]))
-        df_input = df_input.sort_values(["type", "recipe"]).drop(columns=["id"])
-        new_cols = df_input.columns.tolist()[:-2]
-        new_cols.insert(0, df_input.columns.tolist()[-1])
-        new_cols.insert(0, df_input.columns.tolist()[-2])
-        df_input = df_input[new_cols]
-        features_path = os.path.join(csv_input_path, conf["input_file_name"])
-        df_input.to_csv(features_path, index=False, encoding="utf-8-sig")
-
-        df_target["type"] = df_target["id"].apply(lambda x: int(x.split("-")[0]))
-        df_target["recipe"] = df_target["id"].apply(lambda x: int(x.split("-")[1]))
-        df_target = df_target.sort_values(["type", "recipe"]).drop(columns=["id"])
-        new_cols = df_target.columns.tolist()[:-2]
-        new_cols.insert(0, df_target.columns.tolist()[-1])
-        new_cols.insert(0, df_target.columns.tolist()[-2])
-        df_target = df_target[new_cols]
-
-        df = pd.concat([df_input, df_target])
-        df.to_csv(os.path.join(csv_all_path, conf["input_file_name"]))
-        target_path = os.path.join(csv_target_path, conf["target_file_name"])
-        df_target.to_csv(target_path, index=False, encoding="utf-8-sig")
-
-        # it = int(postdata["image_type"].split(" ")[-1])
-        # if "raw_image" in postdata:
-        #     for root, dirs, files in os.walk(image_input_path):
-        #         for f in files:
-        #             os.unlink(os.path.join(root, f))
-        #     for root, dirs, files in os.walk(image_input_cache):
-        #         for f in files:
-        #             os.unlink(os.path.join(root, f))
-
-        #     for root, dirs, files in os.walk(raw_image_path):
-        #         for file in files:
-        #             if file.lower().endswith(image_extensions):
-        #                 if len(file.split("-")[0].split("."))==2:
-        #                     tip = 0
-        #                 if len(file.split("-")[0].split("."))==3:
-        #                     tip = int(file.split("-")[0].split(".")[1])
-                        
-        #                 if tip==it:
-        #                     source_path = os.path.join(root, file)
-        #                     image_name = ".".join(file.split(".")[:-1])
-        #                     for r in range(24):
-        #                         dest_path = os.path.join(image_input_cache, image_name + "recete" + str(r+1) + ".JPG")
-        #                         shutil.copyfile(source_path, dest_path)
-        #                         p = Preprocessor(dest_path, image_input_path)
-        #                         r, f = p.process()
-        #                         os.unlink(dest_path)
-        #                         if r == 0:
-        #                             print(r, f)
-        #                     source = image_input_path
-        #                     dest = image_input_cache
-        #                     if os.path.exists(dest):
-        #                         shutil.rmtree(dest)
-        #                     shutil.copytree(source, dest)
-                                
-        
-        # if "hypo_image" in postdata:
-        #     for root, dirs, files in os.walk(image_input_path):
-        #         for f in files:
-        #             os.unlink(os.path.join(root, f))
-        #     for root, dirs, files in os.walk(image_input_cache):
-        #         for f in files:
-        #             os.unlink(os.path.join(root, f))
-
-        #     for root, dirs, files in os.walk(hypo_image_path):
-        #         for file in files:
-        #             if file.lower().endswith(image_extensions):
-        #                 if len(file.split("."))==2:
-        #                     tip = 0
-        #                 if len(file.split("."))==3:
-        #                     tip = int(file.split(".")[1])
-                        
-        #                 if tip==it:
-        #                     source_path = os.path.join(root, file)
-        #                     image_name = ".".join(file.split(".")[:-1])
-        #                     for r in range(24):
-        #                         dest_path = os.path.join(image_input_cache, image_name + "recete" + str(r+1) + ".JPG")
-        #                         shutil.copyfile(source_path, dest_path)
-        #                         p = Preprocessor(source_path, image_input_path)
-        #                         r, f = p.process()
-        #                         os.unlink(dest_path)
-        #                         if r == 0:
-        #                             print(r, f)
-        #                         source = image_input_path
-        #                         dest = image_input_cache
-        #                         if os.path.exists(dest):
-        #                             shutil.rmtree(dest)
-        #                         shutil.copytree(source, dest)
-
-        # if "hypo_image" in postdata or "raw_image" in postdata:
-
-        #     for root, dirs, files in os.walk(image_target_path):
-        #         for f in files:
-        #             os.unlink(os.path.join(root, f))
-            
-        #     for root, dirs, files in os.walk(image_target_cache):
-        #         for f in files:
-        #             os.unlink(os.path.join(root, f))
-
-        #     for root, dirs, files in os.walk(output_image_path):
-        #         for file in files:
-        #             if file.lower().endswith(image_extensions):
-                        
-        #                 if len(file.split("."))==2:
-        #                     tip = 0
-        #                 if len(file.split("."))==3:
-        #                     tip = int(file.split(".")[1])
-                        
-        #                 if tip==it:
-        #                     image_name = ".".join(file.split(".")[:-1]) 
-        #                     folder_name = root.split("/")[-1]
-        #                     source_path = os.path.join(root, file)
-        #                     dest_path = os.path.join(image_target_cache, image_name + folder_name + ".JPG")
-        #                     shutil.copyfile(source_path, dest_path)
-        #                     p = Preprocessor(dest_path, image_target_path)
-        #                     r, f = p.process()
-        #                     os.unlink(dest_path)
-        #                     if r == 0:
-        #                         print(r, f)
-        #                 source = image_target_path
-        #                 dest = image_target_cache
-        #                 if os.path.exists(dest):
-        #                     shutil.rmtree(dest)
-        #                 shutil.copytree(source, dest)
-
-        if "raw_image" in postdata:
-            for root, dirs, files in os.walk(image_cache_path):
-                for f in files:
-                    os.unlink(os.path.join(root, f))
-
-                            
-        source = image_cache_path
-        dest = image_training_path
-        if os.path.exists(image_training_path):
-            shutil.rmtree(image_training_path)
-        shutil.copytree(source, dest)
+        n_features = len(input_list)
+        df_features = df_input[input_list]
+        df_target = df_input[target_list]
 
         conf["n_features"] = str(n_features)
         conf["input_features"] = ",".join(input_list)
@@ -314,99 +105,67 @@ def data_settings(req):
             for x in conf:
                 c.write(x + " = " + conf[x] + "\n")
 
-        if float(postdata.get("val_size"))>0:
-            input_path = os.path.join(csv_input_path, conf["input_file_name"])
-            target_path = os.path.join(csv_target_path, conf["target_file_name"])
-            input_df = pd.read_csv(input_path)
-            target_df = pd.read_csv(target_path)
-            n = len(input_df)
+        df_dataset = pd.concat([df_features, df_target], axis=1)
+        if float(postdata.get("test_size"))>0:
+            
+            n = len(df_dataset)
             
             rs = int(postdata.get("random_state", None)) if postdata.get("random_state", None) else None
-            _, val_ids = train_test_split(range(n), test_size=float(conf["val_size"]), random_state=rs)
-            val_ids = np.sort(val_ids)
+            _, test_ids = train_test_split(range(n), test_size=float(postdata.get("test_size")), random_state=rs)
+            test_ids = np.sort(test_ids)
 
-            input_train, target_train = input_df[~input_df.index.isin(val_ids)], target_df[~target_df.index.isin(val_ids)]
-            input_val, target_val = input_df[input_df.index.isin(val_ids)], target_df[target_df.index.isin(val_ids)]
-            input_train_path = os.path.join(csv_input_train_path, conf["input_file_name"])
-            target_train_path = os.path.join(csv_target_train_path, conf["target_file_name"])
-            input_train.to_csv(input_train_path, index=False)
-            target_train.to_csv(target_train_path, index=False)
-            input_val_path = os.path.join(csv_input_val_path, conf["input_file_name"])
-            target_val_path = os.path.join(csv_target_val_path, conf["target_file_name"])
-            input_val.to_csv(input_val_path, index=False)
-            target_val.to_csv(target_val_path, index=False)
+            train_df = df_dataset[~df_dataset.index.isin(test_ids)]
+            test_df = df_dataset[df_dataset.index.isin(test_ids)]
 
-            for fn in os.listdir(image_input_val_path):
-                fp = os.path.join(image_input_val_path, fn)
-                if os.path.isfile(fp) or os.path.islink(fp):
-                    os.unlink(fp)
-            for fn in os.listdir(image_target_val_path):
-                fp = os.path.join(image_target_val_path, fn)
-                if os.path.isfile(fp) or os.path.islink(fp):
-                    os.unlink(fp)
-            for iv in input_val[["type", "recipe"]].values:
-                image_name = "tip" + str(iv[0]) + "recete" + str(iv[1]) + ".jpg"
-                source1 = os.path.join(image_input_path, image_name)
-                dest1 = os.path.join(image_input_val_path, image_name)
-                if os.path.exists(source1):
-                    shutil.copyfile(source1, dest1)
-                    os.unlink(source1)
-                source2 = os.path.join(image_target_path, image_name)
-                dest2 = os.path.join(image_target_val_path, image_name)
-                if os.path.exists(source2):
-                    shutil.copyfile(source2, dest2)
-                    os.unlink(source2)
+        else:
+            train_df = df_dataset
+            test_df = pd.DataFrame()
+
+        train_path = os.path.join(csv_training_path, conf["input_file_name"])
+        train_df.to_csv(train_path, index=False)
+        test_path = os.path.join(csv_test_path, conf["input_file_name"])
+        test_df.to_csv(test_path, index=False)
 
         return HttpResponseRedirect("/modeling/dataset/settings/")
     
     if req.method == "GET":
-        input_sample, target_sample = [], []
-        image_input_num, image_target_num = 0, 0
-        _file_path = os.path.join(settings.BASE_DIR, "industrial", "static", "sample")
-        for root, dirs, files in os.walk(_file_path):
-            for f in files:
-                os.unlink(os.path.join(root, f))
-        for root, dirs, files in os.walk(image_training_path):
-            for file in files:
-                if file.lower().endswith(image_extensions):
-                    folder_name = root.split("/")[-1]
-                    if folder_name=="input":
-                        image_input_num += 1
-                        if image_input_num<10:
-                            source_path = os.path.join(root, file)
-                            file_path = os.path.join(_file_path, "input", file)
-                            shutil.copyfile(source_path, file_path)
-                            input_sample.append(file)
-                    if folder_name=="target":
-                        image_target_num += 1
-                        if image_target_num<10:
-                            source_path = os.path.join(root, file)
-                            file_path = os.path.join(_file_path, "target", file)
-                            shutil.copyfile(source_path, file_path)
-                            target_sample.append(file)
 
-        df_input, df_target = pd.DataFrame(), pd.DataFrame()
-        for root, dirs, files in os.walk(csv_training_path):
-            for file in files:
-                if file.lower().endswith("csv"):
-                    folder_name = root.split("/")[-1]
-                    csv_path = os.path.join(root, file)
-                    if folder_name=="input":
-                        df_input = pd.read_csv(csv_path)
-                    if folder_name=="target":
-                        df_target = pd.read_csv(csv_path)
+        qe = Experiment.objects.values()
+        df_exp = pd.DataFrame.from_records(qe)
+        qi = Input.objects.values()
+        df_inp = pd.DataFrame.from_records(qi)
+        qf = Fabric.objects.values()
+        df_fab = pd.DataFrame.from_records(qf)
+        qr = Recipe.objects.values()
+        df_rec = pd.DataFrame.from_records(qr)
+        df_inp = df_fab.merge(df_inp, right_on="type_id", left_on="id", how="left")
+        df_input = df_inp.merge(df_exp, right_on="input_id", left_on="id_y", how="right")
+        df_input.drop(columns=["id_x", "id_y"], inplace=True)
+        df_input = df_input.merge(df_rec, right_on="id", left_on="recipe_id", how="left")
+        df_input.drop(columns=["id_x", "id_y", "input_id"], inplace=True)
+        df_input.insert(0, "type_id", df_input.pop("type_id"))
+        attr_type, d_type = None, None
+        columns = []
+        for c in df_input.columns:
+            if len(df_input[c].value_counts())<=50:
+                attr_type = "categorical"
+            else:
+                attr_type = "continuous"
+            d_type = df_input[c].dtype
+            if d_type=="object":
+                attr_type = "categorical"
+            columns.append({"column": c,
+                            "label": label.get(c, c),
+                            "attr_type": attr_type,
+                            "d_type": d_type})
 
-        return render(req, "data_process.html",
-                       {"iip": "modeling -> image -> training -> input",
-                        "iin": image_input_num,
-                        "itn": image_target_num,
-                        "itp": "modeling -> image -> training -> target",
-                        "cip": "modeling -> csv -> training -> input",
-                        "ctp": "modeling -> csv -> training -> target",
-                        "is": input_sample,
-                        "ts": target_sample,
-                        "dfi": df_input.head(),
-                        "dft": df_target.head()})
+        df_input = df_input.head(10)
+        context = {
+            "columns": columns,
+            "rows": df_input.values
+        }
+
+        return render(req, "data_process.html", context)
 
 def training_settings(req):
 
@@ -438,25 +197,31 @@ def training_settings(req):
                 c.write(x + " = " + conf[x] + "\n")
 
         config_dest = os.path.join(settings.ENG_URL, "config.conf")
-        image_train_dest = os.path.join(settings.ENG_URL, "dataset", "train", "image")
-        csv_train_dest = os.path.join(settings.ENG_URL, "dataset", "train", "csv")
-        image_val_dest = os.path.join(settings.ENG_URL, "dataset", "val", "image")
-        csv_val_dest = os.path.join(settings.ENG_URL, "dataset", "val", "csv")
+        image_raw_dest = os.path.join(settings.ENG_URL, "data", "raw")
+        image_hypo_dest = os.path.join(settings.ENG_URL, "data", "hypo")
+        image_out_dest = os.path.join(settings.ENG_URL, "data", "output")
+        csv_train_dest = os.path.join(settings.ENG_URL, "data", "train")
+        csv_test_dest = os.path.join(settings.ENG_URL, "data", "test")
 
         shutil.copyfile("config.conf", config_dest)
         
-        if os.path.exists(image_train_dest):
-            shutil.rmtree(image_train_dest)
-        shutil.copytree(image_training_path, image_train_dest)
+        if os.path.exists(image_raw_dest):
+            shutil.rmtree(image_raw_dest)
+        shutil.copytree(raw_image_path, image_raw_dest)
+        if os.path.exists(image_hypo_dest):
+            shutil.rmtree(image_hypo_dest)
+        shutil.copytree(hypo_image_path, image_hypo_dest)
+        if os.path.exists(image_out_dest):
+            shutil.rmtree(image_out_dest)
+        shutil.copytree(output_image_path, image_out_dest)
+
         if os.path.exists(csv_train_dest):
             shutil.rmtree(csv_train_dest)
         shutil.copytree(csv_training_path, csv_train_dest)
-        if os.path.exists(image_val_dest):
-            shutil.rmtree(image_val_dest)
-        shutil.copytree(image_val_path, image_val_dest)
-        if os.path.exists(csv_val_dest):
-            shutil.rmtree(csv_val_dest)
-        shutil.copytree(csv_val_path, csv_val_dest)
+        if os.path.exists(csv_test_dest):
+            shutil.rmtree(csv_test_dest)
+        shutil.copytree(csv_test_path, csv_test_dest)
+
 
         vs = data.get("saved_model")
         mt = data.get("model")
@@ -480,11 +245,9 @@ def download_train(req):
             if len(e)==2:
                 conf[e[0].strip()] = e[1].strip()
 
-    input_train_path = os.path.join(csv_input_train_path, conf["input_file_name"])
-    target_train_path = os.path.join(csv_target_train_path, conf["target_file_name"])
-    train_input_df = pd.read_csv(input_train_path)
-    train_target_df = pd.read_csv(target_train_path)
-    df = pd.concat([train_input_df, train_target_df[train_target_df.columns[-1]]], axis=1)
+    train_path = os.path.join(csv_training_path, conf["input_file_name"])
+    train_df = pd.read_csv(train_path)
+    
     response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response['Content-Disposition'] = 'attachment; filename="train.xlsx"'
 
@@ -492,9 +255,9 @@ def download_train(req):
     ws = wb.active
     ws.title = "sheet1"
 
-    ws.append(df.columns.tolist())
+    ws.append(train_df.columns.tolist())
 
-    for row in df.itertuples(index=False):
+    for row in train_df.itertuples(index=False):
         ws.append(row)
 
     wb.save(response)
@@ -508,11 +271,9 @@ def download_test(req):
             if len(e)==2:
                 conf[e[0].strip()] = e[1].strip()
 
-    input_val_path = os.path.join(csv_input_val_path, conf["input_file_name"])
-    target_val_path = os.path.join(csv_target_val_path, conf["target_file_name"])
-    val_input_df = pd.read_csv(input_val_path)
-    val_target_df = pd.read_csv(target_val_path)
-    df = pd.concat([val_input_df, val_target_df[val_target_df.columns[-1]]], axis=1)
+    test_path = os.path.join(csv_test_path, conf["input_file_name"])
+    test_df = pd.read_csv(test_path)
+
     response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response['Content-Disposition'] = 'attachment; filename="test.xlsx"'
 
@@ -520,9 +281,9 @@ def download_test(req):
     ws = wb.active
     ws.title = "sheet1"
 
-    ws.append(df.columns.tolist())
+    ws.append(test_df.columns.tolist())
 
-    for row in df.itertuples(index=False):
+    for row in test_df.itertuples(index=False):
         ws.append(row)
 
     wb.save(response)

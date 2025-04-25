@@ -297,6 +297,47 @@ $(document).ready(function() {
     //     });
     // });
 
+    const $checkboxes = $('.input_columns');
+    const $outputField = $('#id_selection');
+    
+    function updateSelectedColumns() {
+        
+        const selected = $checkboxes
+            .filter(':checked')
+            .map(function () {
+                return $(this).data("label");
+            })
+            .get();
+        $outputField.val(selected.join(', '));
+    }
+
+    // Init on page load
+    updateSelectedColumns();
+
+    // Update on change
+    $checkboxes.on('change', updateSelectedColumns);
+
+
+    const $outboxes = $('.output_columns');
+    const $selectedField = $('#id_selection_output');
+    
+    function updateSelected() {
+        
+        const selected = $outboxes
+            .filter(':checked')
+            .map(function () {
+                return $(this).data("label");
+            })
+            .get();
+        $selectedField.val(selected.join(', '));
+    }
+
+    // Init on page load
+    updateSelected();
+
+    // Update on change
+    $outboxes.on('change', updateSelected);
+
 
 
 });
