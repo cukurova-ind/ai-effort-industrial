@@ -15,3 +15,9 @@ def main_board(req, profile_name=None):
         return render(req, "trainboard.html", {"profile_name":profile_name})
     else:
         return HttpResponseRedirect("/login/?next=/engine/")
+
+def room_view(request, room_name):
+    chat_room, created = Room.objects.get_or_create(name=room_name)
+    return render(request, 'room.html', {
+        'room': chat_room,
+    })
