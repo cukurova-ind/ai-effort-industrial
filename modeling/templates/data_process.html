@@ -143,6 +143,11 @@ Veri seti
                             id="random_state" value="{% if conf.random_state %}{{ conf.random_state }}{% else %}-1{% endif %}">
                     </div>
                 </div>
+                <div class="buttons-container">
+                    <button class="btn btn-primary text-center" id="trainDownload" type="button">Train Set İndir</button>
+                    <button class="btn btn-primary text-center" id="testDownload" type="button">Test Set İndir</button>
+                    <span id="download-err"></span>
+                </div>
 
                 <hr>
                 <div class="text-start">
@@ -280,8 +285,10 @@ Veri seti
                 </div>
                 <input type="hidden" id="currentProfile" name="currentProfileName" value="{{ profile_name|default:'unknownprofile' }}">
                 <hr>
-                <button class="btn btn-success text-center" id="saveUpdate" type="button">Kaydet / Güncelle</button>
-                <button class="btn btn-warning text-center" id="noSave" type="button">Kaydetmeden Devam</button>
+                <button class="btn btn-success text-center" id="saveUpdate" type="button" disabled=true>Kaydet / Güncelle</button>
+                <button class="btn btn-primary text-center" id="skip" type="button" >Devam</button>
+                <button class="btn btn-secondary text-center pull-right" id="noSave" type="button" disabled=true>Kaydetmeden Devam</button>
+                <p class="text-center text-danger" id="err"></p>
                 <div id="namePrompt" style="display: none;">
                     <div class="col-md-2">
                         <label for="newProfileName">Profil ismi girin:</label>

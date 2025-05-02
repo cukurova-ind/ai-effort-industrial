@@ -7,8 +7,8 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    #path('accounts/', include('django.contrib.auth.urls')),
     path('login/', views.custom_login_view, name="custom_login"),
+    path('logout/', views.logout_all, name="custom_logout"),
     path('', views.main, name="main"),
     path('dataops/', include("dataops.urls")),
     path('modeling/', include("modeling.urls")),

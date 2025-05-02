@@ -16,11 +16,12 @@ from django.core.files.base import ContentFile
 from django.conf import settings
 from django.db.models import Q
 from dataops.models import Experiment, Input, Fabric, Recipe
+from django.core.cache import cache
 from engine.models import LoggedInUser
 from .image_processor import Preprocessor
 from .utils import util, discretes, label
-from engine.utils import load_config
-from django.core.cache import cache
+from engine.utils import load_config, data_split
+
 
 raw_image_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
 hypo_image_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
@@ -45,6 +46,8 @@ def data_settings(req, profile="unknownprofile"):
         safe_folder_name = req.user.email.replace("@", "_at_").replace(".", "_dot_")
         safe_profiles = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "profiles")
         files = sorted([f.split(".")[0] for f in os.listdir(safe_profiles) if os.path.isfile(os.path.join(safe_profiles, f))])
+        if "unknownprofile" in files:
+            os.unlink(os.path.join(safe_profiles, "unknownprofile.yaml"))
         conf = {}
         if profile and profile in files:
             saved_profile_path = os.path.join(safe_profiles, profile+".yaml")
@@ -88,6 +91,9 @@ def data_settings(req, profile="unknownprofile"):
                 elif p.split("_")[0]=="out":
                     target_list.append(postdata[p])
             
+            if len(input_list)==0 or len(target_list)==0:
+                return JsonResponse({"err": "en az 1 girdi ve çıktı belirlenmelidir."})
+
             df_features = df_input[input_list]
             df_target = df_input[target_list]
 
@@ -111,31 +117,28 @@ def data_settings(req, profile="unknownprofile"):
             conf["val_size"] = float(postdata.get("val_size", 0.0))
             conf["username"] = req.user.username
             conf["checkpoint_path"] = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "checkpoints")
-            conf["device"] = "cuda:0"
+            conf["device"] = "cuda:0" 
 
             df_dataset = pd.concat([df_features, df_target], axis=1)
             cache.set(f"cached_dataset_{req.user.username}", df_dataset)
-
-            # if float(postdata.get("test_size"))>0:
+            if postdata.get("trainDownload"):
+                if float(postdata.get("test_size", 0.0)) > 0:
+                    train_df, _ = data_split.random_split(df_dataset, split_ratio=float(postdata.get("test_size", 0.0)), 
+                                            rs=int(postdata.get("random_state", 0)))
+                else:
+                    train_df = df_dataset
+                cache.set(f"cached_trainset_{req.user.username}", train_df)
+                return JsonResponse({"profile": "ok"})
+            
+            if postdata.get("testDownload"):
+                if float(postdata.get("test_size", 0.0)) > 0:
+                    _, test_df = data_split.random_split(df_dataset, split_ratio=float(postdata.get("test_size", 0.0)), 
+                                            rs=int(postdata.get("random_state", 0)))
+                    cache.set(f"cached_testset_{req.user.username}", test_df)
+                    return JsonResponse({"profile": "ok"})
+                else:
+                    return JsonResponse({"err": "test bölüm oranı girilmemiş."})
                 
-            #     n = len(df_dataset)
-                
-            #     rs = int(postdata.get("random_state", None)) if postdata.get("random_state", None) else None
-            #     _, test_ids = train_test_split(range(n), test_size=float(postdata.get("test_size")), random_state=rs)
-            #     test_ids = np.sort(test_ids)
-
-            #     train_df = df_dataset[~df_dataset.index.isin(test_ids)]
-            #     test_df = df_dataset[df_dataset.index.isin(test_ids)]
-
-            # else:
-            #     train_df = df_dataset
-            #     test_df = pd.DataFrame()
-
-            # train_path = os.path.join(csv_training_path, conf["input_file_name"])
-            # train_df.to_csv(train_path, index=False)
-            # test_path = os.path.join(csv_test_path, conf["input_file_name"])
-            # test_df.to_csv(test_path, index=False)
-
             if postdata.get("saveupdate"):
                 profile_name = postdata.get("currentProfileName")
                 saved_profile_path = os.path.join(safe_profiles, profile_name + ".yaml")
@@ -143,7 +146,7 @@ def data_settings(req, profile="unknownprofile"):
                 return JsonResponse({"profile": profile_name})
 
             saved_profile_path = os.path.join(safe_profiles, "unknownprofile.yaml")
-            load_config.save_config(conf, saved_profile_path)    
+            load_config.save_config(conf, saved_profile_path)
             return JsonResponse({"profile": "unknownprofile"})
     
         if req.method == "GET":
@@ -186,124 +189,22 @@ def data_settings(req, profile="unknownprofile"):
         else:
             return HttpResponseRedirect("/login/?next=/modeling/dataset/settings/")
 
-def training_settings(req):
 
-    conf = dict()
-    with open("config.conf") as c:
-        for l in c.read().split("\n"):
-            e = l.split("=")
-            if len(e)==2:
-                conf[e[0].strip()] = e[1].strip()
-    
-    if req.method == "POST":
-        data = req.POST
-        with open("config.conf") as c:
-            for l in c.read().split("\n"):
-                e = l.split("=")
-                if len(e)==2:
-                    conf[e[0].strip()] = e[1].strip()
-                    if data.get(e[0].strip()):   
-                        conf[e[0].strip()] = data[e[0].strip()]
-        
-        if not "max_steps" in data.keys():
-            conf["max_steps"] = "off"
+def download_df(req, what="train"):
 
-        conf["target_scaling"] = "off"
+    cache_key = f"cached_{what}set_{req.user.username}"
+    df = cache.get(cache_key)
 
-        with open("config.conf", "w") as c:
-            c.truncate()
-            for x in conf:
-                c.write(x + " = " + conf[x] + "\n")
-
-        # config_dest = os.path.join(settings.ENG_URL, "config.conf")
-        # image_raw_dest = os.path.join(settings.ENG_URL, "data", "raw")
-        # image_hypo_dest = os.path.join(settings.ENG_URL, "data", "hypo")
-        # image_out_dest = os.path.join(settings.ENG_URL, "data", "output")
-        # csv_train_dest = os.path.join(settings.ENG_URL, "data", "train")
-        # csv_test_dest = os.path.join(settings.ENG_URL, "data", "test")
-
-        # shutil.copyfile("config.conf", config_dest)
-        
-        # if os.path.exists(image_raw_dest):
-        #     shutil.rmtree(image_raw_dest)
-        # shutil.copytree(raw_image_path, image_raw_dest)
-        # if os.path.exists(image_hypo_dest):
-        #     shutil.rmtree(image_hypo_dest)
-        # shutil.copytree(hypo_image_path, image_hypo_dest)
-        # if os.path.exists(image_out_dest):
-        #     shutil.rmtree(image_out_dest)
-        # shutil.copytree(output_image_path, image_out_dest)
-
-        # if os.path.exists(csv_train_dest):
-        #     shutil.rmtree(csv_train_dest)
-        # shutil.copytree(csv_training_path, csv_train_dest)
-        # if os.path.exists(csv_test_dest):
-        #     shutil.rmtree(csv_test_dest)
-        # shutil.copytree(csv_test_path, csv_test_dest)
-
-        vs = data.get("saved_model")
-        mt = data.get("model")
-        conf["posted"] = True
-        if vs:
-            conf["hlink"] = "http://127.0.0.1:5000?model=" + mt + "&version=" + vs 
-            conf["version"] = vs
-            return HttpResponseRedirect("/engine/?model=" + mt + "&version=" + vs)
-
-        #return render(req, "modeling_configuration.html", conf)
-        return HttpResponseRedirect("/engine/")
-
-    if req.method == "GET":
- 
-        return render(req, "modeling_configuration.html", conf)
-
-def download_train(req):
-
-    conf = dict()
-    with open("config.conf") as c:
-        for l in c.read().split("\n"):
-            e = l.split("=")
-            if len(e)==2:
-                conf[e[0].strip()] = e[1].strip()
-
-    train_path = os.path.join(csv_training_path, conf["input_file_name"])
-    train_df = pd.read_csv(train_path)
-    
     response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response['Content-Disposition'] = 'attachment; filename="train.xlsx"'
+    response['Content-Disposition'] = f'attachment; filename="{what}.xlsx"'
 
     wb = Workbook()
     ws = wb.active
     ws.title = "sheet1"
 
-    ws.append(train_df.columns.tolist())
+    ws.append(df.columns.tolist())
 
-    for row in train_df.itertuples(index=False):
-        ws.append(row)
-
-    wb.save(response)
-    return response
-
-def download_test(req):
-    conf = dict()
-    with open("config.conf") as c:
-        for l in c.read().split("\n"):
-            e = l.split("=")
-            if len(e)==2:
-                conf[e[0].strip()] = e[1].strip()
-
-    test_path = os.path.join(csv_test_path, conf["input_file_name"])
-    test_df = pd.read_csv(test_path)
-
-    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response['Content-Disposition'] = 'attachment; filename="test.xlsx"'
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "sheet1"
-
-    ws.append(test_df.columns.tolist())
-
-    for row in test_df.itertuples(index=False):
+    for row in df.itertuples(index=False):
         ws.append(row)
 
     wb.save(response)

@@ -38,6 +38,12 @@ AI Effort | Login
 
 <form method="post" action="{% url 'custom_login' %}">
 {% csrf_token %}
+{% if logout %}
+<label>
+  <input type="checkbox" name="force_login" />
+  Log out other devices if necessary
+</label>
+{% endif %}
 <table>
   <tr>
     <td>{{ form.username.label_tag }}</td>

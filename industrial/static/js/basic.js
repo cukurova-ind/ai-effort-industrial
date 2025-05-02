@@ -183,6 +183,7 @@ $(document).ready(function() {
         retrain();
     });
 
+
     const $checkboxes = $('.input_columns');
     const $outputField = $('#id_selection');
     
@@ -234,7 +235,88 @@ $(document).ready(function() {
     // Update on change
     $outboxes.on('change', updateSelected);
 
-    $('#saveUpdate').click(function() {
+    $('#trainDownload, #testDownload').click(function() {
+        var where = "train";
+        var form_data = new FormData($("#settingsForm")[0]);
+        if ($(this).attr('id') === 'trainDownload') {
+            form_data.append("trainDownload", 1);
+        } else {
+            form_data.append("testDownload", 1);
+            where = "test";
+        }
+        
+        $.ajax({
+            url: "/modeling/dataset/settings/",
+            type: 'POST',
+            data: form_data,
+            contentType: false,
+            processData: false,
+            cache: false,
+            success: function(res) {
+                if (res.err) {
+                    $('#download-err').text(res.err);
+                } else {
+                    window.location.href = "/modeling/dataset/download/" + where;
+                }
+            },
+            error: function(jqXHR, textStatus, errorMessage) {
+                alert(errorMessage);
+            }
+        });
+    });
+
+    const initialValues = {};
+
+    $('#settingsForm').find('input, select, textarea').each(function () {
+        const name = $(this).attr('name');
+        if (name) {
+            if ($(this).attr('type') === 'checkbox') {
+                initialValues[name] = $(this).prop('checked');
+            } else {
+                initialValues[name] = $(this).val();
+            }
+        }
+    });
+    
+    $('#settingsForm').on('change input', 'input, select, textarea', function () {
+        let changed = false;
+
+        $('#settingsForm').find('input, select, textarea').each(function () {
+            const name = $(this).attr('name');
+            if (!name) return;
+
+            let current;
+            if ($(this).attr('type') === 'checkbox') {
+                current = $(this).prop('checked');
+            } else {
+                current = $(this).val();
+            }
+
+            if (current !== initialValues[name]) {
+                changed = true;
+            }
+        });
+        $('#saveUpdate').prop('disabled', !changed);
+        $('#noSave').prop('disabled', !changed);
+        $('#skip').prop('disabled', changed);
+    });
+
+    const mlpParameters = [$("#retrain"), $("#saved_model"), $("#batch"), $("#epoch"), $("#loss_function"), $("#learning_rate")];
+    function updateIputs() {
+        if ($("#model_type").val() === "mlp") {
+            
+            mlpParameters.forEach(param => param.prop("disabled", false));
+        } else {
+            
+            mlpParameters.forEach(param => param.prop("disabled", true));
+        }
+        
+    }
+
+    updateIputs();
+    $("#model_type").on("change", updateIputs);
+
+    $('#saveUpdate, #noSave, #skip').click(function() {
         const profile = $('#currentProfile').val();
 
         if (profile === 'unknownprofile') {
@@ -243,7 +325,10 @@ $(document).ready(function() {
         }
 
         var form_data = new FormData($("#settingsForm")[0]);
-        form_data.append("saveupdate", 1)
+        if ($(this).attr('id') != 'noSave') {
+            form_data.append("saveupdate", 1);
+        }
+        
         $.ajax({
             url: "/modeling/dataset/settings/",
             type: 'POST',
@@ -253,7 +338,10 @@ $(document).ready(function() {
             cache: false,
             success: function(res) {
                 console.log(res);
-                window.location.href = "/engine/" + res.profile + "/";
+                if (res.err) {
+                    $('#err').text(res.err);
+                }
+                window.location.href = "/engine/?profile=" + res.profile;
             },
             error: function(jqXHR, textStatus, errorMessage) {
                 alert(errorMessage);
@@ -270,25 +358,46 @@ $(document).ready(function() {
         }
     });
 
-    $('#noSave').click(function() {
-        var form_data = new FormData($("#settingsForm")[0]);
-
-        $.ajax({
-            url: "/modeling/dataset/settings/",
-            type: 'POST',
-            data: form_data,
-            contentType: false,
-            processData: false,
-            cache: false,
-            success: function(res) {
-                console.log(res);
-                window.location.href = "/engine/";
-            },
-            error: function(jqXHR, textStatus, errorMessage) {
-                alert(errorMessage);
-            }
-        });
+    $(document).bind("ajaxSend", function () {
+        $("#overlay").show();
+    }).bind("ajaxComplete", function () {
+        $("#loading img").hide();
+        $("#overlay").hide();
     });
+
+    $('#model_save').click(function() {
+        
+        var form_data = new FormData($('#save_form')[0]);
+        const modelName = $('#model_name').val().trim();
+
+            
+            $.ajax({
+                url: '/engine/model-save/',
+                type: 'POST',
+                data: form_data,
+                contentType: false,
+                processData: false,
+                cache: false,
+                async: true,
+                success: function(res) {
+                    console.log(res);
+                    if (res.status=="error") {
+                        $('#err').text(res.alert);
+                    } else {
+                        $('#naming-bar').addClass("is-hidden");
+                        $('#naming-bar').removeClass("is-active");
+                        $("#flow").append("<p class='small text-muted'>model saved.<p>");
+                        $("#flow").append("<a href='/engine/test' target='_blank' class='small text-muted'>Test your model<a>");
+                        $("#flow").append("<a href='/engine/inference' target='_blank' class='small text-muted'>Make an inference<a>");
+                    }
+                },
+                error: function(jqXHR, textStatus, errorMessage) {
+                    alert('Error saving weights: ' + errorMessage);
+                }
+            });
+
+    });
+
 
 
 });

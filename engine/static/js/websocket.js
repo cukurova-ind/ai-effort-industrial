@@ -49,6 +49,12 @@ $(document).ready(function() {
                 }
                 
             }
+
+            if (data.event === "stopped") {
+                //$("#start").prop("disabled", false);
+                $("#stop").prop("disabled", true);
+                $("#naming-bar").removeClass("is-hidden"); // Show naming bar
+            }
     
         };
     
@@ -60,9 +66,35 @@ $(document).ready(function() {
     }
     connect();
 
+    $("#stop").prop("disabled", true);
     $("#start").on("click", function(){
+        $(this).prop("disabled", true);
+        $("#stop").prop("disabled", false);
         engineSocket.send(JSON.stringify({
             "message": "start-train-" + userName + "-" + userEmail + "-" + profileName
+        }));
+    });
+
+    window.addEventListener("beforeunload", function (e) {
+        // Show confirmation dialog
+        const confirmationMessage = "Training is still running. Are you sure you want to leave?";
+        
+        e.preventDefault(); // Standard in some browsers
+    
+        return confirmationMessage; // For older browsers
+    });
+
+    window.addEventListener("unload", function () {
+        if (engineSocket.readyState === WebSocket.OPEN) {
+            engineSocket.send(JSON.stringify({
+                "message": "stop"
+            }));
+        }
+    });
+
+    $("#stop").click(function() {
+        engineSocket.send(JSON.stringify({
+            "message": "stop"
         }));
     });
 

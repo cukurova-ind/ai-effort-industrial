@@ -40,7 +40,7 @@ def save_checkpoint(model, optimizer, epoch, name, checkpoint_dir="checkpoints")
     if not os.path.exists(checkpoint_dir):
         os.makedirs(checkpoint_dir)
         
-    checkpoint_path = os.path.join(checkpoint_dir, f"{name}_{epoch}.pth")
+    checkpoint_path = os.path.join(checkpoint_dir, f"{name}_latest.pt")
     torch.save({
         "epoch": epoch,
         "model_state": model.state_dict(),
@@ -117,8 +117,9 @@ def validate(model, val_loader, device):
     return avg_mae, avg_mse, avg_mape
     
 def train(model, train_loader, val_loader=None, reload=False,
-          checkpoint_interval=5, val_interval=5, config_path=None, name="mlp_regressor"):
-    print(val_loader)
+          checkpoint_interval=5, val_interval=5, config_path=None,
+          name="mlp_regressor", stop_signal=None):
+
     conf = load_config(config_path) 
     device = torch.device(conf["device"])
     num_epochs = int(conf["n_epoch"])
@@ -153,12 +154,18 @@ def train(model, train_loader, val_loader=None, reload=False,
             )
     
     for epoch in range(start_epoch, num_epochs + start_epoch):
+        if stop_signal and stop_signal.is_set():
+            break
+
         epoch_start_time = time.time()
         running_loss = 0.0
-        samples = 0
+        samples = 0.00001
         
         
         for i, batch in enumerate(train_loader):
+            if stop_signal and stop_signal.is_set():
+                break
+
             total_steps = len(train_loader)
 
             input_feat = batch[0].to(device)
@@ -241,6 +248,7 @@ def train(model, train_loader, val_loader=None, reload=False,
                 channel_name,
                 {
                     'type': 'operation_message',
+                    'event': 'stopped',
                     'message': "train ended.",
                 }
             )
