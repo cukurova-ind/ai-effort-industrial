@@ -104,5 +104,17 @@ html, body {
     border-radius: 0;
   }
 
+  .inference-board {
+    font-size: 14px;
+  }
+
+  .inference-board .model-form {
+    border-right: 1px solid gray;
+    padding: 2%;
+  }
+
+  .inference-board .model-response {
+    padding: 2%;
+  } 
 
 

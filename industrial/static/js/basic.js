@@ -1,5 +1,6 @@
 
 $(document).ready(function() {
+
     $("#max_steps").on("change", function(){
         if ($("#max_steps").attr("checked")) {
             $("#step").removeAttr("disabled");
@@ -326,7 +327,9 @@ $(document).ready(function() {
 
         var form_data = new FormData($("#settingsForm")[0]);
         if ($(this).attr('id') != 'noSave') {
-            form_data.append("saveupdate", 1);
+            form_data.append("save", 1);
+        } else {
+            form_data.append("save", 0);
         }
         
         $.ajax({
@@ -369,7 +372,8 @@ $(document).ready(function() {
         
         var form_data = new FormData($('#save_form')[0]);
         const modelName = $('#model_name').val().trim();
-
+        const profileName = $('#profile_name').val().trim();
+        const modelType = $('#model_type').val().trim();
             
             $.ajax({
                 url: '/engine/model-save/',
@@ -384,11 +388,13 @@ $(document).ready(function() {
                     if (res.status=="error") {
                         $('#err').text(res.alert);
                     } else {
+                        var hRef = '/engine/inference/?model_type=' + modelType + '&model_name=' + modelName + '&profile_name=' + profileName; 
                         $('#naming-bar').addClass("is-hidden");
                         $('#naming-bar').removeClass("is-active");
                         $("#flow").append("<p class='small text-muted'>model saved.<p>");
                         $("#flow").append("<a href='/engine/test' target='_blank' class='small text-muted'>Test your model<a>");
-                        $("#flow").append("<a href='/engine/inference' target='_blank' class='small text-muted'>Make an inference<a>");
+                        $("#flow").append(
+                            "<a href=" + hRef + " target='_blank' class='small text-muted'>Make an inference<a>");
                     }
                 },
                 error: function(jqXHR, textStatus, errorMessage) {

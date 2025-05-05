@@ -7,6 +7,7 @@ urlpatterns = [
 
     path('', views.main_board, name='main_board'),
     path('model-save/', views.model_save, name='model_save'),
+    path('inference/', views.inference_page, name='inference_board'),
 
 ]
 

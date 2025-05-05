@@ -79,8 +79,12 @@
                         <form method="post" id="save_form">
                             {% csrf_token %}
                             <div class="mb-3">
-                                <input type="hidden" name="profile_name" class="form-control"
+                                <input type="hidden" name="profile_name" id="profile_name" class="form-control"
                                  value="{{ profile_name|default:'unknownprofile' }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <input type="hidden" name="model_type" id="model_type" class="form-control"
+                                 value="{{ model_type }}" readonly>
                             </div>
                             <div class="is-hidden" id="naming-bar">
                                 <div class="mb-3">

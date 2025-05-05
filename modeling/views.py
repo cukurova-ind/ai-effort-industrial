@@ -55,24 +55,10 @@ def data_settings(req, profile="unknownprofile"):
                 conf = load_config.load_config(saved_profile_path)
                 conf = conf or {}              
 
-        qe = Experiment.objects.values()
-        df_exp = pd.DataFrame.from_records(qe)
-        qi = Input.objects.values()
-        df_inp = pd.DataFrame.from_records(qi)
-        qf = Fabric.objects.values()
-        df_fab = pd.DataFrame.from_records(qf)
-        qr = Recipe.objects.values()
-        df_rec = pd.DataFrame.from_records(qr)
-        df_inp = df_fab.merge(df_inp, right_on="type_id", left_on="id", how="left")
-        df_input = df_inp.merge(df_exp, right_on="input_id", left_on="id_y", how="right")
-        df_input.drop(columns=["id_x", "id_y"], inplace=True)
-        df_input = df_input.merge(df_rec, right_on="id", left_on="recipe_id", how="left")
-        df_input.drop(columns=["id_x", "id_y", "input_id"], inplace=True)
-        df_input.insert(0, "type_id", df_input.pop("type_id"))
-
         if req.method == "POST":
             postdata = req.POST
-            
+            df_input = data_framer(req.user.username)
+            n_features = 0
             input_list, target_list, input_types, input_maxs, input_mins, categories = [], [], [], [], [], []
             for p in postdata:
                 if p.split("_")[0]=="inp":
@@ -83,21 +69,20 @@ def data_settings(req, profile="unknownprofile"):
                         input_types.append("disc")
                         input_maxs.append("0")
                         input_mins.append("0")
+                        n_features += len(cats)
                     else:
                         categories.append("0")
                         input_types.append("cont")
                         input_maxs.append(str(df_input[postdata[p]].max()))
                         input_mins.append(str(df_input[postdata[p]].min()))
+                        n_features += 1
                 elif p.split("_")[0]=="out":
                     target_list.append(postdata[p])
             
             if len(input_list)==0 or len(target_list)==0:
                 return JsonResponse({"err": "en az 1 girdi ve çıktı belirlenmelidir."})
 
-            df_features = df_input[input_list]
-            df_target = df_input[target_list]
-
-            conf["n_features"] = len(input_list)
+            conf["n_features"] = n_features
             conf["input_features"] = ",".join(input_list)
             conf["input_feature_types"] = ",".join(input_types)
             conf["input_maxs"] = ",".join(input_maxs)
@@ -119,8 +104,31 @@ def data_settings(req, profile="unknownprofile"):
             conf["checkpoint_path"] = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "checkpoints")
             conf["device"] = "cuda:0" 
 
-            df_dataset = pd.concat([df_features, df_target], axis=1)
-            cache.set(f"cached_dataset_{req.user.username}", df_dataset)
+            df_cached_dataset = cache.get(f"cached_dataset_{req.user.username}")
+            if df_cached_dataset is not None:
+                df_dataset = df_cached_dataset
+            else:
+                df_input = data_framer(req.user.username)
+                input_list = conf["input_features"].split(",")
+                target_list = conf["target_features"].split(",")
+
+                df_features = df_input[input_list]
+                df_target = df_input[target_list]
+                
+                df_dataset = pd.concat([df_features, df_target], axis=1)
+                cache.set(f"cached_dataset_{req.user.username}", df_dataset)
+
+            if int(postdata.get("save")) == 1:
+                profile_name = postdata.get("currentProfileName")
+                saved_profile_path = os.path.join(safe_profiles, profile_name + ".yaml")
+                load_config.save_config(conf, saved_profile_path)
+                return JsonResponse({"profile": profile_name})
+            
+            if int(postdata.get("save")) == 0:
+                saved_profile_path = os.path.join(safe_profiles, "unknownprofile.yaml")
+                load_config.save_config(conf, saved_profile_path)
+                return JsonResponse({"profile": "unknownprofile"})
+
             if postdata.get("trainDownload"):
                 if float(postdata.get("test_size", 0.0)) > 0:
                     train_df, _ = data_split.random_split(df_dataset, split_ratio=float(postdata.get("test_size", 0.0)), 
@@ -138,21 +146,15 @@ def data_settings(req, profile="unknownprofile"):
                     return JsonResponse({"profile": "ok"})
                 else:
                     return JsonResponse({"err": "test bölüm oranı girilmemiş."})
-                
-            if postdata.get("saveupdate"):
-                profile_name = postdata.get("currentProfileName")
-                saved_profile_path = os.path.join(safe_profiles, profile_name + ".yaml")
-                load_config.save_config(conf, saved_profile_path)
-                return JsonResponse({"profile": profile_name})
 
-            saved_profile_path = os.path.join(safe_profiles, "unknownprofile.yaml")
-            load_config.save_config(conf, saved_profile_path)
-            return JsonResponse({"profile": "unknownprofile"})
-    
+
         if req.method == "GET":
             
+            df_input = data_framer(req.user.username)
+
             attr_type, d_type = None, None
             columns, input_features, target_features = [], [], []
+
             if conf:
                 input_features = conf["input_features"].split(",")
                 target_features = conf["target_features"].split(",")
@@ -209,3 +211,28 @@ def download_df(req, what="train"):
 
     wb.save(response)
     return response
+
+
+def data_framer(username):
+    cache_key = f"cached_main_{username}"
+    df = cache.get(cache_key)
+    if df is not None:
+        df_input = df
+    else:
+        qe = Experiment.objects.values()
+        df_exp = pd.DataFrame.from_records(qe)
+        qi = Input.objects.values()
+        df_inp = pd.DataFrame.from_records(qi)
+        qf = Fabric.objects.values()
+        df_fab = pd.DataFrame.from_records(qf)
+        qr = Recipe.objects.values()
+        df_rec = pd.DataFrame.from_records(qr)
+        df_inp = df_fab.merge(df_inp, right_on="type_id", left_on="id", how="left")
+        df_input = df_inp.merge(df_exp, right_on="input_id", left_on="id_y", how="right")
+        df_input.drop(columns=["id_x", "id_y"], inplace=True)
+        df_input = df_input.merge(df_rec, right_on="id", left_on="recipe_id", how="left")
+        df_input.drop(columns=["id_x", "id_y", "input_id"], inplace=True)
+        df_input.insert(0, "type_id", df_input.pop("type_id"))
+        cache.set(cache_key, df_input, timeout=60*60)
+
+    return df_input

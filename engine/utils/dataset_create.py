@@ -89,15 +89,16 @@ class CustomDataset(Dataset):
             return None
         
 class RegressionDataset(Dataset):
-    def __init__(self, conf, df):
+    def __init__(self, conf, df, inference=None):
         self.conf = conf
-
+        self.inference = inference
         self.df = df
         self.input_features = conf["input_features"].split(",")
         self.target_features = conf["target_features"].split(",")
         self.feature_types = conf["input_feature_types"].split(",")
         self.input_maxs = [float(mx) for mx in conf["input_maxs"].split(",")]
         self.input_mins = [float(mn) for mn in conf["input_mins"].split(",")]
+        self.input_categories = conf["input_categories"].split(",")
 
         self.input_data, self.target_data = self._load_data()
 
@@ -105,18 +106,40 @@ class RegressionDataset(Dataset):
         
         features_df = self.df
         input_data = features_df[self.input_features]
+ 
+        if self.inference:
+            new_df = pd.DataFrame() 
+            for i, c in enumerate(input_data.columns):
+                if self.feature_types[i]=="disc":
+                    cats = self.input_categories[i].split("|")
+                    value = input_data.at[0, c]
+                    one_hot = np.zeros(len(cats))
+                    if value in cats:
+                        one_hot[cats.index(value)] = 1
+                    cat_df = pd.DataFrame([one_hot], columns=cats)
+                    new_df = pd.concat([new_df, cat_df], axis=1)
+                else:
+                    if self.conf["input_scaling"]:
+                        input_data.loc[:, c] = input_data.loc[:, c].astype(np.float32)
+                        new_df.loc[:, c] = 2 * (input_data.loc[:, c] - self.input_mins[i])/(self.input_maxs[i] - self.input_mins[i]) - 1
+
+            new_df = new_df[sorted(new_df.columns)]
+            new_input_data = new_df.values.astype(np.float32)
+            return new_input_data, None
         
+        new_df = pd.DataFrame() 
         for i, c in enumerate(input_data.columns):
             if self.feature_types[i]=="disc":
-                input_data = pd.concat([input_data, pd.get_dummies(input_data.pop(c))], axis=1)
+                new_df = pd.concat([new_df, pd.get_dummies(input_data.pop(c))], axis=1)
             else:
                 if self.conf["input_scaling"]:
-                    input_data.loc[:, c] = 2 * (input_data.loc[:, c] - self.input_mins[i])/(self.input_maxs[i] - self.input_mins[i]) - 1
+                    new_df.loc[:, c] = 2 * (input_data.loc[:, c] - self.input_mins[i])/(self.input_maxs[i] - self.input_mins[i]) - 1
 
-        input_data = input_data.values.astype(np.float32)
+        new_df = new_df[sorted(new_df.columns)]
+        new_input_data = new_df.values.astype(np.float32)
         target_data = features_df[self.target_features].values.astype(np.float32)
 
-        return input_data, target_data
+        return new_input_data, target_data
     
     def __len__(self):
         return len(self.input_data)
@@ -124,18 +147,23 @@ class RegressionDataset(Dataset):
     def __getitem__(self, idx):
         
         input_feat = torch.tensor(self.input_data[idx])
-        target_feat = torch.tensor(self.target_data[idx])
+        if self.target_data:
+            target_feat = torch.tensor(self.target_data[idx])
+            return input_feat, target_feat
+        else:
+            return input_feat
 
-        return input_feat, target_feat
 
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-
-def create_custom_dataset(df, path):
+def create_custom_dataset(df, path, inference=None):
     conf = load_config(path)   
     train_df = df
     test_dl = None
     val_dl = None
+    if inference:
+        infer_ds = RegressionDataset(conf, train_df, inference)
+        infer_dl = DataLoader(infer_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True)
+        return infer_dl
+    
     if float(conf["test_size"]) > 0:
         random_state = int(conf["random_state"]) if int(conf["random_state"])>-1 else None
         train_df, test_df = random_split(df, float(conf["test_size"]), random_state)
@@ -147,16 +175,5 @@ def create_custom_dataset(df, path):
         test_dl = DataLoader(test_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
     train_ds = RegressionDataset(conf, train_df)
     train_dl = DataLoader(train_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
-
-    channel_layer = get_channel_layer()
-    group_name = f"train_{conf["username"]}"
-
-    async_to_sync(channel_layer.group_send)(
-        group_name,
-        {
-            "type": "operation_message",
-            "message": "data loader created."
-        },
-    )
 
     return train_dl, test_dl, val_dl

@@ -63,11 +63,15 @@ def get_latest_checkpoint(name, checkpoint_dir="checkpoints"):
     latest_checkpoint = os.path.join(checkpoint_dir, checkpoints[-1])
     return latest_checkpoint
 
-def load_model(model, device, optimizer=None, name=None, checkpoint_path=None):
+def load_model(model, optimizer=None, checkpoint_path=None, config_path=None):
     start_epoch = 0
     
+    conf = load_config(config_path) 
+    device = torch.device(conf["device"])
+
+
     if not checkpoint_path:
-        checkpoint_path = get_latest_checkpoint(name)
+        print("no saved model")
     
     if checkpoint_path and os.path.exists(checkpoint_path):
         checkpoint = torch.load(checkpoint_path, map_location=device)
@@ -79,6 +83,16 @@ def load_model(model, device, optimizer=None, name=None, checkpoint_path=None):
             print(f"Resuming training from epoch {start_epoch}, checkpoint: {checkpoint_path}")
         else:
             model.eval()
+            channel_layer = get_channel_layer()
+            channel_name = f"inference_{conf["username"]}"
+            if channel_name:
+                async_to_sync(channel_layer.group_send)(
+                        channel_name,
+                        {
+                            'type': 'operation_message',
+                            'message': "model reloaded",
+                        }
+                    )
             print(f"Model loaded for inference from: {checkpoint_path}")
     else:
         print("No checkpoint found. Starting fresh.")
@@ -292,3 +306,17 @@ def predict(model, test_loader, device):
     
     model.train()
     return avg_mae, avg_mse, avg_mape
+
+def inference(model, loader, config_path=None):
+
+    conf = load_config(config_path) 
+    device = torch.device(conf["device"])
+    model.to(device)
+    model.eval()
+
+    with torch.no_grad():
+        for i, batch in enumerate(loader):
+            input_feat = batch[0].to(device)
+            prediction = model(input_feat)
+        
+    return prediction[0].to("cpu").numpy()

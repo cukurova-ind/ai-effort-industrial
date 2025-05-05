@@ -1,0 +1,140 @@
+{% load static %}
+<!doctype html> 
+<html lang="en"> 
+  
+<head> 
+    <meta charset="utf-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Inference</title> 
+    <link href="/static/css/engine-style.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous"> 
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script src="http://code.jquery.com/jquery-1.11.2.min.js"></script>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+        integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
+        crossorigin="anonymous"></script>
+    
+    <script src="/static/js/inference.js"></script>
+    <script src="/static/js/basic.js"></script>
+</head> 
+  
+<body>
+
+    <div class="container-fluid px-3 py-4 inference-board">
+        {{ user.username|json_script:"userName" }}
+        {{ user.email|json_script:"userEmail" }}
+        {{ profile_name|json_script:"profileName" }}
+        {{ model_type|json_script:"modelType" }}
+        {{ model_name|json_script:"modelName" }}
+        <div class="row">
+        
+            <!-- Small Left Panel (Top Menu) -->
+            <div class="col-md-2 col-lg-1">
+                <div class="mt-3">
+                <div id="flow"></div>
+            </div>
+            </div>
+
+        
+            <div class="col-md-9 col-lg-10">
+                
+                    <div class="container-fluid d-flex justify-content-center align-items-center">
+                    
+                        <div class="col-md-5 model-form">
+                            <h4>{{ name }}</h4>
+                            <hr>
+                            <form method="post" enctype="multipart/form-data" id="feature_form">
+                                                
+                                <p><strong>Girdi Değişkenleri:</strong></p>
+                                <hr>
+                                
+                                {% if image %}
+                                <div class="mb-3">
+                                    <div>
+                                        <label class="form-label" for="id_raw_image">Görüntü</label>
+                                    </div>
+                                    <input type="file" name="raw_image" id="id_raw_image" accept=".jpg, .png, .jpeg, |image/*">
+                                </div>
+                                {% endif %}
+                    
+                                {% if inputs %}
+                                <label class="form-label">Öznitelikler</label>
+                                    {% for input in inputs %}
+                                        {% if input.d_type == "cont" %}
+                                        <div class="row mb-3">
+                                            <label class="form-label" for="id_{{ input.feature }}">{{ input.label }}</label>
+                                            <input name="{{ input.feature }}" class="form-control"
+                                            id="id_{{ input.feature }}"
+                                            data-max="{{ input.max }}"
+                                            data-min="{{ input.min }}">
+                                        </div>
+                                        {% else %}
+                                        <div class="row mb-3">
+                                            <label class="form-label" for="id_{{ input.feature }}">{{ input.label }}</label>
+                                            <select name="{{ input.feature }}" class="form-select" id="id_{{ input.feature }}">
+                                            {% for opt in input.cats %}
+                                                <option value="{{ opt.val }}">{{ opt.option }}</option>
+                                            {% endfor %}
+                                            </select>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+
+                                <button class="btn btn-success text-center waiting"
+                                    id="inference-form-button"
+                                    type="button">
+                                    Send
+                                </button>
+
+                            </form>
+                        </div>
+                        
+                        <div class="col-md-5 model-response">
+                            <div class="row">
+                                <div class="mb-3">
+                                    <p><strong>Çıktı Değişkeni:</strong></p>
+                                    <hr>
+                
+                                    <div class="row">
+                                        {% if generator %}                      
+                                            <div class="input-img" id="shot_image">
+                
+                                            </div>
+                                        {% else %}
+                                            Prediction:
+
+                                            <div id="shot_pred">
+                
+                                            </div>
+
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                
+                        
+                    </div>
+                
+            </div>
+
+        </div>
+    </div>
+    <div id="overlay" style="display: none;">
+        <div id="loading">
+            <img src="{% static 'img/loading.gif' %}" alt="Loading..." />
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+    crossorigin="anonymous"></script>    
+</body> 
+  
+</html>
