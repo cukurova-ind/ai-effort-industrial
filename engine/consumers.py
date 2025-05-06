@@ -40,9 +40,8 @@ class EngineConsumer(WebsocketConsumer):
 
     def receive(self, text_data=None, bytes_data=None):
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
 
-        if message == "stop":
+        if text_data_json["message"] == "stop":
             self.stop_signal.set()
             async_to_sync(self.channel_layer.group_send)(
                 self.train_name,
@@ -54,29 +53,29 @@ class EngineConsumer(WebsocketConsumer):
             )
             return
         
-        if message.split("-")[0]=="start":
-            email = message.split("-")[3]
-            profile = message.split("-")[-1]
+        if text_data_json["message"]=="startTrain":
+            email = text_data_json["email"]
+            profile = text_data_json["profilename"]
             safe_folder_name = email.replace("@", "_at_").replace(".", "_dot_")
             safe_profile_path = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "profiles", profile + ".yaml")
             conf = load_config(safe_profile_path)
-            cache_key = f"cached_dataset_{self.user_name}"
+            cache_key = f"cached_trainset_{self.user_name}"
             df = cache.get(cache_key)
+            print(df.columns)
             if df is not None:
                 message = "cache hit. cached dataframe used."
             else:
-                df_input = data_framer(self.user_name)
+                # df_input = data_framer(self.user_name)
                 
-                input_list = conf["input_features"].split(",")
-                target_list = conf["target_features"].split(",")
+                # input_list = conf["input_features"].split(",")
+                # target_list = conf["target_features"].split(",")
 
-                df_features = df_input[input_list]
-                df_target = df_input[target_list]
+                # df_features = df_input[input_list]
+                # df_target = df_input[target_list]
                 
-                df_dataset = pd.concat([df_features, df_target], axis=1)
-                cache.set(f"cached_dataset_{self.user_name}", df_dataset)
+                # df_dataset = pd.concat([df_features, df_target], axis=1)
+                # cache.set(f"cached_dataset_{self.user_name}", df_dataset)
                 message = "no cached dataframe"
-            
             
             async_to_sync(self.channel_layer.group_send)(
                 self.train_name,
@@ -86,7 +85,7 @@ class EngineConsumer(WebsocketConsumer):
                 }
             )
 
-            train_loader, test_loader, val_loader = create_custom_dataset(df, safe_profile_path)
+            train_loader, val_loader = create_custom_dataset(df, safe_profile_path)
             async_to_sync(self.channel_layer.group_send)(
                 self.train_name,
                 {
@@ -94,7 +93,6 @@ class EngineConsumer(WebsocketConsumer):
                     "message": "data loader created."
                 },
             )
-            cache.set(f"cached_testloader_{self.user_name}", test_loader)
             mlpreg = MlpRegressor(int(conf["n_features"]))
             async_to_sync(self.channel_layer.group_send)(
                 self.train_name,
@@ -153,7 +151,7 @@ class InferenceConsumer(WebsocketConsumer):
         if text_data_json["message"]=="data":
             form_dict = text_data_json.get("data", {})
             df = pd.DataFrame([form_dict])
-            self.loader = create_custom_dataset(df, self.safe_profile_path, inference=True)
+            self.loader = create_custom_dataset(df, self.safe_profile_path, to="inference")
             async_to_sync(self.channel_layer.group_send)(
                 self.inference_name,
                 {
@@ -201,21 +199,8 @@ class InferenceConsumer(WebsocketConsumer):
 
             threading.Thread(target=load_async).start()
             
-
-
     def operation_message(self, event):
         self.send(text_data=json.dumps(event))
     
     def inference_message(self, event):
         self.send(text_data=json.dumps(event))
-
-
-
-def get_cached_dataframe(cache_key):
-    
-    try:
-        df = cache.get(cache_key)
-        message = "cache hit. cached dataframe used."
-    except:
-        message = "no cached dataframe"
-    return df, message

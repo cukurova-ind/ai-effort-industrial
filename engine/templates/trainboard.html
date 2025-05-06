@@ -44,9 +44,13 @@
                         <a href="{% url 'modeling_main_page' %}" class="btn btn-primary">Yönetim</a>
                         <a href="{% url 'main' %}" class="btn btn-danger">Anasayfa</a>
                     </div>
-                    <div class="btn-group" role="group">
+                    <div class="btn-group mb-3" role="group">
                         <button id="start" href="#" class="btn btn-primary">Start</button>
                         <button id="stop" href="#" class="btn btn-danger">Stop</button>
+                    </div>
+                    <div class="mb-3">
+                        <a id="train" href="{% url 'dataset_download' 'train' %}" class="small text-muted">Train Set İndir</a>
+                        <a id="test" href="{% url 'dataset_download' 'test' %}" class="small text-muted">Test Set İndir</a>
                     </div>
                     <div class="d-flex flex-column gap-2 mt-3" id="flow">
                         

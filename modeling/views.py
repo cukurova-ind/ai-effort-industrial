@@ -60,6 +60,7 @@ def data_settings(req, profile="unknownprofile"):
             df_input = data_framer(req.user.username)
             n_features = 0
             input_list, target_list, input_types, input_maxs, input_mins, categories = [], [], [], [], [], []
+            filtered_list, filter_maxs, filter_mins, filter_values = [], [], [], []
             for p in postdata:
                 if p.split("_")[0]=="inp":
                     input_list.append(postdata[p])
@@ -78,7 +79,7 @@ def data_settings(req, profile="unknownprofile"):
                         n_features += 1
                 elif p.split("_")[0]=="out":
                     target_list.append(postdata[p])
-            
+
             if len(input_list)==0 or len(target_list)==0:
                 return JsonResponse({"err": "en az 1 girdi ve çıktı belirlenmelidir."})
 
@@ -87,6 +88,7 @@ def data_settings(req, profile="unknownprofile"):
             conf["input_feature_types"] = ",".join(input_types)
             conf["input_maxs"] = ",".join(input_maxs)
             conf["input_mins"] = ",".join(input_mins)
+            #conf["filter_maxs"] = ",".join(input_maxs)
             conf["target_features"] = ",".join(target_list)
             conf["input_categories"] = ",".join(categories)
             conf["test_size"] = float(postdata.get("test_size", 0.0))
@@ -103,55 +105,48 @@ def data_settings(req, profile="unknownprofile"):
             conf["username"] = req.user.username
             conf["checkpoint_path"] = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "checkpoints")
             conf["device"] = "cuda:0" 
+            
 
-            df_cached_dataset = cache.get(f"cached_dataset_{req.user.username}")
-            if df_cached_dataset is not None:
-                df_dataset = df_cached_dataset
+            df_input = data_framer(req.user.username)
+            input_list = conf["input_features"].split(",")
+            target_list = conf["target_features"].split(",")
+
+            df_features = df_input[input_list]
+            df_target = df_input[target_list]
+            
+            df_dataset = pd.concat([df_features, df_target], axis=1)
+
+            test_df = None
+            if float(postdata.get("test_size", 0.0)) > 0:
+                train_df, test_df = data_split.random_split(df_dataset, split_ratio=float(postdata.get("test_size", 0.0)), 
+                                            rs=int(postdata.get("random_state", 0)))
             else:
-                df_input = data_framer(req.user.username)
-                input_list = conf["input_features"].split(",")
-                target_list = conf["target_features"].split(",")
+                train_df = df_dataset
+            cache.set(f"cached_trainset_{req.user.username}", train_df)
 
-                df_features = df_input[input_list]
-                df_target = df_input[target_list]
-                
-                df_dataset = pd.concat([df_features, df_target], axis=1)
-                cache.set(f"cached_dataset_{req.user.username}", df_dataset)
+            if test_df is not None:
+                cache.set(f"cached_testset_{req.user.username}", test_df)
 
             if int(postdata.get("save")) == 1:
                 profile_name = postdata.get("currentProfileName")
+                profile_name = "_".join(profile_name.lower().split(" "))
                 saved_profile_path = os.path.join(safe_profiles, profile_name + ".yaml")
                 load_config.save_config(conf, saved_profile_path)
-                return JsonResponse({"profile": profile_name})
+                return JsonResponse({"status": "stay", "profile": profile_name})
             
             if int(postdata.get("save")) == 0:
-                saved_profile_path = os.path.join(safe_profiles, "unknownprofile.yaml")
-                load_config.save_config(conf, saved_profile_path)
-                return JsonResponse({"profile": "unknownprofile"})
-
-            if postdata.get("trainDownload"):
-                if float(postdata.get("test_size", 0.0)) > 0:
-                    train_df, _ = data_split.random_split(df_dataset, split_ratio=float(postdata.get("test_size", 0.0)), 
-                                            rs=int(postdata.get("random_state", 0)))
+                profile_name = postdata.get("currentProfileName")
+                if profile_name:
+                    profile = "_".join(profile_name.lower().split(" "))
                 else:
-                    train_df = df_dataset
-                cache.set(f"cached_trainset_{req.user.username}", train_df)
-                return JsonResponse({"profile": "ok"})
-            
-            if postdata.get("testDownload"):
-                if float(postdata.get("test_size", 0.0)) > 0:
-                    _, test_df = data_split.random_split(df_dataset, split_ratio=float(postdata.get("test_size", 0.0)), 
-                                            rs=int(postdata.get("random_state", 0)))
-                    cache.set(f"cached_testset_{req.user.username}", test_df)
-                    return JsonResponse({"profile": "ok"})
-                else:
-                    return JsonResponse({"err": "test bölüm oranı girilmemiş."})
-
+                    profile = "unknownprofile.yaml"
+                    saved_profile_path = os.path.join(safe_profiles, profile)
+                    load_config.save_config(conf, saved_profile_path)
+                return JsonResponse({"status": "skip", "profile": profile})
 
         if req.method == "GET":
             
             df_input = data_framer(req.user.username)
-
             attr_type, d_type = None, None
             columns, input_features, target_features = [], [], []
 
@@ -161,13 +156,15 @@ def data_settings(req, profile="unknownprofile"):
             for c in df_input.columns:
 
                 d_type = df_input[c].dtype
-                attr_type = "categorical" if len(df_input[c].value_counts())<=50 or d_type=="object" else "continuous"
+                attr_type = "categorical" if len(df_input[c].value_counts())<=10 or d_type=="object" else "continuous"
+                options = df_input[c].value_counts().keys() if len(df_input[c].value_counts())<=10 or d_type=="object" else []
                 input_checked = True if c in input_features else False
                 target_checked = True if c in target_features else False
 
                 columns.append({"column": c,
                                 "label": label.get(c, c),
                                 "attr_type": attr_type,
+                                "options": options,
                                 "d_type": d_type,
                                 "input_checked": input_checked,
                                 "target_checked": target_checked})
@@ -187,9 +184,28 @@ def data_settings(req, profile="unknownprofile"):
                 "conf": conf
             }
 
-            return render(req, "data_process.html", context)
+            return render(req, "modeling_configuration.html", context)
         else:
             return HttpResponseRedirect("/login/?next=/modeling/dataset/settings/")
+
+
+def profile_delete(req, profile="unknownprofile"):
+
+    if req.user.is_authenticated:
+        if req.method == "GET":
+            safe_folder_name = req.user.email.replace("@", "_at_").replace(".", "_dot_")
+            safe_profiles = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "profiles")
+            files = sorted([f.split(".")[0] for f in os.listdir(safe_profiles) if os.path.isfile(os.path.join(safe_profiles, f))])
+            if "unknownprofile" in files:
+                os.unlink(os.path.join(safe_profiles, "unknownprofile.yaml"))
+            if profile and profile in files:
+                saved_profile_path = os.path.join(safe_profiles, profile+".yaml")
+                if os.path.exists(saved_profile_path):
+                    os.unlink(saved_profile_path)            
+            return HttpResponseRedirect("/modeling/dataset/settings/")
+    else:
+        return HttpResponseRedirect("/login/?next=/modeling/dataset/settings/")
+        
 
 
 def download_df(req, what="train"):

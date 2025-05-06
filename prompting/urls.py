@@ -6,10 +6,8 @@ from . import views
 urlpatterns = [
     path('', views.main_page, name="prompt_main_page"),
     path('filtering/<str:for>', views.filtering_page, name="model_filtering"),
-    path('generator/', views.generator_model, name="generator"),
-    path('predictor/', views.predictor_model, name="predictor"),
-    path('predictor/<str:model>', views.predictor_model, name="predictor"),
     path('selection-change/', views.selection_change, name="selection-change"),
+    path('model-delete/', views.model_delete, name='model_delete'),
 ]
 
 if settings.DEBUG:

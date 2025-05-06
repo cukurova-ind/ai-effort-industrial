@@ -1,15 +1,48 @@
 
 $(document).ready(function() {
 
-    $("#max_steps").on("change", function(){
-        if ($("#max_steps").attr("checked")) {
-            $("#step").removeAttr("disabled");
-            $("#max_steps").removeAttr("checked");
-        } else {
-            $("#step").attr("disabled", "true");
-            $("#max_steps").attr("checked", "true");
-        }
-    });
+    // const inputTable = $('#inputTable').DataTable({
+    //     dom: 'Bfrtip',
+    //     buttons: ['colvis'],
+    //     // initComplete: function () {
+    //     //     this.api().columns().every(function () {
+    //     //         let column = this;
+
+    //     //         let inputMin = $('<input type="number" placeholder="min">')
+    //     //             .appendTo($(column.header()).find(".minFilter"))
+    //     //             .on('keyup change', function () {
+    //     //                 const min = parseFloat($(this).val());
+    //     //                 filtered = column.data().toArray().map(parseFloat).filter(val => val >= min);
+    //     //                 column.data() = filtered;
+    //     //                 inputTable.draw();
+    //     //                 //column.search($(this).val(), false, false).draw();
+    //     //             });
+    //     //         let inputMax = $('<input type="number" placeholder="max">')
+    //     //             .appendTo($(column.header()).find(".maxFilter"))
+    //     //             .on('keyup change', function () {
+    //     //                 column.search($(this).val(), false, false).draw();
+    //     //             });
+    //     //     });
+    //     // }
+    // });
+
+    // const targetTable = $('#targetTable').DataTable({
+    //     dom: 'Bfrtip',
+    //     buttons: ['colvis'],
+    //     // initComplete: function () {
+    //     //     this.api().columns().every(function () {
+    //     //         let column = this;
+    //     //         let inputMin = $('<input type="number" placeholder="Filter">')
+    //     //             .appendTo($(column.header()))
+    //     //             .on('keyup change', function () {
+    //     //                 column.search($(this).val(), false, false).draw();
+    //     //             });
+                
+                    
+    //     //     });
+    //     // }
+    // });
+
 
     $("#prompt_type").on("change", function(){
 
@@ -89,9 +122,15 @@ $(document).ready(function() {
                 if (res.status=="complete"){
                     $("#model_loading").removeClass("is-hidden");
                     $("#model_loading").addClass("is-active");
+
+                    $("#model_deleting").removeClass("is-hidden");
+                    $("#model_deleting").addClass("is-active");
                 } else {
                     $("#model_loading").addClass("is-hidden");
                     $("#model_loading").removeClass("is-active");
+
+                    $("#model_deleting").addClass("is-hidden");
+                    $("#model_deleting").removeClass("is-active");
                 }
 
             },
@@ -114,16 +153,28 @@ $(document).ready(function() {
             success: function(res) {
 
                 if (res.status=="complete"){
-                    var q = "model=" + form_data.get("prompt_model_type") + "&version=" + form_data.get("prompt_model_version")
-                    var f = $("#for-data").data("for");
-                    q += "&for=" + f;
-                    var link = "http://127.0.0.1:5000/inference-page?" + q;
+                    const modelType =  form_data.get("prompt_model_type");
+                    const modelName = form_data.get("prompt_model_version");
+                    const profileName = res.profile;
+                    var href = 'model_type=' + modelType + '&model_name=' + modelName + '&profile_name=' + profileName;
+                    var load = '/engine/inference/?' + href;
+                    const path = window.location.pathname.split("/")[3];
+                    var del = '/prompting/model-delete/?' + href + '&path=' + path;
+                    
                     $("#model_loading").removeClass("is-hidden");
                     $("#model_loading").addClass("is-active");
-                    $("#model_loading").attr("href", link)
+
+                    $("#model_deleting").removeClass("is-hidden");
+                    $("#model_deleting").addClass("is-active");
+
+                    $("#model_loading").attr("href", load)
+                    $("#model_deleting").attr("href", del)
                 } else {
                     $("#model_loading").addClass("is-hidden");
                     $("#model_loading").removeClass("is-active");
+
+                    $("#model_deleting").addClass("is-hidden");
+                    $("#model_deleting").removeClass("is-active");
                 }
 
             },
@@ -236,35 +287,35 @@ $(document).ready(function() {
     // Update on change
     $outboxes.on('change', updateSelected);
 
-    $('#trainDownload, #testDownload').click(function() {
-        var where = "train";
-        var form_data = new FormData($("#settingsForm")[0]);
-        if ($(this).attr('id') === 'trainDownload') {
-            form_data.append("trainDownload", 1);
-        } else {
-            form_data.append("testDownload", 1);
-            where = "test";
-        }
+    // $('#trainDownload, #testDownload').click(function() {
+    //     var where = "train";
+    //     var form_data = new FormData($("#settingsForm")[0]);
+    //     if ($(this).attr('id') === 'trainDownload') {
+    //         form_data.append("trainDownload", 1);
+    //     } else {
+    //         form_data.append("testDownload", 1);
+    //         where = "test";
+    //     }
         
-        $.ajax({
-            url: "/modeling/dataset/settings/",
-            type: 'POST',
-            data: form_data,
-            contentType: false,
-            processData: false,
-            cache: false,
-            success: function(res) {
-                if (res.err) {
-                    $('#download-err').text(res.err);
-                } else {
-                    window.location.href = "/modeling/dataset/download/" + where;
-                }
-            },
-            error: function(jqXHR, textStatus, errorMessage) {
-                alert(errorMessage);
-            }
-        });
-    });
+    //     $.ajax({
+    //         url: "/modeling/dataset/settings/",
+    //         type: 'POST',
+    //         data: form_data,
+    //         contentType: false,
+    //         processData: false,
+    //         cache: false,
+    //         success: function(res) {
+    //             if (res.err) {
+    //                 $('#download-err').text(res.err);
+    //             } else {
+    //                 window.location.href = "/modeling/dataset/download/" + where;
+    //             }
+    //         },
+    //         error: function(jqXHR, textStatus, errorMessage) {
+    //             alert(errorMessage);
+    //         }
+    //     });
+    // });
 
     const initialValues = {};
 
@@ -295,10 +346,12 @@ $(document).ready(function() {
 
             if (current !== initialValues[name]) {
                 changed = true;
+                $('#skip').prop('disabled', !changed);
             }
         });
         $('#saveUpdate').prop('disabled', !changed);
         $('#noSave').prop('disabled', !changed);
+        $('#saveAs').prop('disabled', !changed);
         $('#skip').prop('disabled', changed);
     });
 
@@ -317,16 +370,17 @@ $(document).ready(function() {
     updateIputs();
     $("#model_type").on("change", updateIputs);
 
-    $('#saveUpdate, #noSave, #skip').click(function() {
+
+    $('#saveUpdate, #noSave, #skip, #saveAs').click(function() {
         const profile = $('#currentProfile').val();
 
-        if (profile === 'unknownprofile') {
+        if (profile === 'unknownprofile' || $(this).attr('id') === 'saveAs') {
             $('#namePrompt').slideDown();
             return; // Stop here until user provides a name
         }
 
         var form_data = new FormData($("#settingsForm")[0]);
-        if ($(this).attr('id') != 'noSave') {
+        if ($(this).is('#saveUpdate, #saveAs')) {
             form_data.append("save", 1);
         } else {
             form_data.append("save", 0);
@@ -344,7 +398,11 @@ $(document).ready(function() {
                 if (res.err) {
                     $('#err').text(res.err);
                 }
-                window.location.href = "/engine/?profile=" + res.profile;
+                if (res.status === "skip") {
+                    window.location.href = "/engine/?profile=" + res.profile;
+                } else {
+                    window.location.href = "/modeling/dataset/settings/" + res.profile;
+                }
             },
             error: function(jqXHR, textStatus, errorMessage) {
                 alert(errorMessage);
@@ -371,10 +429,10 @@ $(document).ready(function() {
     $('#model_save').click(function() {
         
         var form_data = new FormData($('#save_form')[0]);
-        const modelName = $('#model_name').val().trim();
-        const profileName = $('#profile_name').val().trim();
-        const modelType = $('#model_type').val().trim();
-            
+        const modelName = $('#model_name').val();
+        const profileName = $('#profile_name').val();
+        const modelType = $('#model_type').val();
+        
             $.ajax({
                 url: '/engine/model-save/',
                 type: 'POST',
@@ -388,7 +446,7 @@ $(document).ready(function() {
                     if (res.status=="error") {
                         $('#err').text(res.alert);
                     } else {
-                        var hRef = '/engine/inference/?model_type=' + modelType + '&model_name=' + modelName + '&profile_name=' + profileName; 
+                        var hRef = '/engine/inference/?model_type=' + modelType + '&model_name=' + res.alert + '&profile_name=' + profileName; 
                         $('#naming-bar').addClass("is-hidden");
                         $('#naming-bar').removeClass("is-active");
                         $("#flow").append("<p class='small text-muted'>model saved.<p>");

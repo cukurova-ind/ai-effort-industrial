@@ -71,7 +71,10 @@ $(document).ready(function() {
         $(this).prop("disabled", true);
         $("#stop").prop("disabled", false);
         engineSocket.send(JSON.stringify({
-            "message": "start-train-" + userName + "-" + userEmail + "-" + profileName
+            "message": "startTrain",
+            "username": userName,
+            "email": userEmail,
+            "profilename": profileName,
         }));
     });
 

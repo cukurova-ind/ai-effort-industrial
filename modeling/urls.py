@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.main_page, name="modeling_main_page"),
     path('dataset/settings/', views.data_settings, name="data_settings"),
     path('dataset/settings/<str:profile>', views.data_settings, name="data_settings_with_profile"),
+    path('profiledelete/<str:profile>', views.profile_delete, name="profile_delete"),
     path('dataset/download/<str:what>', views.download_df, name="dataset_download"),
 ]
 

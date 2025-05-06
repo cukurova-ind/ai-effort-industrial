@@ -64,7 +64,8 @@ def model_save(req):
             if not os.path.exists(main_folder):
                 os.makedirs(main_folder)
             else:
-                version_folder = os.path.join(main_folder, model_name)
+                model_folder_name = "_".join(model_name.lower().split(" "))
+                version_folder = os.path.join(main_folder, model_folder_name)
                 if not os.path.exists(version_folder):
                     os.makedirs(version_folder)
                     for c in os.listdir(checkpoints):
@@ -74,7 +75,7 @@ def model_save(req):
                             shutil.copyfile(source, dest)
                     profile_dest = os.path.join(version_folder, model_profile + ".yaml")
                     shutil.copyfile(profile_path, profile_dest)
-                    alert = str(model_name)
+                    alert = str(model_folder_name)
                 else:
                     status = "error"
                     alert = "böyle bir model mevcuttur."
@@ -134,3 +135,4 @@ def inference_page(req):
                                                     "targets": targets})
     else:
         return HttpResponseRedirect("/login/?next=/engine/")
+    

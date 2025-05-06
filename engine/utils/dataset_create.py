@@ -89,9 +89,9 @@ class CustomDataset(Dataset):
             return None
         
 class RegressionDataset(Dataset):
-    def __init__(self, conf, df, inference=None):
+    def __init__(self, conf, df, to="train"):
         self.conf = conf
-        self.inference = inference
+        self.to = to
         self.df = df
         self.input_features = conf["input_features"].split(",")
         self.target_features = conf["target_features"].split(",")
@@ -107,7 +107,7 @@ class RegressionDataset(Dataset):
         features_df = self.df
         input_data = features_df[self.input_features]
  
-        if self.inference:
+        if self.to=="inference":
             new_df = pd.DataFrame() 
             for i, c in enumerate(input_data.columns):
                 if self.feature_types[i]=="disc":
@@ -147,33 +147,27 @@ class RegressionDataset(Dataset):
     def __getitem__(self, idx):
         
         input_feat = torch.tensor(self.input_data[idx])
-        if self.target_data:
+        if self.target_data is not None:
             target_feat = torch.tensor(self.target_data[idx])
             return input_feat, target_feat
         else:
             return input_feat
 
 
-def create_custom_dataset(df, path, inference=None):
+def create_custom_dataset(df, path, to="train"):
     conf = load_config(path)   
     train_df = df
-    test_dl = None
     val_dl = None
-    if inference:
-        infer_ds = RegressionDataset(conf, train_df, inference)
+    if to=="inference":
+        infer_ds = RegressionDataset(conf, train_df, to)
         infer_dl = DataLoader(infer_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True)
         return infer_dl
-    
-    if float(conf["test_size"]) > 0:
-        random_state = int(conf["random_state"]) if int(conf["random_state"])>-1 else None
-        train_df, test_df = random_split(df, float(conf["test_size"]), random_state)
-        if conf["single_shot_validation"]=="on" and float(conf["val_size"]) > 0:
-            train_df, val_df = random_split(train_df, float(conf["val_size"]), random_state)
-            val_ds = RegressionDataset(conf, val_df)
-            val_dl = DataLoader(val_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
-        test_ds = RegressionDataset(conf, test_df)
-        test_dl = DataLoader(test_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
+
+    if to=="train" and conf["single_shot_validation"]=="on" and float(conf["val_size"]) > 0:
+        train_df, val_df = random_split(train_df, float(conf["val_size"]))
+        val_ds = RegressionDataset(conf, val_df)
+        val_dl = DataLoader(val_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
     train_ds = RegressionDataset(conf, train_df)
     train_dl = DataLoader(train_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
 
-    return train_dl, test_dl, val_dl
+    return train_dl, val_dl
