@@ -24,12 +24,16 @@ def main_board(req):
                 profile_path = os.path.join(safe_profiles, profile_name + ".yaml")
                 conf = load_config(profile_path)
                 model_type = conf["model_type"]
+                retrain = conf["retrain"]
+                retraining_model_name = conf.get("retraining_model_name") if retrain else None
             else:
                 return HttpResponseRedirect("/modeling/")
         else:
             return HttpResponseRedirect("/modeling/")
         
-        return render(req, "trainboard.html", {"profile_name":profile_name, "model_type": model_type})
+        return render(req, "trainboard.html", {"profile_name":profile_name, 
+                                               "model_type": model_type, 
+                                               "retraining_model_name": retraining_model_name})
     else:
         return HttpResponseRedirect("/login/?next=/engine/")
 
@@ -47,7 +51,8 @@ def model_save(req):
         postdata = req.POST
         model_profile = postdata.get("profile_name")
         model_name = postdata.get("model_name")
- 
+        retrain = postdata.get("retrain")
+        
         if model_profile and model_name:
             if str(model_profile) in files:
                 profile_path = os.path.join(safe_profiles, model_profile + ".yaml")
@@ -66,8 +71,8 @@ def model_save(req):
             else:
                 model_folder_name = "_".join(model_name.lower().split(" "))
                 version_folder = os.path.join(main_folder, model_folder_name)
-                if not os.path.exists(version_folder):
-                    os.makedirs(version_folder)
+                if not os.path.exists(version_folder) or retrain:
+                    os.makedirs(version_folder, exist_ok=True)
                     for c in os.listdir(checkpoints):
                         source = os.path.join(checkpoints, c)
                         dest = os.path.join(version_folder, c)

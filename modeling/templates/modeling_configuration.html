@@ -74,8 +74,10 @@ Veri seti
                                                 <div class="categoryFilter">
                                                     <select id="filter_values_{{ col.column }}" name="filter_values_{{ col.column }}"
                                                      class="form-select" data-column="{{ col.column }}">
+                                                        <option value="*">*</option>
                                                         {% for option in col.options %}
-                                                            <option value="{{ option }}">{{ option }}</option>
+                                                            <option value="{{ option }}"
+                                                             {% if col.value_filter == option %}selected{% endif %} >{{ option }}</option>
                                                         {% endfor %}
                                                     </select>
                                                 </div>
@@ -83,12 +85,14 @@ Veri seti
                                                 <div class="minFilter">
                                                     <input class="form-control" type="number"
                                                     id="filter_min_{{ col.column }}" placeholder="büyük eşittir"
-                                                    name="filter_min_{{ col.column }}">
+                                                    name="filter_min_{{ col.column }}"
+                                                    value="{{ col.min_filter }}">
                                                 </div>
                                                 <div class="maxFilter">
                                                     <input class="form-control" type="number"
                                                     id="filter_max_{{ col.column }}" placeholder="küçük eşittir"
-                                                    name="filter_max_{{ col.column }}">
+                                                    name="filter_max_{{ col.column }}"
+                                                    value="{{ col.max_filter }}">
                                                 </div>
                                             {% endif %}
                                         </th>
@@ -227,6 +231,12 @@ Veri seti
                             <option value="ml" selected>Machine Learning Collection</option>
                             {% else %}
                             <option value="ml">Machine Learning Collection</option>
+                            {% endif %}
+
+                            {% if conf.model_type == "cnnmlp" %}
+                            <option value="cnnmlp" selected>Multimodal MLP</option>
+                            {% else %}
+                            <option value="cnnmlp">Multimodal MLP</option>
                             {% endif %}
 
                         </select>

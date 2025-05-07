@@ -50,36 +50,47 @@ def save_checkpoint(model, optimizer, epoch, name, checkpoint_dir="checkpoints")
     print(f"Checkpoint saved: {checkpoint_path}")
     return checkpoint_path
 
-def get_latest_checkpoint(name, checkpoint_dir="checkpoints"):
+def get_latest_checkpoint(checkpoint_dir="checkpoints"):
     if not os.path.exists(checkpoint_dir):
         return None
-    if name:
-        checkpoints = [f for f in os.listdir(checkpoint_dir) if f.startswith(name + "_")]
-    else:
-        checkpoints = [f for f in os.listdir(checkpoint_dir) if f.endswith(".pth")]
+    checkpoints = [f for f in os.listdir(checkpoint_dir) if f.endswith(".pt")]
     if not checkpoints:
         return None
-    checkpoints.sort(key=lambda x: int(x.split("_")[-1].split(".")[0]))
+    #checkpoints.sort(key=lambda x: int(x.split("_")[-1].split(".")[0]))
     latest_checkpoint = os.path.join(checkpoint_dir, checkpoints[-1])
     return latest_checkpoint
 
-def load_model(model, optimizer=None, checkpoint_path=None, config_path=None):
+def load_model(model, to="inference", checkpoint_path=None, config_path=None):
     start_epoch = 0
     
     conf = load_config(config_path) 
     device = torch.device(conf["device"])
 
-
     if not checkpoint_path:
         print("no saved model")
     
     if checkpoint_path and os.path.exists(checkpoint_path):
-        checkpoint = torch.load(checkpoint_path, map_location=device)
+        model_path = get_latest_checkpoint(checkpoint_path)
+        checkpoint = torch.load(model_path, map_location=device)
         model.load_state_dict(checkpoint["model_state"])
 
-        if optimizer:  
+        if to=="retrain":
+            learning_rate = float(conf["learning_rate"])
+            optimizer = Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999))
             optimizer.load_state_dict(checkpoint["optimizer_state"])
             start_epoch = checkpoint["epoch"]
+
+            channel_layer = get_channel_layer()
+            channel_name = f"train_{conf["username"]}"
+            if channel_name:
+                async_to_sync(channel_layer.group_send)(
+                        channel_name,
+                        {
+                            'type': 'operation_message',
+                            'message': "model reloaded for train",
+                        }
+                    )
+                
             print(f"Resuming training from epoch {start_epoch}, checkpoint: {checkpoint_path}")
         else:
             model.eval()
@@ -90,14 +101,14 @@ def load_model(model, optimizer=None, checkpoint_path=None, config_path=None):
                         channel_name,
                         {
                             'type': 'operation_message',
-                            'message': "model reloaded",
+                            'message': "model reloaded for inference",
                         }
                     )
             print(f"Model loaded for inference from: {checkpoint_path}")
     else:
         print("No checkpoint found. Starting fresh.")
     
-    return start_epoch
+    return model, start_epoch
 
 def validate(model, val_loader, device):
     model.eval()
@@ -130,9 +141,9 @@ def validate(model, val_loader, device):
     model.train()
     return avg_mae, avg_mse, avg_mape
     
-def train(model, train_loader, val_loader=None, reload=False,
+def train(model, train_loader, val_loader=None, reload=False, reload_path=None,
           checkpoint_interval=5, val_interval=5, config_path=None,
-          name="mlp_regressor", stop_signal=None):
+          name="mlp_regressor", checkpoint_path=None, stop_signal=None):
 
     conf = load_config(config_path) 
     device = torch.device(conf["device"])
@@ -148,13 +159,13 @@ def train(model, train_loader, val_loader=None, reload=False,
     channel_layer = get_channel_layer()
     channel_name = f"train_{conf["username"]}"
     optimizer = Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999))
-    checkpoint_path = conf["checkpoint_path"]
+    checkpoint_path = conf["checkpoint_path"] if not checkpoint_path else checkpoint_path
     os.makedirs(checkpoint_path, exist_ok=True)
     model.to(device)
 
     start_epoch = 0
     if reload:
-        start_epoch = load_model(model, device, optimizer, name)
+        model, start_epoch = load_model(model, to="retrain", checkpoint_path=reload_path, config_path=config_path)
     
     model.train()
 

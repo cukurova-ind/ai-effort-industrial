@@ -3,12 +3,24 @@ $(document).ready(function() {
     const userName = JSON.parse($("#userName").text());
     const userEmail = JSON.parse($("#userEmail").text());
     const profileName = JSON.parse($("#profileName").text());
-    
+    const retrainingModelName = JSON.parse($("#retrainingModelName").text());
+        
+
     function connect() {
         engineSocket = new WebSocket("ws://" + window.location.host + "/ws/engine/" + userName + "/");
     
         engineSocket.onopen = function(e) {
             console.log("Successfully connected to the WebSocket.");
+            if (retrainingModelName) {
+                console.log(retrainingModelName);
+                engineSocket.send(JSON.stringify({
+                    "message": "reload",
+                    "username": userName,
+                    "email": userEmail,
+                    "profilename": profileName,
+                    "retrainingmodelname": retrainingModelName,
+                }));
+            }
         }
     
         engineSocket.onclose = function(e) {
@@ -54,6 +66,10 @@ $(document).ready(function() {
                 //$("#start").prop("disabled", false);
                 $("#stop").prop("disabled", true);
                 $("#naming-bar").removeClass("is-hidden"); // Show naming bar
+                if (retrainingModelName) {
+                    $("#model_name").val(retrainingModelName);
+                    $("#model_name").prop("readonly", true);
+                }
             }
     
         };

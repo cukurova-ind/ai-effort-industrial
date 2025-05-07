@@ -53,15 +53,13 @@ def selection_change(req):
         prompt_type = data.get("prompt_type")
         model_type = data.get("prompt_model_type")
         model_version = data.get("prompt_model_version")
-        load_model = data.get("model")
+        load_model_type = data.get("model")
  
-        if load_model:
-            model_path = os.path.join(saved_models, model_type, load_model)
+        if load_model_type:
+            model_path = os.path.join(saved_models, load_model_type)
             if os.path.exists(model_path):
-                for mv in os.listdir(model_path):
-                    versions.append(mv)
+                versions = sorted([f for f in os.listdir(model_path)])
                 status = "complete"
-                
         if prompt_type:
             if prompt_type=="generator":
                 for l, v in zip(generator_labels, generator_values):

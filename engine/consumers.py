@@ -19,6 +19,12 @@ class EngineConsumer(WebsocketConsumer):
         super().__init__(args, kwargs)
         self.user_name = None
         self.train_name = None
+        self.email = None
+        self.profile = None
+        self.conf = None
+        self.model = None
+        self.retraining_name = None
+
 
     def connect(self):
         self.user_name = self.scope['url_route']['kwargs']['user_name']
@@ -53,28 +59,40 @@ class EngineConsumer(WebsocketConsumer):
             )
             return
         
+        if text_data_json["message"]=="reload":
+            self.retraining_name = text_data_json["retrainingmodelname"]
+            self.email = text_data_json["email"]
+            self.profile = text_data_json["profilename"]
+            safe_folder_name = self.email.replace("@", "_at_").replace(".", "_dot_")
+            safe_profile_path = os.path.join(
+                settings.MEDIA_ROOT, "modeling", safe_folder_name, "profiles", self.profile + ".yaml")
+            self.conf = load_config(safe_profile_path)
+
+            async_to_sync(self.channel_layer.group_send)(
+                self.train_name,
+                {
+                    "type": "operation_message",
+                    "event": "retrain",
+                    "message": f"retraining for {self.retraining_name}."
+                }
+            )
+
+            return
+
         if text_data_json["message"]=="startTrain":
-            email = text_data_json["email"]
-            profile = text_data_json["profilename"]
-            safe_folder_name = email.replace("@", "_at_").replace(".", "_dot_")
-            safe_profile_path = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "profiles", profile + ".yaml")
-            conf = load_config(safe_profile_path)
+            self.email = text_data_json["email"]
+            self.profile = text_data_json["profilename"]
+            safe_folder_name = self.email.replace("@", "_at_").replace(".", "_dot_")
+
+            safe_profile_path = os.path.join(
+                settings.MEDIA_ROOT, "modeling", safe_folder_name, "profiles", self.profile + ".yaml")
+            self.conf = load_config(safe_profile_path)
+
             cache_key = f"cached_trainset_{self.user_name}"
             df = cache.get(cache_key)
-            print(df.columns)
             if df is not None:
                 message = "cache hit. cached dataframe used."
             else:
-                # df_input = data_framer(self.user_name)
-                
-                # input_list = conf["input_features"].split(",")
-                # target_list = conf["target_features"].split(",")
-
-                # df_features = df_input[input_list]
-                # df_target = df_input[target_list]
-                
-                # df_dataset = pd.concat([df_features, df_target], axis=1)
-                # cache.set(f"cached_dataset_{self.user_name}", df_dataset)
                 message = "no cached dataframe"
             
             async_to_sync(self.channel_layer.group_send)(
@@ -93,7 +111,7 @@ class EngineConsumer(WebsocketConsumer):
                     "message": "data loader created."
                 },
             )
-            mlpreg = MlpRegressor(int(conf["n_features"]))
+            self.model = MlpRegressor(int(self.conf["n_features"]))
             async_to_sync(self.channel_layer.group_send)(
                 self.train_name,
                 {
@@ -101,12 +119,21 @@ class EngineConsumer(WebsocketConsumer):
                     'message': "model initialized.",
                 }
             )
+
+            reload = False
+            reload_path = None
+            if self.retraining_name:
+                model_folder = self.conf["model_type"]
+                reload_path = os.path.join(
+                    settings.MEDIA_ROOT, "modeling", safe_folder_name, "saved_models", model_folder, self.retraining_name)
+                reload = True
+
             def train_async():
-                m.train(mlpreg, train_loader, val_loader, config_path=safe_profile_path, stop_signal=self.stop_signal)
+                m.train(self.model, train_loader, val_loader, reload=reload, reload_path=reload_path,
+                         config_path=safe_profile_path, stop_signal=self.stop_signal)
 
             self.stop_signal.clear()
             threading.Thread(target=train_async).start()
-
 
     def operation_message(self, event):
         self.send(text_data=json.dumps(event))
@@ -182,7 +209,7 @@ class InferenceConsumer(WebsocketConsumer):
             self.safe_profile_path = os.path.join(
                 settings.MEDIA_ROOT, "modeling", safe_folder_name, "saved_models", model_folder, model_name, profile + ".yaml")
             self.checkpoint_path = os.path.join(
-                settings.MEDIA_ROOT, "modeling", safe_folder_name, "saved_models", model_folder, model_name, "mlp_regressor_latest.pt")
+                settings.MEDIA_ROOT, "modeling", safe_folder_name, "saved_models", model_folder, model_name)
             self.conf = load_config(self.safe_profile_path)
 
             self.model = MlpRegressor(int(self.conf["n_features"]))
@@ -195,7 +222,7 @@ class InferenceConsumer(WebsocketConsumer):
             )
 
             def load_async():
-                m.load_model(self.model, self.loader, checkpoint_path=self.checkpoint_path, config_path=self.safe_profile_path)
+                self.model, _ = m.load_model(self.model, checkpoint_path=self.checkpoint_path, config_path=self.safe_profile_path)
 
             threading.Thread(target=load_async).start()
             

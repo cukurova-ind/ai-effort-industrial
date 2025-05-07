@@ -60,7 +60,7 @@ def data_settings(req, profile="unknownprofile"):
             df_input = data_framer(req.user.username)
             n_features = 0
             input_list, target_list, input_types, input_maxs, input_mins, categories = [], [], [], [], [], []
-            filtered_list, filter_maxs, filter_mins, filter_values = [], [], [], []
+            filter_mins, filter_maxs, filter_values = [], [], []
             for p in postdata:
                 if p.split("_")[0]=="inp":
                     input_list.append(postdata[p])
@@ -79,6 +79,16 @@ def data_settings(req, profile="unknownprofile"):
                         n_features += 1
                 elif p.split("_")[0]=="out":
                     target_list.append(postdata[p])
+                elif p.split("_")[0]=="filter":
+                    if p.split("_")[1]=="min":
+                        if postdata[p] != "":
+                            filter_mins.append({"_".join(p.split("_")[2:]): postdata[p]})
+                    if p.split("_")[1]=="max":
+                        if postdata[p] != "":
+                            filter_maxs.append({"_".join(p.split("_")[2:]): postdata[p]})
+                    if p.split("_")[1]=="values":
+                        if postdata[p] != "*":
+                            filter_values.append({"_".join(p.split("_")[2:]): postdata[p]})
 
             if len(input_list)==0 or len(target_list)==0:
                 return JsonResponse({"err": "en az 1 girdi ve çıktı belirlenmelidir."})
@@ -88,7 +98,9 @@ def data_settings(req, profile="unknownprofile"):
             conf["input_feature_types"] = ",".join(input_types)
             conf["input_maxs"] = ",".join(input_maxs)
             conf["input_mins"] = ",".join(input_mins)
-            #conf["filter_maxs"] = ",".join(input_maxs)
+            conf["filter_maxs"] = filter_maxs
+            conf["filter_mins"] = filter_mins
+            conf["filter_values"] = filter_values
             conf["target_features"] = ",".join(target_list)
             conf["input_categories"] = ",".join(categories)
             conf["test_size"] = float(postdata.get("test_size", 0.0))
@@ -96,6 +108,7 @@ def data_settings(req, profile="unknownprofile"):
             conf["input_scaling"] = postdata.get("input_scaling", "off")
             conf["model_type"] = postdata.get("model", "")
             conf["retrain"] = postdata.get("retrain", "off")
+            conf["retraining_model_name"] = postdata.get("saved_model")
             conf["batch_size"] = int(postdata.get("batch_size", 0))
             conf["n_epoch"] = int(postdata.get("n_epoch", 0))
             conf["loss_function"] = postdata.get("loss_function", "mse")
@@ -104,10 +117,13 @@ def data_settings(req, profile="unknownprofile"):
             conf["val_size"] = float(postdata.get("val_size", 0.0))
             conf["username"] = req.user.username
             conf["checkpoint_path"] = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "checkpoints")
+            conf["image_input_column"] = postdata.get("image_input")
+            conf["image_target_column"] = postdata.get("image_output")
             conf["device"] = "cuda:0" 
-            
 
             df_input = data_framer(req.user.username)
+            df_input = data_filter(df_input, filter_mins, filter_maxs, filter_values)
+
             input_list = conf["input_features"].split(",")
             target_list = conf["target_features"].split(",")
 
@@ -149,17 +165,36 @@ def data_settings(req, profile="unknownprofile"):
             df_input = data_framer(req.user.username)
             attr_type, d_type = None, None
             columns, input_features, target_features = [], [], []
-
+            filter_mins, filter_maxs, filter_values = [], [], []
             if conf:
                 input_features = conf["input_features"].split(",")
                 target_features = conf["target_features"].split(",")
+                filter_maxs = conf["filter_maxs"]
+                filter_mins = conf["filter_mins"]
+                filter_values = conf["filter_values"]
+            
+            df_input = data_filter(df_input, filter_mins, filter_maxs, filter_values)
+            
             for c in df_input.columns:
 
                 d_type = df_input[c].dtype
-                attr_type = "categorical" if len(df_input[c].value_counts())<=10 or d_type=="object" else "continuous"
-                options = df_input[c].value_counts().keys() if len(df_input[c].value_counts())<=10 or d_type=="object" else []
+                attr_type = "categorical" if d_type=="object" else "continuous"
+                options = df_input[c].value_counts().keys() if d_type=="object" else []
                 input_checked = True if c in input_features else False
                 target_checked = True if c in target_features else False
+                min_filter, max_filter, value_filter = "", "", "*"
+                for f in filter_mins:
+                    if f.get(c):
+                        min_filter = f.get(c)
+                        break
+                for f in filter_maxs:
+                    if f.get(c):
+                        max_filter = f.get(c)
+                        break
+                for f in filter_values:
+                    if f.get(c):
+                        value_filter = f.get(c)
+                        break
 
                 columns.append({"column": c,
                                 "label": label.get(c, c),
@@ -167,6 +202,9 @@ def data_settings(req, profile="unknownprofile"):
                                 "options": options,
                                 "d_type": d_type,
                                 "input_checked": input_checked,
+                                "min_filter": min_filter,
+                                "max_filter": max_filter,
+                                "value_filter": value_filter,
                                 "target_checked": target_checked})
 
             df_input = df_input.head(10)
@@ -252,3 +290,26 @@ def data_framer(username):
         cache.set(cache_key, df_input, timeout=60*60)
 
     return df_input
+
+def data_filter(df, filter_mins, filter_maxs, filter_values):
+    if len(filter_mins)>0:
+        for f in filter_mins:
+            for k in f.keys():
+                col = k
+                val = float(f[k])
+                df = df[df[col]>=val]
+            
+    if len(filter_maxs)>0:
+        for f in filter_maxs:
+            for k in f.keys():
+                col = k
+                val = float(f[k])
+                df = df[df[col]<=val]
+    
+    if len(filter_values)>0:
+        for f in filter_values:
+            for k in f.keys():
+                col = k
+                val = f[k]
+                df = df[df[col]==val]
+    return df

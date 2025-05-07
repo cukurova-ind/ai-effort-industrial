@@ -195,7 +195,7 @@ $(document).ready(function() {
                 $("#saved_model").removeAttr("disabled");
                 $("#retrain").attr("checked", "true");
                 
-                var form_data = new FormData($("#config-form")[0]);
+                var form_data = new FormData($("#settingsForm")[0]);
                 $.ajax({
                     url: "/prompting/selection-change/",
                     type: 'POST',
@@ -234,7 +234,6 @@ $(document).ready(function() {
         $("#saved_model").attr("disabled", "true");
         retrain();
     });
-
 
     const $checkboxes = $('.input_columns');
     const $outputField = $('#id_selection');
@@ -287,36 +286,6 @@ $(document).ready(function() {
     // Update on change
     $outboxes.on('change', updateSelected);
 
-    // $('#trainDownload, #testDownload').click(function() {
-    //     var where = "train";
-    //     var form_data = new FormData($("#settingsForm")[0]);
-    //     if ($(this).attr('id') === 'trainDownload') {
-    //         form_data.append("trainDownload", 1);
-    //     } else {
-    //         form_data.append("testDownload", 1);
-    //         where = "test";
-    //     }
-        
-    //     $.ajax({
-    //         url: "/modeling/dataset/settings/",
-    //         type: 'POST',
-    //         data: form_data,
-    //         contentType: false,
-    //         processData: false,
-    //         cache: false,
-    //         success: function(res) {
-    //             if (res.err) {
-    //                 $('#download-err').text(res.err);
-    //             } else {
-    //                 window.location.href = "/modeling/dataset/download/" + where;
-    //             }
-    //         },
-    //         error: function(jqXHR, textStatus, errorMessage) {
-    //             alert(errorMessage);
-    //         }
-    //     });
-    // });
-
     const initialValues = {};
 
     $('#settingsForm').find('input, select, textarea').each(function () {
@@ -355,13 +324,11 @@ $(document).ready(function() {
         $('#skip').prop('disabled', changed);
     });
 
-    const mlpParameters = [$("#retrain"), $("#saved_model"), $("#batch"), $("#epoch"), $("#loss_function"), $("#learning_rate")];
+    const mlpParameters = [$("#batch"), $("#epoch"), $("#loss_function"), $("#learning_rate")];
     function updateIputs() {
         if ($("#model_type").val() === "mlp") {
-            
             mlpParameters.forEach(param => param.prop("disabled", false));
         } else {
-            
             mlpParameters.forEach(param => param.prop("disabled", true));
         }
         

@@ -40,6 +40,7 @@
                     {{ user.username|json_script:"userName" }}
                     {{ user.email|json_script:"userEmail" }}
                     {{ profile_name|default:"unknownprofile"|json_script:"profileName" }}
+                    {{ retraining_model_name|json_script:"retrainingModelName" }}
                     <div class="btn-group mb-2" role="group">
                         <a href="{% url 'modeling_main_page' %}" class="btn btn-primary">Yönetim</a>
                         <a href="{% url 'main' %}" class="btn btn-danger">Anasayfa</a>
@@ -82,14 +83,15 @@
                     <div class="col-md-3 col-lg-3">
                         <form method="post" id="save_form">
                             {% csrf_token %}
-                            <div class="mb-3">
-                                <input type="hidden" name="profile_name" id="profile_name" class="form-control"
+                            <input type="hidden" name="profile_name" id="profile_name" class="form-control"
                                  value="{{ profile_name|default:'unknownprofile' }}" readonly>
-                            </div>
-                            <div class="mb-3">
-                                <input type="hidden" name="model_type" id="model_type" class="form-control"
+                            
+                            <input type="hidden" name="model_type" id="model_type" class="form-control"
                                  value="{{ model_type }}" readonly>
-                            </div>
+
+                            <input type="hidden" name="retrain" id="retrain" class="form-control"
+                                 value="{{ retraining_model_name }}" readonly>
+                            
                             <div class="is-hidden" id="naming-bar">
                                 <div class="mb-3">
                                     <input type="text" name="model_name" class="form-control" id="model_name"
