@@ -59,20 +59,22 @@ def data_settings(req, profile="unknownprofile"):
             postdata = req.POST
             df_input = data_framer(req.user.username)
             n_features = 0
-            input_list, target_list, input_types, input_maxs, input_mins, categories = [], [], [], [], [], []
+            input_list, target_list, input_types, input_maxs, input_mins = [], [], [], [], []
             filter_mins, filter_maxs, filter_values = [], [], []
+            category_dict = {}
             for p in postdata:
                 if p.split("_")[0]=="inp":
                     input_list.append(postdata[p])
                     if postdata[p] in discretes:
-                        cats = df_input[postdata[p]].value_counts().keys().values
-                        categories.append("|".join(cats))
+                        feature_name = "_".join(p.split("_")[1:])
+                        categories = df_input[postdata[p]].value_counts().keys()
+                        encoder_dict = {category: i for i, category in enumerate(categories)}
+                        category_dict[feature_name] = encoder_dict
                         input_types.append("disc")
                         input_maxs.append("0")
                         input_mins.append("0")
-                        n_features += len(cats)
+                        n_features += len(categories)
                     else:
-                        categories.append("0")
                         input_types.append("cont")
                         input_maxs.append(str(df_input[postdata[p]].max()))
                         input_mins.append(str(df_input[postdata[p]].min()))
@@ -94,15 +96,15 @@ def data_settings(req, profile="unknownprofile"):
                 return JsonResponse({"err": "en az 1 girdi ve çıktı belirlenmelidir."})
 
             conf["n_features"] = n_features
-            conf["input_features"] = ",".join(input_list)
-            conf["input_feature_types"] = ",".join(input_types)
-            conf["input_maxs"] = ",".join(input_maxs)
-            conf["input_mins"] = ",".join(input_mins)
+            conf["input_features"] = input_list
+            conf["input_feature_types"] = input_types
+            conf["input_maxs"] = input_maxs
+            conf["input_mins"] = input_mins
             conf["filter_maxs"] = filter_maxs
             conf["filter_mins"] = filter_mins
             conf["filter_values"] = filter_values
-            conf["target_features"] = ",".join(target_list)
-            conf["input_categories"] = ",".join(categories)
+            conf["target_features"] = target_list
+            conf["input_categories"] = category_dict
             conf["test_size"] = float(postdata.get("test_size", 0.0))
             conf["random_state"] = int(postdata.get("random_state", 0))
             conf["input_scaling"] = postdata.get("input_scaling", "off")
@@ -117,15 +119,16 @@ def data_settings(req, profile="unknownprofile"):
             conf["val_size"] = float(postdata.get("val_size", 0.0))
             conf["username"] = req.user.username
             conf["checkpoint_path"] = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "checkpoints")
-            conf["image_input_column"] = postdata.get("image_input")
-            conf["image_target_column"] = postdata.get("image_output")
-            conf["device"] = "cuda:0" 
+            conf["device"] = "cuda:0"
+
+            conf["image_input_column"] = "image_input" if "image_input" in input_list else None
+            conf["image_target_column"] = "image_output" if "image_output" in target_list else None
 
             df_input = data_framer(req.user.username)
             df_input = data_filter(df_input, filter_mins, filter_maxs, filter_values)
 
-            input_list = conf["input_features"].split(",")
-            target_list = conf["target_features"].split(",")
+            input_list = conf["input_features"]
+            target_list = conf["target_features"]
 
             df_features = df_input[input_list]
             df_target = df_input[target_list]
@@ -167,8 +170,8 @@ def data_settings(req, profile="unknownprofile"):
             columns, input_features, target_features = [], [], []
             filter_mins, filter_maxs, filter_values = [], [], []
             if conf:
-                input_features = conf["input_features"].split(",")
-                target_features = conf["target_features"].split(",")
+                input_features = conf["input_features"]
+                target_features = conf["target_features"]
                 filter_maxs = conf["filter_maxs"]
                 filter_mins = conf["filter_mins"]
                 filter_values = conf["filter_values"]

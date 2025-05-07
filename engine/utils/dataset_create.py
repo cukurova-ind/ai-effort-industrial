@@ -93,30 +93,29 @@ class RegressionDataset(Dataset):
         self.conf = conf
         self.to = to
         self.df = df
-        self.input_features = conf["input_features"].split(",")
-        self.target_features = conf["target_features"].split(",")
-        self.feature_types = conf["input_feature_types"].split(",")
-        self.input_maxs = [float(mx) for mx in conf["input_maxs"].split(",")]
-        self.input_mins = [float(mn) for mn in conf["input_mins"].split(",")]
-        self.input_categories = conf["input_categories"].split(",")
+        self.input_features = conf["input_features"]
+        self.target_features = conf["target_features"]
+        self.feature_types = conf["input_feature_types"]
+        self.input_maxs = [float(mx) for mx in conf["input_maxs"]]
+        self.input_mins = [float(mn) for mn in conf["input_mins"]]
+        self.input_categories = conf["input_categories"]
 
         self.input_data, self.target_data = self._load_data()
 
     def _load_data(self):
         
         features_df = self.df
-        input_data = features_df[self.input_features]
- 
+        input_data = features_df[self.input_features].reset_index().drop(columns="index")
+
         if self.to=="inference":
             new_df = pd.DataFrame() 
             for i, c in enumerate(input_data.columns):
                 if self.feature_types[i]=="disc":
-                    cats = self.input_categories[i].split("|")
-                    value = input_data.at[0, c]
-                    one_hot = np.zeros(len(cats))
-                    if value in cats:
-                        one_hot[cats.index(value)] = 1
-                    cat_df = pd.DataFrame([one_hot], columns=cats)
+                    encode_dict = self.input_categories.get(c)
+                    input_data[c] = input_data[c].map(encode_dict)
+                    one_hot = np.eye(len(encode_dict))[input_data[c].values]
+                    sorted_keys = sorted(encode_dict, key=encode_dict.get)
+                    cat_df = pd.DataFrame(one_hot, columns=sorted_keys)
                     new_df = pd.concat([new_df, cat_df], axis=1)
                 else:
                     if self.conf["input_scaling"]:
@@ -130,15 +129,24 @@ class RegressionDataset(Dataset):
         new_df = pd.DataFrame() 
         for i, c in enumerate(input_data.columns):
             if self.feature_types[i]=="disc":
-                new_df = pd.concat([new_df, pd.get_dummies(input_data.pop(c))], axis=1)
+                encode_dict = self.input_categories.get(c)
+                input_data[c] = input_data[c].map(encode_dict)
+                one_hot = np.eye(len(encode_dict))[input_data[c].values]
+                sorted_keys = sorted(encode_dict, key=encode_dict.get)
+                cat_df = pd.DataFrame(one_hot, columns=sorted_keys)
+                new_df = pd.concat([new_df, cat_df], axis=1)
             else:
                 if self.conf["input_scaling"]:
+                    input_data.loc[:, c] = input_data.loc[:, c].astype(np.float32)
                     new_df.loc[:, c] = 2 * (input_data.loc[:, c] - self.input_mins[i])/(self.input_maxs[i] - self.input_mins[i]) - 1
+                else:
+                    
+                    new_df.loc[:, c] = input_data.loc[:, c]
 
         new_df = new_df[sorted(new_df.columns)]
         new_input_data = new_df.values.astype(np.float32)
         target_data = features_df[self.target_features].values.astype(np.float32)
-
+   
         return new_input_data, target_data
     
     def __len__(self):

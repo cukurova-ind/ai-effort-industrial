@@ -177,6 +177,17 @@ class InferenceConsumer(WebsocketConsumer):
 
         if text_data_json["message"]=="data":
             form_dict = text_data_json.get("data", {})
+            for k in form_dict.keys():
+                if form_dict.get(k) == "":
+                    async_to_sync(self.channel_layer.group_send)(
+                        self.inference_name,
+                        {
+                            "type": "operation_message",
+                            "message": "hata. eksik değer."
+                        },
+                    )
+                    return
+
             df = pd.DataFrame([form_dict])
             self.loader = create_custom_dataset(df, self.safe_profile_path, to="inference")
             async_to_sync(self.channel_layer.group_send)(

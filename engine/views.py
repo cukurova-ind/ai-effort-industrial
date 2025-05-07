@@ -113,23 +113,27 @@ def inference_page(req):
                 return HttpResponseRedirect("/modeling/")
             
             conf = load_config(safe_profile_path)
-            inputs, input_cats, targets = [], [], []
-            input_features = conf["input_features"].split(",")
-            target_features = conf["target_features"].split(",")
-            feature_types = conf["input_feature_types"].split(",")
-            maxs = conf["input_maxs"].split(",")
-            mins = conf["input_mins"].split(",")
-            cats = conf["input_categories"].split(",")
-            for cat in cats:
+            inputs, targets = [], []
+
+            input_features = conf["input_features"]
+            target_features = conf["target_features"]
+            feature_types = conf["input_feature_types"]
+            maxs = conf["input_maxs"]
+            mins = conf["input_mins"]
+            cats = conf["input_categories"]
+
+            for i, f in enumerate(input_features):
                 new_cat = []
-                for c in cat.split("|"):
-                    new_cat.append({"option": ct_options.get(c), "val": c})
-                input_cats.append(new_cat)
-            for ft, dt, ma, mi, ic in zip(input_features, feature_types, maxs, mins, input_cats):
-                inputs.append({"feature":ft, "d_type":dt,
-                               "label": labels.get(ft),
-                               "max": ma, "min": mi,
-                               "cats": ic})
+                if cats.get(f):
+                    for c in cats.get(f):
+                        new_cat.append({"option": ct_options.get(c), "val": c})
+                inputs.append({"feature": f,
+                                "label": labels.get(f),
+                                "d_type": feature_types[i],
+                                "max": maxs[i],
+                                "min": mins[i],
+                                "cats": new_cat
+                                })
 
             for t in target_features:
                 targets.append({"label": labels.get(t), "target": t})
