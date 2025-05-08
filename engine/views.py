@@ -115,6 +115,7 @@ def inference_page(req):
             conf = load_config(safe_profile_path)
             inputs, targets = [], []
 
+            selected_columns = conf["column_list"]
             input_features = conf["input_features"]
             target_features = conf["target_features"]
             feature_types = conf["input_feature_types"]
@@ -134,7 +135,8 @@ def inference_page(req):
                                 "min": mins[i],
                                 "cats": new_cat
                                 })
-
+            if "input_image" in selected_columns:
+                inputs.insert(0, {"feature": "input_image"})
             for t in target_features:
                 targets.append({"label": labels.get(t), "target": t})
         return render(req, "inferenceboard.html", {"profile_name":profile_name,

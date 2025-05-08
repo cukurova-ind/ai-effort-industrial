@@ -97,3 +97,5 @@ label = {"gramaj_raw": "Ham Gramaj",
         "fabric_elasticity": "Elastanlık"}
 
 discretes = ["coloring_type", "knitting"]
+
+objects = ["input_image", "output_image"]

@@ -9,7 +9,8 @@ from django.core.cache import cache
 from .utils.dataset_create import create_custom_dataset
 from .utils.load_config import load_config
 from .model_templates.mlp_regressor import MlpRegressor
-from .model_templates import mlp_regressor as m
+from .model_templates.cnnmlp_regressor import CnnmlpRegressor
+
 from modeling.views import data_framer
 
 class EngineConsumer(WebsocketConsumer):
@@ -103,21 +104,30 @@ class EngineConsumer(WebsocketConsumer):
                 }
             )
 
-            train_loader, val_loader = create_custom_dataset(df, safe_profile_path)
-            async_to_sync(self.channel_layer.group_send)(
-                self.train_name,
-                {
-                    "type": "operation_message",
-                    "message": "data loader created."
-                },
-            )
-            self.model = MlpRegressor(int(self.conf["n_features"]))
+            input_image = False
+            if self.conf["model_type"]=="mlp":
+                self.model = MlpRegressor(int(self.conf["n_features"]))
+                from .model_templates import mlp_regressor as m
+            elif self.conf["model_type"]=="cnnmlp":
+                self.model = CnnmlpRegressor(int(self.conf["n_features"]))
+                input_image = True
+                from .model_templates import cnnmlp_regressor as m
+
             async_to_sync(self.channel_layer.group_send)(
                 self.train_name,
                 {
                     'type': 'operation_message',
                     'message': "model initialized.",
                 }
+            )
+
+            train_loader, val_loader = create_custom_dataset(df, safe_profile_path, input_image=input_image)
+            async_to_sync(self.channel_layer.group_send)(
+                self.train_name,
+                {
+                    "type": "operation_message",
+                    "message": "data loader created."
+                },
             )
 
             reload = False
@@ -183,7 +193,7 @@ class InferenceConsumer(WebsocketConsumer):
                         self.inference_name,
                         {
                             "type": "operation_message",
-                            "message": "hata. eksik değer."
+                            "message": "error. empty value."
                         },
                     )
                     return
@@ -199,6 +209,11 @@ class InferenceConsumer(WebsocketConsumer):
             )
 
             def infer_async():
+                if self.conf["model_type"]=="mlp":
+                    from .model_templates import mlp_regressor as m
+                elif self.conf["model_type"]=="cnnmlp":
+                    from .model_templates import cnnmlp_regressor as m
+            
                 prediction = m.inference(self.model, self.loader, config_path=self.safe_profile_path)
                 async_to_sync(self.channel_layer.group_send)(
                     self.inference_name,
@@ -223,7 +238,11 @@ class InferenceConsumer(WebsocketConsumer):
                 settings.MEDIA_ROOT, "modeling", safe_folder_name, "saved_models", model_folder, model_name)
             self.conf = load_config(self.safe_profile_path)
 
-            self.model = MlpRegressor(int(self.conf["n_features"]))
+            if self.conf["model_type"]=="mlp":
+                self.model = MlpRegressor(int(self.conf["n_features"]))
+            elif self.conf["model_type"]=="cnnmlp":
+                self.model = CnnmlpRegressor(int(self.conf["n_features"]))
+
             async_to_sync(self.channel_layer.group_send)(
                 self.inference_name,
                 {
@@ -233,6 +252,11 @@ class InferenceConsumer(WebsocketConsumer):
             )
 
             def load_async():
+                if self.conf["model_type"]=="mlp":
+                    from .model_templates import mlp_regressor as m
+                elif self.conf["model_type"]=="cnnmlp":
+                    from .model_templates import cnnmlp_regressor as m
+
                 self.model, _ = m.load_model(self.model, checkpoint_path=self.checkpoint_path, config_path=self.safe_profile_path)
 
             threading.Thread(target=load_async).start()

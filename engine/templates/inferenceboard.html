@@ -57,16 +57,17 @@
                                 {% if inputs %}
                                 <label class="form-label">Öznitelikler</label>
 
-                                    {% if "input_image" in inputs %}
-                                    <div class="mb-3">
-                                        <div>
-                                            <label class="form-label" for="id_raw_image">Görüntü</label>
-                                        </div>
-                                        <input type="file" name="raw_image" id="id_raw_image" accept=".jpg, .png, .jpeg, |image/*">
-                                    </div>
-                                    {% endif %}
-
+                                
                                     {% for input in inputs %}
+                                        {% if input.feature == "input_image" %}
+                                        <div class="mb-3">
+                                            <div>
+                                                <label class="form-label" for="id_raw_image">Görüntü</label>
+                                            </div>
+                                            <input type="file" name="raw_image" id="id_raw_image" accept=".jpg, .png, .jpeg, |image/*">
+                                        </div>
+                                        {% endif %}
+                                        
                                         {% if input.d_type == "cont" %}
                                         <div class="row mb-3">
                                             <label class="form-label" for="id_{{ input.feature }}">{{ input.label }}</label>
@@ -75,7 +76,7 @@
                                             data-max="{{ input.max }}"
                                             data-min="{{ input.min }}">
                                         </div>
-                                        {% else %}
+                                        {% elif input.d_type == "disc" %}
                                         <div class="row mb-3">
                                             <label class="form-label" for="id_{{ input.feature }}">{{ input.label }}</label>
                                             <select name="{{ input.feature }}" class="form-select" id="id_{{ input.feature }}">

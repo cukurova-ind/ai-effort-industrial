@@ -89,10 +89,17 @@ class CustomDataset(Dataset):
             return None
         
 class RegressionDataset(Dataset):
-    def __init__(self, conf, df, to="train"):
+    def __init__(self, conf, df, to="train", input_image=False):
         self.conf = conf
         self.to = to
         self.df = df
+
+        self.input_image = input_image
+        self.img_width = int(conf["img_width"])
+        self.img_height = int(conf["img_height"])
+        self.channels = int(conf["n_channels"])
+
+        self.column_list = conf["column_list"]
         self.input_features = conf["input_features"]
         self.target_features = conf["target_features"]
         self.feature_types = conf["input_feature_types"]
@@ -100,7 +107,17 @@ class RegressionDataset(Dataset):
         self.input_mins = [float(mn) for mn in conf["input_mins"]]
         self.input_categories = conf["input_categories"]
 
-        self.input_data, self.target_data = self._load_data()
+        self.image_paths = None
+        if self.input_image:
+            self.input_data, self.image_paths, self.target_data = self._load_data()
+        else:
+            self.input_data, self.target_data = self._load_data()
+
+        self.transform = transforms.Compose([
+            transforms.Resize((self.img_height, self.img_width)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5] * self.channels, std=[0.5] * self.channels)
+        ])
 
     def _load_data(self):
         
@@ -118,9 +135,15 @@ class RegressionDataset(Dataset):
                     cat_df = pd.DataFrame(one_hot, columns=sorted_keys)
                     new_df = pd.concat([new_df, cat_df], axis=1)
                 else:
-                    if self.conf["input_scaling"]:
+                    if self.conf["input_scaling"]=="norm2":
                         input_data.loc[:, c] = input_data.loc[:, c].astype(np.float32)
                         new_df.loc[:, c] = 2 * (input_data.loc[:, c] - self.input_mins[i])/(self.input_maxs[i] - self.input_mins[i]) - 1
+                    elif self.conf["input_scaling"]=="norm1":
+                        input_data.loc[:, c] = input_data.loc[:, c].astype(np.float32)
+                        new_df.loc[:, c] = (input_data.loc[:, c] - self.input_mins[i])/(self.input_maxs[i] - self.input_mins[i])
+                    else:
+                        input_data.loc[:, c] = input_data.loc[:, c].astype(np.float32)
+                        new_df.loc[:, c] = input_data.loc[:, c]
 
             new_df = new_df[sorted(new_df.columns)]
             new_input_data = new_df.values.astype(np.float32)
@@ -136,16 +159,26 @@ class RegressionDataset(Dataset):
                 cat_df = pd.DataFrame(one_hot, columns=sorted_keys)
                 new_df = pd.concat([new_df, cat_df], axis=1)
             else:
-                if self.conf["input_scaling"]:
+                if self.conf["input_scaling"]=="norm2":
                     input_data.loc[:, c] = input_data.loc[:, c].astype(np.float32)
                     new_df.loc[:, c] = 2 * (input_data.loc[:, c] - self.input_mins[i])/(self.input_maxs[i] - self.input_mins[i]) - 1
+                elif self.conf["input_scaling"]=="norm1":
+                    input_data.loc[:, c] = input_data.loc[:, c].astype(np.float32)
+                    new_df.loc[:, c] = (input_data.loc[:, c] - self.input_mins[i])/(self.input_maxs[i] - self.input_mins[i])
                 else:
-                    
+                    input_data.loc[:, c] = input_data.loc[:, c].astype(np.float32)
                     new_df.loc[:, c] = input_data.loc[:, c]
 
-        new_df = new_df[sorted(new_df.columns)]
+        #new_df = new_df[sorted(new_df.columns)]
         new_input_data = new_df.values.astype(np.float32)
+        #n = np.random.randint(10, size=1)
+        #new_df.to_csv(f"sample{n}.csv", index=False)
         target_data = features_df[self.target_features].values.astype(np.float32)
+        #features_df[self.target_features].to_csv(f"target{n}.csv", index=False)
+        
+        if self.input_image:
+            image_paths = features_df['input_image'].values
+            return new_input_data, image_paths, target_data
    
         return new_input_data, target_data
     
@@ -153,8 +186,21 @@ class RegressionDataset(Dataset):
         return len(self.input_data)
 
     def __getitem__(self, idx):
-        
+
         input_feat = torch.tensor(self.input_data[idx])
+
+        if self.image_paths is not None:
+            
+            raw_image_path = os.path.join(self.conf["raw_image_folder"], self.image_paths[idx])
+            raw_image = Image.open(raw_image_path).convert("RGB")
+            raw_image = self.transform(raw_image)
+
+            if self.target_data is not None:
+                target_feat = torch.tensor(self.target_data[idx])
+                return input_feat, raw_image, target_feat
+            else:
+                return input_feat, raw_image
+            
         if self.target_data is not None:
             target_feat = torch.tensor(self.target_data[idx])
             return input_feat, target_feat
@@ -162,20 +208,21 @@ class RegressionDataset(Dataset):
             return input_feat
 
 
-def create_custom_dataset(df, path, to="train"):
+def create_custom_dataset(df, path, to="train", input_image=False):
     conf = load_config(path)   
-    train_df = df
     val_dl = None
     if to=="inference":
-        infer_ds = RegressionDataset(conf, train_df, to)
+        infer_ds = RegressionDataset(conf, df, to, input_image=input_image)
         infer_dl = DataLoader(infer_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True)
         return infer_dl
-
-    if to=="train" and conf["single_shot_validation"]=="on" and float(conf["val_size"]) > 0:
-        train_df, val_df = random_split(train_df, float(conf["val_size"]))
-        val_ds = RegressionDataset(conf, val_df)
-        val_dl = DataLoader(val_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
-    train_ds = RegressionDataset(conf, train_df)
-    train_dl = DataLoader(train_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
-
+    else:
+        if conf["single_shot_validation"]=="on" and float(conf["val_size"]) > 0:
+            train_df, val_df = random_split(df, float(conf["val_size"]))
+            val_ds = RegressionDataset(conf, val_df, input_image=input_image)
+            val_dl = DataLoader(val_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
+            train_ds = RegressionDataset(conf, train_df, input_image=input_image)
+            train_dl = DataLoader(train_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
+        else:
+            train_ds = RegressionDataset(conf, df, input_image=input_image)
+            train_dl = DataLoader(train_ds, batch_size=int(conf["batch_size"]), num_workers=4, pin_memory=True, shuffle=True)
     return train_dl, val_dl
