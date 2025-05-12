@@ -239,6 +239,12 @@ Veri seti
                             <option value="cnnmlp">Multimodal MLP</option>
                             {% endif %}
 
+                            {% if conf.model_type == "simple_gan" %}
+                            <option value="simple_gan" selected>Simple Text-To-Gan</option>
+                            {% else %}
+                            <option value="simple_gan">Simple Text-To-Gan</option>
+                            {% endif %}
+
                         </select>
                     </div>
 

@@ -38,10 +38,8 @@ def selection_change(req):
         safe_folder_name = req.user.email.replace("@", "_at_").replace(".", "_dot_")
         saved_models = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "saved_models")
         
-        generator_labels = ["Simple Text2Gan",
-                            "Multimodal Text2Gan"]
-        generator_values = ["simple",
-                            "multimodal"]
+        generator_labels = ["Simple Text2Gan"]
+        generator_values = ["simple_gan"]
         predictor_labels = ["Multi-layer Perceptron",
                             "CNN-Augmented Mlp",
                             "Machine Learning Models"]

@@ -10,6 +10,7 @@ from .utils.dataset_create import create_custom_dataset
 from .utils.load_config import load_config
 from .model_templates.mlp_regressor import MlpRegressor
 from .model_templates.cnnmlp_regressor import CnnmlpRegressor
+from .model_templates.simple_generator import Generator, Discriminator
 
 from modeling.views import data_framer
 
@@ -22,6 +23,7 @@ class EngineConsumer(WebsocketConsumer):
         self.train_name = None
         self.email = None
         self.profile = None
+        self.safe_profile_path = None
         self.conf = None
         self.model = None
         self.retraining_name = None
@@ -59,15 +61,89 @@ class EngineConsumer(WebsocketConsumer):
                 }
             )
             return
+
+        if text_data_json["message"] == "test":
+            cache_key = f"cached_testset_{self.user_name}"
+            df = cache.get(cache_key)
+            if df is not None:
+                message = "cache hit. cached dataframe used."
+            else:
+                message = "no cached dataframe"
+                return
+            async_to_sync(self.channel_layer.group_send)(
+                self.train_name,
+                {
+                    "type": "operation_message",
+                    "message": message
+                }
+            )
+
+            input_image = False
+            if self.conf["model_type"]=="mlp":
+                from .model_templates import mlp_regressor as m
+            elif self.conf["model_type"]=="cnnmlp":
+                input_image = True
+                from .model_templates import cnnmlp_regressor as m
+            elif self.conf["model_type"]=="simple_gan":
+                from .model_templates import simple_generator as m
+
+            self.loader = create_custom_dataset(df, self.safe_profile_path, to="test", input_image=input_image)
+            async_to_sync(self.channel_layer.group_send)(
+                self.train_name,
+                {
+                    "type": "operation_message",
+                    "message": "data loader created."
+                },
+            )
+
+            if self.conf["model_type"]=="simple_gan":
+                clips, rgbd = m.evaluate(self.model[0], self.loader, self.conf["device"])
+                clips = round(clips, 2)
+                rgbd = round(rgbd, 2)
+                async_to_sync(self.channel_layer.group_send)(
+                    self.train_name,
+                    {
+                        "type": "train_message",
+                        "event": "test",
+                        "test_clip": clips,
+                        "test_rgbd": rgbd,
+                    }
+                )
+            else:
+                test_mae, test_mse, test_mape = m.evaluate(self.model, self.loader, self.conf["device"])
+                mape = round(test_mape, 2)
+                mae = round(test_mae, 2)
+                mse = round(test_mse, 2)
+
+                async_to_sync(self.channel_layer.group_send)(
+                    self.train_name,
+                    {
+                        "type": "train_message",
+                        "event": "test",
+                        "test_mae": mae,
+                        "test_mse": mse,
+                        "test_mape": mape,
+                    }
+                )
+
+            async_to_sync(self.channel_layer.group_send)(
+                self.train_name,
+                {
+                    "type": "operation_message",
+                    "message": "model evaluated.",
+                }
+            )
+
+            return
         
         if text_data_json["message"]=="reload":
             self.retraining_name = text_data_json["retrainingmodelname"]
             self.email = text_data_json["email"]
             self.profile = text_data_json["profilename"]
             safe_folder_name = self.email.replace("@", "_at_").replace(".", "_dot_")
-            safe_profile_path = os.path.join(
+            self.safe_profile_path = os.path.join(
                 settings.MEDIA_ROOT, "modeling", safe_folder_name, "profiles", self.profile + ".yaml")
-            self.conf = load_config(safe_profile_path)
+            self.conf = load_config(self.safe_profile_path)
 
             async_to_sync(self.channel_layer.group_send)(
                 self.train_name,
@@ -85,9 +161,9 @@ class EngineConsumer(WebsocketConsumer):
             self.profile = text_data_json["profilename"]
             safe_folder_name = self.email.replace("@", "_at_").replace(".", "_dot_")
 
-            safe_profile_path = os.path.join(
+            self.safe_profile_path = os.path.join(
                 settings.MEDIA_ROOT, "modeling", safe_folder_name, "profiles", self.profile + ".yaml")
-            self.conf = load_config(safe_profile_path)
+            self.conf = load_config(self.safe_profile_path)
 
             cache_key = f"cached_trainset_{self.user_name}"
             df = cache.get(cache_key)
@@ -112,6 +188,9 @@ class EngineConsumer(WebsocketConsumer):
                 self.model = CnnmlpRegressor(int(self.conf["n_features"]))
                 input_image = True
                 from .model_templates import cnnmlp_regressor as m
+            elif self.conf["model_type"]=="simple_gan":
+                self.model = (Generator(self.conf), Discriminator(self.conf)) 
+                from .model_templates import simple_generator as m
 
             async_to_sync(self.channel_layer.group_send)(
                 self.train_name,
@@ -121,7 +200,7 @@ class EngineConsumer(WebsocketConsumer):
                 }
             )
 
-            train_loader, val_loader = create_custom_dataset(df, safe_profile_path, input_image=input_image)
+            train_loader, val_loader = create_custom_dataset(df, self.safe_profile_path, input_image=input_image)
             async_to_sync(self.channel_layer.group_send)(
                 self.train_name,
                 {
@@ -140,7 +219,7 @@ class EngineConsumer(WebsocketConsumer):
 
             def train_async():
                 m.train(self.model, train_loader, val_loader, reload=reload, reload_path=reload_path,
-                         config_path=safe_profile_path, stop_signal=self.stop_signal)
+                         config_path=self.safe_profile_path, stop_signal=self.stop_signal)
 
             self.stop_signal.clear()
             threading.Thread(target=train_async).start()

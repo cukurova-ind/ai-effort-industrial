@@ -21,7 +21,7 @@ from engine.models import LoggedInUser
 from .image_processor import Preprocessor
 from .utils import util, discretes, label, objects
 from engine.utils import load_config, data_split
-
+from numba import cuda
 
 raw_image_path = os.path.join(settings.MEDIA_ROOT, "data", "raw")
 hypo_image_path = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
@@ -35,6 +35,13 @@ csv_test_path = os.path.join(settings.MEDIA_ROOT, "modeling", "csv", "test")
 
 def main_page(req):
     if req.user.is_authenticated:
+        if cuda.is_available():
+            print("GPU is available")
+            for i, gpu in enumerate(cuda.gpus):
+                with gpu:
+                    print(f"GPU {i}: {cuda.get_current_device().name}")
+        else:
+            print("GPU is not available")
         return render(req, "modeling_main_page.html")
     else:
         return HttpResponseRedirect("/login/?next=/modeling/")
@@ -101,10 +108,14 @@ def data_settings(req, profile="unknownprofile"):
 
             if len(input_list)==0 or len(target_list)==0:
                 return JsonResponse({"err": "en az 1 girdi ve çıktı belirlenmelidir."})
-
+                
             conf["img_width"] = 256
             conf["img_height"] = 256
             conf["n_channels"] = 3
+            conf["noise_dim"] = 128
+            conf["embed_dim"] = 128
+            conf["embed_out_dim"] = 256
+
             conf["n_features"] = n_features
             conf["column_list"] = column_list
             conf["input_features"] = input_list
@@ -182,11 +193,11 @@ def data_settings(req, profile="unknownprofile"):
             
             df_all = data_framer(req.user.username)
             attr_type, d_type = None, None
-            columns, column_features, target_features = [], [], []
+            columns, column_features, input_features, target_features = [], [], [], []
             filter_mins, filter_maxs, filter_values = [], [], []
             if conf:
                 column_features = conf["column_list"]
-                #input_features = conf["input_features"]
+                input_features = conf["input_features"]
                 target_features = conf["target_features"]
                 filter_maxs = conf["filter_maxs"]
                 filter_mins = conf["filter_mins"]

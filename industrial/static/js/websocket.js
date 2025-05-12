@@ -34,14 +34,23 @@ $(document).ready(function() {
         engineSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
             if (data.type=="operation_message") {
-                $("#flow").append("<p class='small text-muted'>" + data.message + "</p>")
+                $("#flow").append("<p class='small text-muted'>" + data.message + "</p>");
+                if (data.event=="imagesave"){
+                    $(".sample-images").html("<img src='" + data.savedir + "prediction_" + data.timestamp + ".png'/>")
+                }
             }
+
             if (data.type=="train_message") {
                 
                 if (data.event=="step_ten"){
                     $('#step').html('<p class="small text-muted">Step: ' + data.step + '/' + data.steps + '</p>');
                     $('#step-prog').css("width", data.percentage + '%').attr("aria-valuenow", data.percentage + '%').text(data.percentage + '% completed');
-                    $('#score').html('<p class="small text-muted">Loss: ' + data.loss + '</p>');
+                    if (data.loss.d_loss) {
+                        $('#score').html('<p class="small text-muted">Loss: D: ' + data.loss.d_loss +  " G: " + data.loss.g_loss + '</p>');
+                    } else {
+                        $('#score').html('<p class="small text-muted">Loss: ' + data.loss + '</p>');
+                    }
+                    
                 }
 
                 if (data.event=="epoch_end") {
@@ -49,15 +58,38 @@ $(document).ready(function() {
                     $('#epoch-prog').css("width", data.percentage + '%')
                             .attr("aria-valuenow", data.percentage)
                             .text(data.percentage + '% completed');
-                    $('#score').html('<p class="small text-muted">Epoch Loss: ' + data.epoch_loss + '</p>');
+                    if (data.epoch_loss.d_loss) {
+                        $('#score').html('<p class="small text-muted">Epoch Loss: D: ' + data.epoch_loss.d_loss +  " G: " + data.epoch_loss.g_loss + '</p>');
+                    } else {
+                        $('#score').html('<p class="small text-muted">Epoch Loss: ' + data.epoch_loss + '</p>');
+                    }
+                    
                 }
 
                 if (data.event=="validation"){
                     $('#val-message').html('<p class="small text-muted">Performance over validation set:</p><hr>');
-                    var loss_html = '<p class="small text-muted">MAPE (%): ' + data.val_mape + '</p>';
-                    loss_html += '<p class="small text-muted">MAE: ' + data.val_mae + '</p>';
-                    loss_html += '<p class="small text-muted">MSE: ' + data.val_mse + '</p>';
+                    if (data.clips) {
+                        var loss_html = '<p class="small text-muted">CLIP: ' + data.clips + '</p>';
+                        loss_html += '<p class="small text-muted">RGB Distance: ' + data.rgbd + '</p>';
+                    } else {
+                        var loss_html = '<p class="small text-muted">MAPE (%): ' + data.val_mape + '</p>';
+                        loss_html += '<p class="small text-muted">MAE: ' + data.val_mae + '</p>';
+                        loss_html += '<p class="small text-muted">MSE: ' + data.val_mse + '</p>';
+                    }
                     $('#loss').html(loss_html);
+                }
+
+                if (data.event=="test"){
+                    $('#test-message').html('<p class="small text-muted">Performance over test set:</p><hr>');
+                    if (data.test_clip) {
+                        var loss_html = '<p class="small text-muted">CLIP: ' + data.test_clip + '</p>';
+                        loss_html += '<p class="small text-muted">RGB Distance: ' + data.test_rgbd + '</p>';
+                    } else {
+                        var loss_html = '<p class="small text-muted">MAPE (%): ' + data.test_mape + '</p>';
+                        loss_html += '<p class="small text-muted">MAE: ' + data.test_mae + '</p>';
+                        loss_html += '<p class="small text-muted">MSE: ' + data.test_mse + '</p>';
+                    }
+                    $('#loss_test').html(loss_html);
                 }
                 
             }
@@ -66,6 +98,9 @@ $(document).ready(function() {
                 //$("#start").prop("disabled", false);
                 $("#stop").prop("disabled", true);
                 $("#naming-bar").removeClass("is-hidden"); // Show naming bar
+                engineSocket.send(JSON.stringify({
+                    "message": "test",
+                }));
                 if (retrainingModelName) {
                     $("#model_name").val(retrainingModelName);
                     $("#model_name").prop("readonly", true);

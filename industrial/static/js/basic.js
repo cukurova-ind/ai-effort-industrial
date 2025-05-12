@@ -326,7 +326,7 @@ $(document).ready(function() {
 
     const mlpParameters = [$("#batch"), $("#epoch"), $("#loss_function"), $("#learning_rate")];
     function updateIputs() {
-        if ($("#model_type").val() === "mlp" || $("#model_type").val() === "cnnmlp") {
+        if ($("#model_type").val() === "mlp" || $("#model_type").val() === "cnnmlp" || $("#model_type").val() === "simple_gan") {
             mlpParameters.forEach(param => param.prop("disabled", false));
         } else {
             mlpParameters.forEach(param => param.prop("disabled", true));

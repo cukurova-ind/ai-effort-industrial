@@ -87,7 +87,7 @@ def load_model(model, to="inference", checkpoint_path=None, config_path=None):
                         channel_name,
                         {
                             'type': 'operation_message',
-                            'message': "model reloaded for train",
+                            'message': "model reloaded to train",
                         }
                     )
                 
@@ -110,7 +110,8 @@ def load_model(model, to="inference", checkpoint_path=None, config_path=None):
     
     return model, start_epoch
 
-def validate(model, val_loader, device):
+def evaluate(model, val_loader, device):
+    device = torch.device(device)
     model.eval()
     total_mae = 0
     total_mse = 0
@@ -248,7 +249,7 @@ def train(model, train_loader, val_loader=None, reload=False, reload_path=None,
         
         if val_loader:
             if (epoch + 1) % val_interval == 0:
-                val_mae, val_mse, val_mape = validate(model, val_loader, device)
+                val_mae, val_mse, val_mape = evaluate(model, val_loader, conf["device"])
                 mape = round(val_mape, 2)
                 mae = round(val_mae, 2)
                 mse = round(val_mse, 2)
@@ -276,6 +277,7 @@ def train(model, train_loader, val_loader=None, reload=False, reload_path=None,
                     'message': "train ended.",
                 }
             )
+        
     return model
     
 class MAPELoss(nn.Module):

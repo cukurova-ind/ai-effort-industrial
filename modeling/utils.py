@@ -98,4 +98,4 @@ label = {"gramaj_raw": "Ham Gramaj",
 
 discretes = ["coloring_type", "knitting"]
 
-objects = ["input_image", "output_image"]
+objects = ["input_image", "output_image", "recipe_id"]
