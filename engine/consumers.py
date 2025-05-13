@@ -12,10 +12,8 @@ from .model_templates.mlp_regressor import MlpRegressor
 from .model_templates.cnnmlp_regressor import CnnmlpRegressor
 from .model_templates.simple_generator import Generator, Discriminator
 
-from modeling.views import data_framer
 
 class EngineConsumer(WebsocketConsumer):
-    stop_signal = threading.Event()
 
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
@@ -27,6 +25,7 @@ class EngineConsumer(WebsocketConsumer):
         self.conf = None
         self.model = None
         self.retraining_name = None
+        self.stop_signal = threading.Event()
 
 
     def connect(self):
@@ -276,9 +275,10 @@ class InferenceConsumer(WebsocketConsumer):
                         },
                     )
                     return
-
+    
             df = pd.DataFrame([form_dict])
-            self.loader = create_custom_dataset(df, self.safe_profile_path, to="inference")
+            input_image = "input_image" in df.columns
+            self.loader = create_custom_dataset(df, self.safe_profile_path, to="inference", input_image=input_image)
             async_to_sync(self.channel_layer.group_send)(
                 self.inference_name,
                 {

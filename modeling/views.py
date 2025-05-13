@@ -141,6 +141,7 @@ def data_settings(req, profile="unknownprofile"):
             conf["val_size"] = float(postdata.get("val_size", 0.0))
             conf["username"] = req.user.username
             conf["checkpoint_path"] = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "checkpoints")
+            conf["upload_image_folder"] = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "upload_images")
             conf["raw_image_folder"] = os.path.join(settings.MEDIA_ROOT, "data", "raw")
             conf["hypo_image_folder"] = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
             conf["output_image_folder"] = os.path.join(settings.MEDIA_ROOT, "data", "output")

@@ -53,17 +53,53 @@ $(document).ready(function() {
     connect();
 
     $("#inference-form-button").click(function() {
-        
-        var form_data = new FormData($('#feature_form')[0]);
-        const formObject = {};
-        form_data.forEach((value, key) => {
-            formObject[key] = value;
-        });
-        $("#overlay").show();
-        inferenceSocket.send(JSON.stringify({
-            "message": "data",
-            "data": formObject
-        }));
+
+        const fileInput = document.getElementById("id_raw_image");
+        if (fileInput) {
+            const formData = new FormData();
+            formData.append("raw_image", fileInput.files[0]);
+
+            fetch("upload-image/", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Buffered file path:", data.file_path);
+
+                var form_data = new FormData($('#feature_form')[0]);
+                const formObject = {};
+                form_data.forEach((value, key) => {
+                    formObject[key] = value;
+                });
+                formObject["input_image"] = data.file_path;
+                $("#overlay").show();
+                inferenceSocket.send(JSON.stringify({
+                    "message": "data",
+                    "data": formObject
+                }));
+
+            })
+            .catch(error => {
+                console.error("Upload failed:", error);
+            });
+
+        } else {
+
+            var form_data = new FormData($('#feature_form')[0]);
+            const formObject = {};
+            form_data.forEach((value, key) => {
+                formObject[key] = value;
+            });
+
+            $("#overlay").show();
+            inferenceSocket.send(JSON.stringify({
+                "message": "data",
+                "data": formObject
+            }));
+
+        }
+
     });
 
 
