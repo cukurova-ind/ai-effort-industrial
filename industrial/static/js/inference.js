@@ -36,7 +36,12 @@ $(document).ready(function() {
                 $("#flow").append("<p class='small text-muted'>" + data.message + "</p>")
             }
             if (data.type=="inference_message") {
-                $('#shot_pred').html('<p>' + data.prediction + '</p>');
+                if (data.event==="simple_gan") {
+                    $("#shot_image").html("<img src='/" + data.dir + "/prediction_" + data.prediction + ".png'/>")
+                } else {
+                    $('#shot_pred').html('<p>' + data.prediction + '</p>');
+                }
+                
             }
 
             $("#loading img").hide();

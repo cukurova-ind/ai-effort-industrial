@@ -140,6 +140,8 @@ def inference_page(req):
                 inputs.insert(0, {"feature": "input_image"})
             for t in target_features:
                 targets.append({"label": labels.get(t), "target": t})
+            if "output_image" in target_features:
+                targets = [{"label":"Tahmini Çıktı", "target": "output_image"}]
         return render(req, "inferenceboard.html", {"profile_name":profile_name,
                                                     "model_name": model_name,
                                                     "model_type": model_type,
