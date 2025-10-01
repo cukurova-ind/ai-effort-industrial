@@ -254,6 +254,9 @@ def evaluate(generator, val_loader, device, save_samples=0, savedir=None, saveus
                 vutils.save_image(fake_vis[:save_samples], f"{savedir}/prediction_{timestamp}.png", nrow=4, normalize=True)
                 vutils.save_image(target_vis[:save_samples], f"{savedir}/target_{timestamp}.png", nrow=4, normalize=True)
 
+                parts = savedir.strip(os.sep).split(os.sep)
+                new_dir = os.path.join(*parts[-4:])
+
                 channel_layer = get_channel_layer()
                 channel_name = f"train_{saveuser}"
                 if channel_name:
@@ -263,12 +266,11 @@ def evaluate(generator, val_loader, device, save_samples=0, savedir=None, saveus
                                 'type': 'operation_message',
                                 'event': 'imagesave',
                                 'message': "sample images saved.",
-                                'savedir': "/media/modeling/cukurova_at_gmail_dot_com/generated_images/",
+                                'savedir': new_dir,
                                 'timestamp': timestamp
                             }
                         )
         
-
     avg_clip_similarity = total_clip_similarity / num_samples
     avg_rgb_distance = total_rgb_distance / num_samples
 
@@ -303,7 +305,6 @@ def train(model, train_loader, val_loader=None, reload=False, reload_path=None,
 
     checkpoint_path = conf["checkpoint_path"] if not checkpoint_path else checkpoint_path
     os.makedirs(checkpoint_path, exist_ok=True)
-    savedir = os.path.join(os.path.split(checkpoint_path)[0], "generated_images")
 
     generator.to(device)
     discriminator.to(device)
@@ -393,8 +394,8 @@ def train(model, train_loader, val_loader=None, reload=False, reload_path=None,
                         }
                     )
 
-                print(f"Epoch {epoch+1}/{num_epochs + start_epoch}, Batch {i+1}, "
-                      f"Loss_d: {running_d_loss/samples:.4f}, Loss_g: {running_g_loss/samples:.4f}")
+                #print(f"Epoch {epoch+1}/{num_epochs + start_epoch}, Batch {i+1}, "
+                #      f"Loss_d: {running_d_loss/samples:.4f}, Loss_g: {running_g_loss/samples:.4f}")
                 
         epoch_d_loss = round((running_d_loss / samples), 4)
         epoch_g_loss = round((running_g_loss / samples), 4)
@@ -416,7 +417,8 @@ def train(model, train_loader, val_loader=None, reload=False, reload_path=None,
         
         if val_loader:
             if (epoch + 1) % val_interval == 0:
-                clips, rgbd = evaluate(generator, val_loader, device, save_samples=8, savedir=savedir, saveuser=conf["username"])
+                clips, rgbd = evaluate(generator, val_loader, device, save_samples=8,
+                                       savedir=conf["generated_image_folder"], saveuser=conf["username"])
                 clips = round(clips, 2)
                 rgbd = round(rgbd, 2)
                 if channel_name:
@@ -506,79 +508,25 @@ def load_model(generator, discriminator, to="inference", checkpoint_path=None, c
 
     return generator, discriminator, start_epoch
     
-def predict(generator, test_loader, device):
+def inference(generator, loader, config_path=None):
+    
+    conf = load_config(config_path) 
+    device = torch.device(conf["device"])
+    generator.to(device)
     generator.eval()
-    save_dir = "generated_images"
-    os.makedirs(save_dir, exist_ok=True)
-
-    total_mae = 0.0
-    total_cosine = 0.0
-    total_clip_similarity = 0.0
-    total_rgb_distance = 0.0
-    num_samples = 0
-
-    model, preprocess = clip.load('ViT-B/32', device)
 
     with torch.no_grad():
-        for i, batch in enumerate(test_loader):
-            target_image = batch[2].to(device)
-            input_feat = batch[1].to(device)
-            batch_size = target_image.size(0)
-            noise = torch.randn(batch_size, 128, 1, 1, device=device)
+        for i, batch in enumerate(loader):
 
+            input_feat = batch[0].to(device)
+            batch_size = input_feat.size(0)
+            noise = torch.randn(batch_size, 128, 1, 1, device=device)
             fake_images = generator(noise, input_feat).detach()
 
-            mae_batch = torch.mean(torch.abs(fake_images - target_image)).item()
-
-            fake_images_scaled = (fake_images * 127.5 + 127.5).clamp(0, 255).byte()
-            target_image_scaled = (target_image * 127.5 + 127.5).clamp(0, 255).byte()
-
-            cosine_batch = F.cosine_similarity(
-                fake_images.view(batch_size, -1),
-                target_image.view(batch_size, -1),
-                dim=1
-            ).mean().item()
-
-            clip_batch = 0.0
-            rgb_distance_batch = 0.0
-            for j in range(batch_size):
-                clip_batch += calculate_clip_similarity(
-                    fake_images[j].cpu().numpy(),
-                    target_image[j].cpu().numpy(),
-                    model, preprocess, device
-                )
-
-                fake_mean = fake_images_scaled[j].float().view(3, -1).mean(dim=1)
-                target_mean = target_image_scaled[j].float().view(3, -1).mean(dim=1)
-                rgb_distance = torch.norm(fake_mean - target_mean, p=2).item()
-                rgb_distance_batch += rgb_distance
-
-            total_clip_similarity += clip_batch
-            total_rgb_distance += rgb_distance_batch
-            total_mae += mae_batch * batch_size
-            total_cosine += cosine_batch * batch_size
-            num_samples += batch_size
-
-            if i == 0:
-                fake_vis = (fake_images + 1) / 2
-                target_vis = (target_image + 1) / 2
-
-                # Resize to (256, 512)
-                fake_vis = F.interpolate(fake_vis, size=(512, 256), mode="bilinear", align_corners=False)
-                target_vis = F.interpolate(target_vis, size=(512, 256), mode="bilinear", align_corners=False)
-
-                vutils.save_image(fake_vis[:16], f"{save_dir}/test_prediction_simple.png", nrow=8, normalize=True)
-                vutils.save_image(target_vis[:16], f"{save_dir}/test_target_simple.png", nrow=8, normalize=True)
-
-    avg_mae = total_mae / num_samples
-    avg_cosine = total_cosine / num_samples
-    avg_clip_similarity = total_clip_similarity / num_samples
-    avg_rgb_distance = total_rgb_distance / num_samples
-
-    print(f"Saved sample images from first batch.")
-    print(f"Average MAE : {avg_mae:.4f}")
-    print(f"Average Cosine Similarity: {avg_cosine:.4f}")
-    print(f"Average CLIP Similarity: {avg_clip_similarity:.4f}")
-    print(f"Average Mean RGB Distance: {avg_rgb_distance:.4f}")
+            fake_vis = (fake_images + 1) / 2
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            fake_vis = F.interpolate(fake_vis, size=(512, 256), mode="bilinear", align_corners=False)
+            vutils.save_image(fake_vis[0], f"{conf["generated_image_folder"]}/prediction_{timestamp}.png", normalize=True)
 
     generator.train()
+    return timestamp

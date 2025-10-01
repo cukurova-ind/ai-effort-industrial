@@ -11,44 +11,76 @@ Veri seti
 {% block content %}
 <div class="container-fluid data-settings">
     
-    <div class="container-fluid d-flex justify-content-between align-items-center mb-3 top-container">
-        <div class="text-start">
-            <h2 class="mb-0">Ayarlar</h2>
-        </div>
-        <div class="text-end">
-            <strong>{{ profile_name|default:'unknownprofile' }}</strong>
-            {% if profile_name %}
-                        
-                <script>
-                    window.addEventListener('load', function () {
-                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                    });
-                </script>
-                
-            {% endif %}
-        </div>
-    </div>
-    <hr>
+    
 
     <div class="container-fluid main-container">
-        <div class="row">
-            <div class="col-md-2">
-                <div class="border rounded p-2" style="max-height: 400px; overflow-y: auto;">
-                    <h5 class="mb-2">Kayıtlı Profiller</h5>
-                    <div class="d-flex flex-column gap-2">
-                        {% for profile in profiles %}
-                            <a href="{% url 'data_settings_with_profile' profile %}" class="text-decoration-none text-dark text-italic">
-                                {{ profile }}
-                            </a>
-                        {% empty %}
-                            <div class="text-muted">Kayıtlı profil yok</div>
-                        {% endfor %}
+
+        <div class="container-fluid d-flex justify-content-between align-items-center mb-3 top-container">
+            <div class="text-start">
+                <h2 class="mb-0">Ayarlar</h2>
+            </div>
+            <div class="text-end">
+                <strong>{{ profile_name|default:'unknownprofile' }}</strong>
+                {% if profile_name %}
+                            
+                    <script>
+                        window.addEventListener('load', function () {
+                            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                        });
+                    </script>
+                    
+                {% endif %}
+            </div>
+        </div>
+        <hr>
+
+        <!-- Fixed Side Panel -->
+        <div class="side-panel">
+            <div>
+                <h5 class="mb-2">Kayıtlı Profiller</h5>
+                <div class="d-flex flex-column gap-2">
+                    {% for profile in profiles %}
+                        <a href="{% url 'data_settings_with_profile' profile %}" class="text-decoration-none text-dark text-italic">
+                            {{ profile }}
+                        </a>
+                    {% empty %}
+                        <div class="text-muted">Kayıtlı profil yok</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="sidebar-buttons-section">
+                <div class="mb-3">
+                    <button class="btn btn-success btn-sm w-100 mb-2" id="saveUpdate" type="button" disabled=true>Kaydet / Güncelle</button>
+                    <button class="btn btn-warning btn-sm w-100 mb-2" id="saveAs" type="button" disabled=true>Farklı Kaydet</button>
+                    {% if profile_name %}
+                    <a href="{% url 'profile_delete' profile_name %}" class="btn btn-danger btn-sm w-100 mb-2">
+                        Sil
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-primary btn-sm w-100 mb-2" id="skip" 
+                    type="button" {% if profile_name %}{% else %}disabled{% endif %}>Devam</button>
+                    <button class="btn btn-secondary btn-sm w-100 mb-2" id="noSave" type="button" 
+                    disabled=true>Kaydetmeden Devam</button>
+                    
+                    <p class="text-center text-danger small" id="err"></p>
+                    <div id="namePrompt" style="display: none;">
+                        <div class="mb-2">
+                            <label for="newProfileName" class="form-label small">Profil ismi girin:</label>
+                            <input type="text" id="newProfileName" name="newProfileName" class="form-control form-control-sm">
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="logout-bottom mt-3">
+                <a href="{% url 'custom_logout' %}" class="btn btn-outline-danger w-100">Çıkış Yap</a>
+            </div>
+        </div>
 
-            <div class="col-md-10">
-                <form method="post" id="settingsForm">
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <form method="post" id="settingsForm">
                 {% csrf_token %}
                     <div class="text-start">
                         <p class="mb-0"><strong>1. Girdi Değişkenleri</strong></p>
@@ -325,32 +357,6 @@ Veri seti
 
                 </div>
                 <input type="hidden" id="currentProfile" name="currentProfileName" value="{{ profile_name|default:'unknownprofile' }}">
-                <hr>
-                <div class="mb-3 row button-container">
-                    <div class="mb-3">
-                        <button class="btn btn-success text-center" id="saveUpdate" type="button" disabled=true>Kaydet / Güncelle</button>
-                        <button class="btn btn-warning text-center" id="saveAs" type="button" disabled=true>Farklı Kaydet</button>
-                        {% if profile_name %}
-                        <a href="{% url 'profile_delete' profile_name %}" class="btn btn-danger">
-                            Sil
-                        </a>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3 pull-right">
-                        <button class="btn btn-primary text-center" id="skip" 
-                        type="button" {% if profile_name %}{% else %}disabled{% endif %}>Devam</button>
-                        <button class="btn btn-secondary text-center" id="noSave" type="button" 
-                        disabled=true>Kaydetmeden Devam</button>
-                        
-                        <p class="text-center text-danger" id="err"></p>
-                        <div id="namePrompt" style="display: none;">
-                            <div class="col-md-2">
-                                <label for="newProfileName">Profil ismi girin:</label>
-                                <input type="text" id="newProfileName" name="newProfileName" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </form>
         </div>
     </div>

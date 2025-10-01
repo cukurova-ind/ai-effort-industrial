@@ -165,6 +165,11 @@ class RegressionDataset(Dataset):
 
             new_df = new_df[sorted(new_df.columns)]
             new_input_data = new_df.values.astype(np.float32)
+
+            if self.input_image:
+                image_paths = features_df['input_image'].values
+                return new_input_data, image_paths, None
+        
             return new_input_data, None
         
         new_df = pd.DataFrame() 
@@ -206,6 +211,8 @@ class RegressionDataset(Dataset):
         if self.image_paths is not None:
             
             raw_image_path = os.path.join(self.conf["raw_image_folder"], self.image_paths[idx])
+            if self.to=="inference":
+                raw_image_path = os.path.join(self.conf["upload_image_folder"], self.image_paths[idx])
             raw_image = Image.open(raw_image_path).convert("RGB")
             raw_image = self.transform(raw_image)
 

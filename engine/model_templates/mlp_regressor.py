@@ -224,8 +224,8 @@ def train(model, train_loader, val_loader=None, reload=False, reload_path=None,
                         }
                     )
 
-                print(f"Epoch {epoch+1}/{num_epochs + start_epoch}, Batch {i+1}, "
-                      f"Loss: {running_loss/samples:.4f}")
+                #print(f"Epoch {epoch+1}/{num_epochs + start_epoch}, Batch {i+1}, "
+                #      f"Loss: {running_loss/samples:.4f}")
                 
         epoch_loss = round((running_loss / samples), 4)
         epoch_time = time.time() - epoch_start_time
@@ -244,8 +244,8 @@ def train(model, train_loader, val_loader=None, reload=False, reload_path=None,
                 }
             )
 
-        print(f"Epoch {epoch + 1}/{num_epochs + start_epoch} completed in {epoch_time:.2f}s - "
-              f"Loss: {epoch_loss:.4f}")
+        #print(f"Epoch {epoch + 1}/{num_epochs + start_epoch} completed in {epoch_time:.2f}s - "
+        #      f"Loss: {epoch_loss:.4f}")
         
         if val_loader:
             if (epoch + 1) % val_interval == 0:

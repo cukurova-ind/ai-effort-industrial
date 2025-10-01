@@ -1,8 +1,12 @@
+
 @import url('https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300');
+
+
 
 html, body {
   font-family : 'Open Sans Condensed', sans-serif;
   height : 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 a, a:hover, a:visited, a:active, a:focus {
@@ -506,4 +510,99 @@ a, a:hover, a:visited, a:active, a:focus {
     margin: 0 auto;
   }
 
+}
+
+/* Fixed side panel for Kayıtlı Profiller */
+.side-panel {
+  position: fixed;
+  top: 120px; /* below navbar and header */
+  left: 20px;
+  height: calc(100vh - 160px);
+  width: 250px;
+  background: #fff;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.side-panel h5 {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.side-panel > div:first-child {
+  flex-grow: 1;
+  overflow-y: auto;
+  max-height: calc(100% - 300px); /* Leave space for buttons and logout button */
+}
+
+.side-panel .sidebar-buttons-section {
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1rem 0;
+  flex-shrink: 0;
+}
+
+.side-panel .logout-bottom {
+  margin-top: auto;
+  padding-top: 1rem;
+  flex-shrink: 0;
+}
+
+.side-panel .logout-bottom .btn {
+  padding: 0.5rem 1rem;
+}
+
+/* Profile links styling */
+.side-panel a {
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.side-panel a:hover {
+  background-color: #f8f9fa;
+  text-decoration: none !important;
+}
+
+/* Adjust main content for fixed sidebar */
+.data-settings .main-container {
+  margin-left: 280px; /* Account for sidebar width + padding */
+  width: calc(100% - 280px); /* Ensure content doesn't overflow */
+  max-width: calc(100vw - 280px); /* Prevent horizontal scroll */
+}
+
+@media (max-width: 991px) {
+  .side-panel {
+    position: static;
+    width: 100%;
+    height: auto;
+    box-shadow: none;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 1rem;
+    top: auto;
+    left: auto;
+  }
+  
+  .side-panel > div:first-child {
+    max-height: none;
+  }
+  
+  .side-panel .sidebar-buttons-section {
+    border: none;
+    padding: 1rem 0;
+  }
+  
+  .data-settings .main-container {
+    margin-left: 0;
+    width: 100%;
+    max-width: 100vw;
+  }
 }

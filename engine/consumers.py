@@ -12,10 +12,8 @@ from .model_templates.mlp_regressor import MlpRegressor
 from .model_templates.cnnmlp_regressor import CnnmlpRegressor
 from .model_templates.simple_generator import Generator, Discriminator
 
-from modeling.views import data_framer
 
 class EngineConsumer(WebsocketConsumer):
-    stop_signal = threading.Event()
 
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
@@ -27,6 +25,7 @@ class EngineConsumer(WebsocketConsumer):
         self.conf = None
         self.model = None
         self.retraining_name = None
+        self.stop_signal = threading.Event()
 
 
     def connect(self):
@@ -171,7 +170,7 @@ class EngineConsumer(WebsocketConsumer):
                 message = "cache hit. cached dataframe used."
             else:
                 message = "no cached dataframe"
-            
+
             async_to_sync(self.channel_layer.group_send)(
                 self.train_name,
                 {
@@ -276,9 +275,10 @@ class InferenceConsumer(WebsocketConsumer):
                         },
                     )
                     return
-
+    
             df = pd.DataFrame([form_dict])
-            self.loader = create_custom_dataset(df, self.safe_profile_path, to="inference")
+            input_image = "input_image" in df.columns
+            self.loader = create_custom_dataset(df, self.safe_profile_path, to="inference", input_image=input_image)
             async_to_sync(self.channel_layer.group_send)(
                 self.inference_name,
                 {
@@ -290,14 +290,23 @@ class InferenceConsumer(WebsocketConsumer):
             def infer_async():
                 if self.conf["model_type"]=="mlp":
                     from .model_templates import mlp_regressor as m
+                    prediction = m.inference(self.model, self.loader, config_path=self.safe_profile_path)
                 elif self.conf["model_type"]=="cnnmlp":
                     from .model_templates import cnnmlp_regressor as m
-            
-                prediction = m.inference(self.model, self.loader, config_path=self.safe_profile_path)
+                    prediction = m.inference(self.model, self.loader, config_path=self.safe_profile_path)
+                elif self.conf["model_type"]=="simple_gan":
+                    from .model_templates import simple_generator as m
+                    prediction = m.inference(self.model, self.loader, config_path=self.safe_profile_path)
+
+                parts = self.conf["generated_image_folder"].strip(os.sep).split(os.sep)
+                new_dir = os.path.join(*parts[-4:])
+
                 async_to_sync(self.channel_layer.group_send)(
                     self.inference_name,
                     {
                         "type": "inference_message",
+                        "event": self.conf["model_type"],
+                        "dir": new_dir,
                         "prediction": str(prediction)
                     },
                 )
@@ -321,6 +330,8 @@ class InferenceConsumer(WebsocketConsumer):
                 self.model = MlpRegressor(int(self.conf["n_features"]))
             elif self.conf["model_type"]=="cnnmlp":
                 self.model = CnnmlpRegressor(int(self.conf["n_features"]))
+            elif self.conf["model_type"]=="simple_gan":
+                self.model = (Generator(self.conf), Discriminator(self.conf)) 
 
             async_to_sync(self.channel_layer.group_send)(
                 self.inference_name,
@@ -333,10 +344,13 @@ class InferenceConsumer(WebsocketConsumer):
             def load_async():
                 if self.conf["model_type"]=="mlp":
                     from .model_templates import mlp_regressor as m
+                    self.model, _ = m.load_model(self.model, checkpoint_path=self.checkpoint_path, config_path=self.safe_profile_path)
                 elif self.conf["model_type"]=="cnnmlp":
                     from .model_templates import cnnmlp_regressor as m
-
-                self.model, _ = m.load_model(self.model, checkpoint_path=self.checkpoint_path, config_path=self.safe_profile_path)
+                    self.model, _ = m.load_model(self.model, checkpoint_path=self.checkpoint_path, config_path=self.safe_profile_path)
+                elif self.conf["model_type"]=="simple_gan":
+                    from .model_templates import simple_generator as m
+                    self.model, _, _ = m.load_model(self.model[0], self.model[1], checkpoint_path=self.checkpoint_path, config_path=self.safe_profile_path)
 
             threading.Thread(target=load_async).start()
             

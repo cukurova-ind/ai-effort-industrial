@@ -36,7 +36,12 @@ $(document).ready(function() {
                 $("#flow").append("<p class='small text-muted'>" + data.message + "</p>")
             }
             if (data.type=="inference_message") {
-                $('#shot_pred').html('<p>' + data.prediction + '</p>');
+                if (data.event==="simple_gan") {
+                    $("#shot_image").html("<img src='/" + data.dir + "/prediction_" + data.prediction + ".png'/>")
+                } else {
+                    $('#shot_pred').html('<p>' + data.prediction + '</p>');
+                }
+                
             }
 
             $("#loading img").hide();
@@ -53,17 +58,53 @@ $(document).ready(function() {
     connect();
 
     $("#inference-form-button").click(function() {
-        
-        var form_data = new FormData($('#feature_form')[0]);
-        const formObject = {};
-        form_data.forEach((value, key) => {
-            formObject[key] = value;
-        });
-        $("#overlay").show();
-        inferenceSocket.send(JSON.stringify({
-            "message": "data",
-            "data": formObject
-        }));
+
+        const fileInput = document.getElementById("id_raw_image");
+        if (fileInput) {
+            const formData = new FormData();
+            formData.append("raw_image", fileInput.files[0]);
+
+            fetch("upload-image/", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Buffered file path:", data.file_path);
+
+                var form_data = new FormData($('#feature_form')[0]);
+                const formObject = {};
+                form_data.forEach((value, key) => {
+                    formObject[key] = value;
+                });
+                formObject["input_image"] = data.file_path;
+                $("#overlay").show();
+                inferenceSocket.send(JSON.stringify({
+                    "message": "data",
+                    "data": formObject
+                }));
+
+            })
+            .catch(error => {
+                console.error("Upload failed:", error);
+            });
+
+        } else {
+
+            var form_data = new FormData($('#feature_form')[0]);
+            const formObject = {};
+            form_data.forEach((value, key) => {
+                formObject[key] = value;
+            });
+
+            $("#overlay").show();
+            inferenceSocket.send(JSON.stringify({
+                "message": "data",
+                "data": formObject
+            }));
+
+        }
+
     });
 
 

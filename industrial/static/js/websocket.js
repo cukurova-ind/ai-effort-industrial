@@ -36,7 +36,7 @@ $(document).ready(function() {
             if (data.type=="operation_message") {
                 $("#flow").append("<p class='small text-muted'>" + data.message + "</p>");
                 if (data.event=="imagesave"){
-                    $(".sample-images").html("<img src='" + data.savedir + "prediction_" + data.timestamp + ".png'/>")
+                    $(".sample-images").html("<img src='/" + data.savedir + "/prediction_" + data.timestamp + ".png'/>")
                 }
             }
 

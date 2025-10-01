@@ -44,7 +44,7 @@ def custom_login_view(request):
             
             safe_folder_name = user.email.replace("@", "_at_").replace(".", "_dot_")
             base_path = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name)
-            for sub in ["profiles", "checkpoints", "saved_models"]:
+            for sub in ["profiles", "checkpoints", "saved_models", "generated_images", "upload_images"]:
                 os.makedirs(os.path.join(base_path, sub), exist_ok=True)
 
             if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):

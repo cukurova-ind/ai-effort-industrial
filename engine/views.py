@@ -5,6 +5,7 @@ from openpyxl import Workbook
 from django.shortcuts import render
 from django.views import View
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from django.conf import settings
 from .utils.load_config import load_config
@@ -139,6 +140,8 @@ def inference_page(req):
                 inputs.insert(0, {"feature": "input_image"})
             for t in target_features:
                 targets.append({"label": labels.get(t), "target": t})
+            if "output_image" in target_features:
+                targets = [{"label":"Tahmini Çıktı", "target": "output_image"}]
         return render(req, "inferenceboard.html", {"profile_name":profile_name,
                                                     "model_name": model_name,
                                                     "model_type": model_type,
@@ -146,4 +149,16 @@ def inference_page(req):
                                                     "targets": targets})
     else:
         return HttpResponseRedirect("/login/?next=/engine/")
+    
+@csrf_exempt
+def upload_image(request):
+    if request.method == 'POST' and request.FILES.get('raw_image'):
+        image = request.FILES['raw_image']
+        safe_folder_name = request.user.email.replace("@", "_at_").replace(".", "_dot_")
+        file_path = os.path.join('media/modeling', safe_folder_name, "upload_images", image.name)
+        with open(file_path, 'wb+') as f:
+            for chunk in image.chunks():
+                f.write(chunk)
+        return JsonResponse({'file_path': image.name})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
     

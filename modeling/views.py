@@ -62,7 +62,9 @@ def data_settings(req, profile="unknownprofile"):
                 conf = load_config.load_config(saved_profile_path)
                 conf = conf or {}
         else:
-            cache.clear()              
+            for c in ["cached_trainset_", "cached_testset_"]:
+                cache_key = f"{c}{req.user.username}"
+                cache.delete(cache_key)            
 
         if req.method == "POST":
             postdata = req.POST
@@ -141,6 +143,8 @@ def data_settings(req, profile="unknownprofile"):
             conf["val_size"] = float(postdata.get("val_size", 0.0))
             conf["username"] = req.user.username
             conf["checkpoint_path"] = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "checkpoints")
+            conf["upload_image_folder"] = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "upload_images")
+            conf["generated_image_folder"] = os.path.join(settings.MEDIA_ROOT, "modeling", safe_folder_name, "generated_images")
             conf["raw_image_folder"] = os.path.join(settings.MEDIA_ROOT, "data", "raw")
             conf["hypo_image_folder"] = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
             conf["output_image_folder"] = os.path.join(settings.MEDIA_ROOT, "data", "output")
