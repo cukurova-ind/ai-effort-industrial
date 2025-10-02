@@ -64,7 +64,17 @@ def load_model(model, to="inference", checkpoint_path=None, config_path=None):
     start_epoch = 0
     
     conf = load_config(config_path) 
-    device = torch.device(conf["device"])
+    
+    # Safe device detection with fallback to CPU
+    device_name = conf.get("device", "cpu")
+    try:
+        if device_name.startswith("cuda") and not torch.cuda.is_available():
+            print(f"Warning: {device_name} requested but CUDA not available, falling back to CPU")
+            device_name = "cpu"
+        device = torch.device(device_name)
+    except Exception as e:
+        print(f"Error setting device {device_name}: {e}, falling back to CPU")
+        device = torch.device("cpu")
 
     if not checkpoint_path:
         print("no saved model")
@@ -81,7 +91,7 @@ def load_model(model, to="inference", checkpoint_path=None, config_path=None):
             start_epoch = checkpoint["epoch"]
 
             channel_layer = get_channel_layer()
-            channel_name = f"train_{conf["username"]}"
+            channel_name = f"train_{conf['username']}"
             if channel_name:
                 async_to_sync(channel_layer.group_send)(
                         channel_name,
@@ -95,7 +105,7 @@ def load_model(model, to="inference", checkpoint_path=None, config_path=None):
         else:
             model.eval()
             channel_layer = get_channel_layer()
-            channel_name = f"inference_{conf["username"]}"
+            channel_name = f"inference_{conf['username']}"
             if channel_name:
                 async_to_sync(channel_layer.group_send)(
                         channel_name,
@@ -111,7 +121,16 @@ def load_model(model, to="inference", checkpoint_path=None, config_path=None):
     return model, start_epoch
 
 def evaluate(model, val_loader, device):
-    device = torch.device(device)
+    # Safe device handling
+    try:
+        if isinstance(device, str) and device.startswith("cuda") and not torch.cuda.is_available():
+            print(f"Warning: {device} requested but CUDA not available, using CPU for evaluation")
+            device = "cpu"
+        device = torch.device(device)
+    except Exception as e:
+        print(f"Error setting device {device}: {e}, falling back to CPU")
+        device = torch.device("cpu")
+        
     model.eval()
     total_mae = 0
     total_mse = 0
@@ -147,7 +166,18 @@ def train(model, train_loader, val_loader=None, reload=False, reload_path=None,
           name="mlp_regressor", checkpoint_path=None, stop_signal=None):
 
     conf = load_config(config_path) 
-    device = torch.device(conf["device"])
+    
+    # Safe device detection with fallback to CPU
+    device_name = conf.get("device", "cpu")
+    try:
+        if device_name.startswith("cuda") and not torch.cuda.is_available():
+            print(f"Warning: {device_name} requested but CUDA not available, falling back to CPU")
+            device_name = "cpu"
+        device = torch.device(device_name)
+    except Exception as e:
+        print(f"Error setting device {device_name}: {e}, falling back to CPU")
+        device = torch.device("cpu")
+        
     num_epochs = int(conf["n_epoch"])
     learning_rate = float(conf["learning_rate"])
     loss_function = conf["loss_function"]
@@ -158,7 +188,7 @@ def train(model, train_loader, val_loader=None, reload=False, reload_path=None,
     elif loss_function == "mape":
         loss_fn = MAPELoss()
     channel_layer = get_channel_layer()
-    channel_name = f"train_{conf["username"]}"
+    channel_name = f"train_{conf['username']}"
     optimizer = Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999))
     checkpoint_path = conf["checkpoint_path"] if not checkpoint_path else checkpoint_path
     os.makedirs(checkpoint_path, exist_ok=True)
@@ -322,7 +352,17 @@ def predict(model, test_loader, device):
 def inference(model, loader, config_path=None):
 
     conf = load_config(config_path) 
-    device = torch.device(conf["device"])
+    
+    # Safe device detection with fallback to CPU
+    device_name = conf.get("device", "cpu")
+    try:
+        if device_name.startswith("cuda") and not torch.cuda.is_available():
+            print(f"Warning: {device_name} requested but CUDA not available, falling back to CPU")
+            device_name = "cpu"
+        device = torch.device(device_name)
+    except Exception as e:
+        print(f"Error setting device {device_name}: {e}, falling back to CPU")
+        device = torch.device("cpu")
     model.to(device)
     model.eval()
 

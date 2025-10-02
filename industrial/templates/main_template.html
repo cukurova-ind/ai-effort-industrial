@@ -37,7 +37,7 @@
             <a class="nav-link fw-bold" href="{% url 'prompt_main_page' %}">Sorgulama</a>
             <a class="nav-link fw-bold" href="{% url 'modeling_main_page' %}">Yönetim</a>
             {% if user.is_authenticated %}
-              <a class="nav-link fw-bold" href="{% url 'data_settings' %}">(👋) {{ user.username }}</a>
+              <a class="nav-link fw-bold" href="{% url 'data_settings' %}">(👋 ) {{ user.username }}</a>
             {% endif %}
           </div>
         </div>

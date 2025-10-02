@@ -579,6 +579,19 @@ a, a:hover, a:visited, a:active, a:focus {
   max-width: calc(100vw - 280px); /* Prevent horizontal scroll */
 }
 
+/* Trainboard specific adjustments for fixed sidebar */
+.trainboard-container {
+  margin-left: 280px !important; /* Account for sidebar width + padding */
+  width: calc(100% - 280px) !important; /* Ensure content doesn't overflow */
+  max-width: calc(100vw - 280px) !important; /* Prevent horizontal scroll */
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+}
+
+.trainboard-container .main-content {
+  padding: 1rem;
+}
+
 @media (max-width: 991px) {
   .side-panel {
     position: static;
@@ -605,4 +618,42 @@ a, a:hover, a:visited, a:active, a:focus {
     width: 100%;
     max-width: 100vw;
   }
+  
+  .trainboard-container {
+    margin-left: 0;
+    width: 100%;
+    max-width: 100vw;
+  }
+}
+
+/* Training logs styling */
+.logs-container {
+  font-family: 'Courier New', monospace;
+}
+
+.logs-container .log-entry {
+  margin-bottom: 0.25rem;
+  padding: 0.2rem;
+  border-radius: 3px;
+  line-height: 1.2;
+}
+
+.logs-container .log-entry:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.logs-container .text-success {
+  color: #28a745 !important;
+}
+
+.logs-container .text-danger {
+  color: #dc3545 !important;
+}
+
+.logs-container .text-warning {
+  color: #ffc107 !important;
+}
+
+.logs-container .text-info {
+  color: #17a2b8 !important;
 }

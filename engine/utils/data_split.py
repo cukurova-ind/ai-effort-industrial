@@ -39,6 +39,30 @@ def save_splits_by_type(conf, num_val_types=2, rs=None):
     val_ds.to_csv(os.path.join(main_path, version_path, val_path, input_file_name), index=False)
 
 def random_split(df, split_ratio=0.1, rs=None):
-    train_ds, test_ds = train_test_split(df, test_size=split_ratio, random_state=rs)
+    """
+    Split DataFrame into train and test sets with optional random state.
+    
+    Args:
+        df: DataFrame to split
+        split_ratio: Ratio for test set (0.0 to 1.0)
+        rs: Random state for reproducibility. If None, negative, or invalid, no random state is used.
+    
+    Returns:
+        train_ds, test_ds: Split DataFrames
+    """
+    # Validate and clean random state
+    random_state = None
+    if rs is not None:
+        try:
+            rs_int = int(rs)
+            # Only use positive random states for reproducibility
+            if rs_int >= 0:
+                random_state = rs_int
+            # For negative values or 0, we'll use None (no fixed seed)
+        except (ValueError, TypeError):
+            # Invalid input, use None
+            random_state = None
+    
+    train_ds, test_ds = train_test_split(df, test_size=split_ratio, random_state=random_state)
     return train_ds, test_ds
     

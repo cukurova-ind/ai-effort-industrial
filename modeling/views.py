@@ -68,7 +68,7 @@ def data_settings(req, profile="unknownprofile"):
 
         if req.method == "POST":
             postdata = req.POST
-            df_input = data_framer(req.user.username)
+            df_input = data_framer_custom(req.user.username)  # Use custom data if available
             n_features = 0
             column_list = []
             input_list, target_list, input_types, input_maxs, input_mins = [], [], [], [], []
@@ -130,7 +130,28 @@ def data_settings(req, profile="unknownprofile"):
             conf["target_features"] = target_list
             conf["input_categories"] = category_dict
             conf["test_size"] = float(postdata.get("test_size", 0.0))
-            conf["random_state"] = int(postdata.get("random_state", 0))
+            # Handle random state for reproducibility
+            random_state_input = postdata.get("random_state", "0")
+            random_state = None
+            random_state_message = ""
+            
+            if random_state_input:
+                try:
+                    rs_int = int(random_state_input)
+                    if rs_int >= 0:
+                        random_state = rs_int
+                        random_state_message = f"Using random state: {rs_int} for reproducible results"
+                    else:
+                        random_state = None
+                        random_state_message = "Random state cannot be negative. Using random splitting instead."
+                except (ValueError, TypeError):
+                    random_state = None
+                    random_state_message = "Invalid random state input. Using random splitting instead."
+            else:
+                random_state = None
+                random_state_message = "No random state specified. Using random splitting."
+            
+            conf["random_state"] = random_state
             conf["input_scaling"] = postdata.get("input_scaling", "off")
             conf["model_type"] = postdata.get("model", "")
             conf["retrain"] = postdata.get("retrain", "off")
@@ -148,12 +169,20 @@ def data_settings(req, profile="unknownprofile"):
             conf["raw_image_folder"] = os.path.join(settings.MEDIA_ROOT, "data", "raw")
             conf["hypo_image_folder"] = os.path.join(settings.MEDIA_ROOT, "data", "hypo")
             conf["output_image_folder"] = os.path.join(settings.MEDIA_ROOT, "data", "output")
-            conf["device"] = "cuda:0"
+            
+            # Smart device detection - use CUDA if available, otherwise CPU
+            import torch
+            if torch.cuda.is_available():
+                conf["device"] = "cuda:0"
+                print("Using CUDA device for training")
+            else:
+                conf["device"] = "cpu"
+                print("CUDA not available, using CPU for training")
 
             conf["image_input_column"] = "input_image" if "input_image" in column_list else None
             conf["image_target_column"] = "output_image" if "output_image" in column_list else None
 
-            df_all = data_framer(req.user.username)
+            df_all = data_framer_custom(req.user.username)  # Use custom data if available
             df_filtered = data_filter(df_all, filter_mins, filter_maxs, filter_values)
 
             column_list = conf["column_list"]
@@ -169,7 +198,7 @@ def data_settings(req, profile="unknownprofile"):
             test_df = None
             if float(postdata.get("test_size", 0.0)) > 0:
                 train_df, test_df = data_split.random_split(df_dataset, split_ratio=float(postdata.get("test_size", 0.0)), 
-                                            rs=int(postdata.get("random_state", 0)))
+                                            rs=random_state)
             else:
                 train_df = df_dataset
             cache.set(f"cached_trainset_{req.user.username}", train_df)
@@ -179,6 +208,13 @@ def data_settings(req, profile="unknownprofile"):
             if int(postdata.get("save")) == 1:
                 profile_name = postdata.get("currentProfileName")
                 profile_name = "_".join(profile_name.lower().split(" "))
+                
+                # Add "(custom)" suffix if using custom CSV data
+                custom_flag_key = f"using_custom_csv_{req.user.username}"
+                if cache.get(custom_flag_key):
+                    if not profile_name.endswith("_custom"):
+                        profile_name += "_custom"
+                
                 saved_profile_path = os.path.join(safe_profiles, profile_name + ".yaml")
                 load_config.save_config(conf, saved_profile_path)
                 return JsonResponse({"status": "stay", "profile": profile_name})
@@ -195,7 +231,27 @@ def data_settings(req, profile="unknownprofile"):
 
         if req.method == "GET":
             
-            df_all = data_framer(req.user.username)
+            df_all = data_framer_custom(req.user.username)  # Use custom data if available
+            
+            # Check if database is empty
+            if df_all.empty:
+                # Check if using custom CSV
+                custom_flag_key = f"using_custom_csv_{req.user.username}"
+                using_custom_csv = cache.get(custom_flag_key, False)
+                
+                context = {
+                    "columns": [],
+                    "rows": [],
+                    "profiles": files,
+                    "profile_name": None,
+                    "conf": conf,
+                    "no_data": True,
+                    "message": "No data available in the database. Please add some experiments, inputs, fabrics, and recipes first.",
+                    "using_custom_csv": using_custom_csv,
+                    "random_state_message": random_state_message if 'random_state_message' in locals() else ""
+                }
+                return render(req, "modeling_configuration.html", context)
+            
             attr_type, d_type = None, None
             columns, column_features, input_features, target_features = [], [], [], []
             filter_mins, filter_maxs, filter_values = [], [], []
@@ -248,12 +304,19 @@ def data_settings(req, profile="unknownprofile"):
             else:
                 current_profile = None
 
+            # Check if using custom CSV
+            custom_flag_key = f"using_custom_csv_{req.user.username}"
+            using_custom_csv = cache.get(custom_flag_key, False)
+
             context = {
                 "columns": columns,
                 "rows": df_filtered.values,
                 "profiles": files,
                 "profile_name": current_profile,
-                "conf": conf
+                "conf": conf,
+                "no_data": False,
+                "using_custom_csv": using_custom_csv,
+                "random_state_message": random_state_message if 'random_state_message' in locals() else ""
             }
 
             return render(req, "modeling_configuration.html", context)
@@ -302,12 +365,35 @@ def download_df(req, what="train"):
 
 
 def data_framer(username):
+    """Create a DataFrame from database models with empty database handling"""
     cache_key = f"cached_main_{username}"
     df = cache.get(cache_key)
     if df is not None:
-        df_input = df
-    else:
-
+        return df
+    
+    try:
+        # Check if there's any data in the database
+        if not Experiment.objects.exists():
+            # Return empty DataFrame with expected columns
+            empty_df = pd.DataFrame(columns=[
+                'type_id', 'coloring_type', 'fabric_elasticity', 'yarn_number', 
+                'frequency', 'knitting', 'onzyd', 'gramaj_raw', 'gramaj_hypo',
+                'tearing_strength_weft_raw', 'tearing_strength_weft_hypo',
+                'tearing_strength_warp_raw', 'tearing_strength_warp_hypo',
+                'breaking_strength_weft_raw', 'breaking_strength_weft_hypo',
+                'breaking_strength_warp_raw', 'breaking_strength_warp_hypo',
+                'elasticity_raw', 'elasticity_hypo', 'pot_raw', 'pot_hypo',
+                'cielab_l_raw', 'cielab_l_hypo', 'cielab_a_raw', 'cielab_a_hypo',
+                'cielab_b_raw', 'cielab_b_hypo', 'input_image', 'recipe_id',
+                'replication', 'gramaj', 'tearing_strength_weft', 'tearing_strength_warp',
+                'breaking_strength_weft', 'breaking_strength_warp', 'elasticity',
+                'pot', 'cielab_l', 'cielab_a', 'cielab_b', 'output_image',
+                'bleaching', 'duration', 'concentration'
+            ])
+            cache.set(cache_key, empty_df, timeout=60*60)
+            return empty_df
+        
+        # Original data loading logic
         qe = Experiment.objects.values()
         df_exp = pd.DataFrame.from_records(qe)
         qi = Input.objects.values()
@@ -316,15 +402,58 @@ def data_framer(username):
         df_fab = pd.DataFrame.from_records(qf)
         qr = Recipe.objects.values()
         df_rec = pd.DataFrame.from_records(qr)
+        
+        # Handle case where any of the tables are empty
+        if df_exp.empty or df_inp.empty or df_fab.empty or df_rec.empty:
+            # Return empty DataFrame with expected columns
+            empty_df = pd.DataFrame(columns=[
+                'type_id', 'coloring_type', 'fabric_elasticity', 'yarn_number', 
+                'frequency', 'knitting', 'onzyd', 'gramaj_raw', 'gramaj_hypo',
+                'tearing_strength_weft_raw', 'tearing_strength_weft_hypo',
+                'tearing_strength_warp_raw', 'tearing_strength_warp_hypo',
+                'breaking_strength_weft_raw', 'breaking_strength_weft_hypo',
+                'breaking_strength_warp_raw', 'breaking_strength_warp_hypo',
+                'elasticity_raw', 'elasticity_hypo', 'pot_raw', 'pot_hypo',
+                'cielab_l_raw', 'cielab_l_hypo', 'cielab_a_raw', 'cielab_a_hypo',
+                'cielab_b_raw', 'cielab_b_hypo', 'input_image', 'recipe_id',
+                'replication', 'gramaj', 'tearing_strength_weft', 'tearing_strength_warp',
+                'breaking_strength_weft', 'breaking_strength_warp', 'elasticity',
+                'pot', 'cielab_l', 'cielab_a', 'cielab_b', 'output_image',
+                'bleaching', 'duration', 'concentration'
+            ])
+            cache.set(cache_key, empty_df, timeout=60*60)
+            return empty_df
+        
+        # Merge dataframes
         df_inp = df_fab.merge(df_inp, right_on="type_id", left_on="id", how="left")
         df_input = df_inp.merge(df_exp, right_on="input_id", left_on="id_y", how="right")
         df_input.drop(columns=["id_x", "id_y"], inplace=True)
         df_input = df_input.merge(df_rec, right_on="id", left_on="recipe_id", how="left")
         df_input.drop(columns=["id_x", "id_y", "input_id"], inplace=True)
         df_input.insert(0, "type_id", df_input.pop("type_id"))
+        
         cache.set(cache_key, df_input, timeout=60*60)
-
-    return df_input
+        return df_input
+        
+    except Exception as e:
+        print(f"Error in data_framer: {e}")
+        # Return empty DataFrame as fallback
+        empty_df = pd.DataFrame(columns=[
+            'type_id', 'coloring_type', 'fabric_elasticity', 'yarn_number', 
+            'frequency', 'knitting', 'onzyd', 'gramaj_raw', 'gramaj_hypo',
+            'tearing_strength_weft_raw', 'tearing_strength_weft_hypo',
+            'tearing_strength_warp_raw', 'tearing_strength_warp_hypo',
+            'breaking_strength_weft_raw', 'breaking_strength_weft_hypo',
+            'breaking_strength_warp_raw', 'breaking_strength_warp_hypo',
+            'elasticity_raw', 'elasticity_hypo', 'pot_raw', 'pot_hypo',
+            'cielab_l_raw', 'cielab_l_hypo', 'cielab_a_raw', 'cielab_a_hypo',
+            'cielab_b_raw', 'cielab_b_hypo', 'input_image', 'recipe_id',
+            'replication', 'gramaj', 'tearing_strength_weft', 'tearing_strength_warp',
+            'breaking_strength_weft', 'breaking_strength_warp', 'elasticity',
+            'pot', 'cielab_l', 'cielab_a', 'cielab_b', 'output_image',
+            'bleaching', 'duration', 'concentration'
+        ])
+        return empty_df
 
 def data_filter(df, filter_mins, filter_maxs, filter_values):
     if len(filter_mins)>0:
@@ -348,3 +477,88 @@ def data_filter(df, filter_mins, filter_maxs, filter_values):
                 val = f[k]
                 df = df[df[col]==val]
     return df
+
+
+def csv_upload(request):
+    """Handle CSV file upload for custom data source"""
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect("/login/?next=/modeling/")
+    
+    if request.method == "POST" and request.FILES.get("csv_file"):
+        csv_file = request.FILES["csv_file"]
+        has_headers = request.POST.get("has_headers") == "on"
+        
+        # Validate file size (max 2MB)
+        if csv_file.size > 2 * 1024 * 1024:  # 2MB in bytes
+            messages.error(request, "Dosya boyutu 2MB'dan büyük olamaz.")
+            return redirect("data_settings")
+        
+        # Validate file extension
+        if not csv_file.name.lower().endswith('.csv'):
+            messages.error(request, "Sadece CSV dosyaları kabul edilir.")
+            return redirect("data_settings")
+        
+        try:
+            # Read CSV file
+            if has_headers:
+                df_custom = pd.read_csv(csv_file)
+            else:
+                df_custom = pd.read_csv(csv_file, header=None)
+                # Generate column names if no headers
+                df_custom.columns = [f"column_{i+1}" for i in range(len(df_custom.columns))]
+            
+            # Validate that we have data
+            if df_custom.empty:
+                messages.error(request, "CSV dosyası boş veya geçerli veri içermiyor.")
+                return redirect("data_settings")
+            
+            # Cache the custom CSV data for this user
+            cache_key = f"custom_csv_{request.user.username}"
+            cache.set(cache_key, df_custom, timeout=60*60*2)  # 2 hours
+            
+            # Mark that this user is using custom CSV data
+            custom_flag_key = f"using_custom_csv_{request.user.username}"
+            cache.set(custom_flag_key, True, timeout=60*60*2)  # 2 hours
+            
+            messages.success(request, f"CSV dosyası başarıyla yüklendi. {len(df_custom)} satır ve {len(df_custom.columns)} sütun içeriyor.")
+            
+        except Exception as e:
+            messages.error(request, f"CSV dosyası işlenirken hata oluştu: {str(e)}")
+            return redirect("data_settings")
+    
+    return redirect("data_settings")
+
+
+def clear_csv(request):
+    """Clear custom CSV data and return to normal database data"""
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect("/login/?next=/modeling/")
+    
+    # Clear custom CSV cache
+    cache_key = f"custom_csv_{request.user.username}"
+    custom_flag_key = f"using_custom_csv_{request.user.username}"
+    
+    cache.delete(cache_key)
+    cache.delete(custom_flag_key)
+    
+    # Also clear main cache to force refresh from database
+    main_cache_key = f"cached_main_{request.user.username}"
+    cache.delete(main_cache_key)
+    
+    messages.success(request, "Normal veri tabanı verilerine geri dönüldü.")
+    return redirect("data_settings")
+
+
+def data_framer_custom(username):
+    """Get custom CSV data if available, otherwise use regular data_framer"""
+    custom_flag_key = f"using_custom_csv_{username}"
+    cache_key = f"custom_csv_{username}"
+    
+    # Check if user is using custom CSV
+    if cache.get(custom_flag_key):
+        custom_df = cache.get(cache_key)
+        if custom_df is not None:
+            return custom_df
+    
+    # Fall back to regular data_framer
+    return data_framer(username)

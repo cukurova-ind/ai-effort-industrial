@@ -18,6 +18,9 @@ Veri seti
         <div class="container-fluid d-flex justify-content-between align-items-center mb-3 top-container">
             <div class="text-start">
                 <h2 class="mb-0">Ayarlar</h2>
+                {% if using_custom_csv %}
+                <small class="text-warning"><i class="fas fa-file-csv"></i> Özel CSV verisi kullanılıyor</small>
+                {% endif %}
             </div>
             <div class="text-end">
                 <strong>{{ profile_name|default:'unknownprofile' }}</strong>
@@ -49,6 +52,30 @@ Veri seti
                 </div>
             </div>
             <div class="sidebar-buttons-section">
+                <!-- CSV Upload Section - Always Available -->
+                <div class="mb-3 border rounded p-2" style="background-color: #f8f9fa;">
+                    <h6 class="mb-2 text-muted">Veri Kaynağı</h6>
+                    {% if using_custom_csv %}
+                        <div class="alert alert-info alert-sm p-2 mb-2" role="alert">
+                            <small><i class="bi bi-file-earmark-text"></i> CSV dosyası kullanılıyor</small>
+                        </div>
+                    {% endif %}
+                    {% if random_state_message %}
+                        <div class="alert alert-info alert-sm p-2 mb-2" role="alert">
+                            <small><i class="bi bi-shuffle"></i> {{ random_state_message }}</small>
+                        </div>
+                    {% endif %}
+                    <button class="btn btn-info btn-sm w-100 mb-2" id="csvUpload" type="button" data-bs-toggle="modal" data-bs-target="#csvUploadModal">
+                        <i class="bi bi-upload"></i> CSV Yükle
+                    </button>
+                    {% if using_custom_csv %}
+                    <a href="{% url 'clear_csv' %}" class="btn btn-outline-warning btn-sm w-100 mb-2">
+                        <i class="bi bi-arrow-counterclockwise"></i> Normal Veriye Dön
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Profile Management Section -->
                 <div class="mb-3">
                     <button class="btn btn-success btn-sm w-100 mb-2" id="saveUpdate" type="button" disabled=true>Kaydet / Güncelle</button>
                     <button class="btn btn-warning btn-sm w-100 mb-2" id="saveAs" type="button" disabled=true>Farklı Kaydet</button>
@@ -80,74 +107,99 @@ Veri seti
 
         <!-- Main Content Area -->
         <div class="main-content">
-            <form method="post" id="settingsForm">
-                {% csrf_token %}
-                    <div class="text-start">
-                        <p class="mb-0"><strong>1. Girdi Değişkenleri</strong></p>
-                    </div>
+            {% if no_data %}
+                <!-- No Data Available Message -->
+                <div class="alert alert-warning" role="alert">
+                    <h4 class="alert-heading">No Data Available</h4>
+                    <p>{{ message }}</p>
                     <hr>
-                    <div class="table-container">
-
-                        <div class="scroll-container border rounded">
-
-                            <table id="inputTable" class="table table-bordered table-hover table-striped table-fixed align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        {% for col in columns %}
-                                        <th>
-                                            <input class="form-check-input input_columns" type="checkbox"
-                                                id="inp_{{ col.column }}" data-label="{{ col.label }}"
-                                                name="inp_{{ col.column }}" value="{{ col.column }}" 
-                                                {% if col.input_checked %}checked{% endif %}>
-                                            <label for="inp_{{ col.column }}" class="form-label">&nbsp;{{ col.label }}</label>
-                                            <p>{{ col.attr_type }}</p>
-                                            <p>{{ col.d_type }}</p>
-                                            {% if col.attr_type == 'categorical' %}
-                                                <div class="categoryFilter">
-                                                    <select id="filter_values_{{ col.column }}" name="filter_values_{{ col.column }}"
-                                                     class="form-select" data-column="{{ col.column }}">
-                                                        <option value="*">*</option>
-                                                        {% for option in col.options %}
-                                                            <option value="{{ option }}"
-                                                             {% if col.value_filter == option %}selected{% endif %} >{{ option }}</option>
-                                                        {% endfor %}
-                                                    </select>
-                                                </div>
-                                            {% else %}
-                                                <div class="minFilter">
-                                                    <input class="form-control" type="number"
-                                                    id="filter_min_{{ col.column }}" placeholder="büyük eşittir"
-                                                    name="filter_min_{{ col.column }}"
-                                                    value="{{ col.min_filter }}">
-                                                </div>
-                                                <div class="maxFilter">
-                                                    <input class="form-control" type="number"
-                                                    id="filter_max_{{ col.column }}" placeholder="küçük eşittir"
-                                                    name="filter_max_{{ col.column }}"
-                                                    value="{{ col.max_filter }}">
-                                                </div>
-                                            {% endif %}
-                                        </th>
-                                        {% endfor %}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for row in rows %}
-                                    <tr>
-                                        {% for r in row %}
-                                        <td>{{ r }}</td>
-                                        {% endfor %}
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                    <p class="mb-0">To get started, you can either:</p>
+                    <ul class="mt-2">
+                        <li><strong>Upload your own CSV file</strong> using the "CSV Yükle" button in the sidebar</li>
+                        <li>Or add data to the database:
+                            <ul>
+                                <li>Add some experiments to the database</li>
+                                <li>Add input data (fabrics and their properties)</li>
+                                <li>Add recipes for processing</li>
+                                <li>Link them together through the data operations interface</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="/dataops/" class="btn btn-primary">Go to Data Operations</a>
+                        <a href="/modeling/" class="btn btn-secondary">Back to Modeling</a>
                     </div>
-                <div class="buttons-container">
-                    <button type="button" id="checkAllBtn" class="btn btn-sm btn-primary me-2">Hepsini Seç</button>
-                    <button type="button" id="uncheckAllBtn" class="btn btn-sm btn-secondary">Hepsini Kaldır</button>
                 </div>
-                <label for="id_selection" class="form-label">Seçilenler</label>
+            {% else %}
+                <!-- Normal Configuration Form -->
+                <form method="post" id="settingsForm">
+                    {% csrf_token %}
+                        <div class="text-start">
+                            <p class="mb-0"><strong>1. Girdi Değişkenleri</strong></p>
+                        </div>
+                        <hr>
+                        <div class="table-container">
+
+                            <div class="scroll-container border rounded">
+
+                                <table id="inputTable" class="table table-bordered table-hover table-striped table-fixed align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            {% for col in columns %}
+                                            <th>
+                                                <input class="form-check-input input_columns" type="checkbox"
+                                                    id="inp_{{ col.column }}" data-label="{{ col.label }}"
+                                                    name="inp_{{ col.column }}" value="{{ col.column }}" 
+                                                    {% if col.input_checked %}checked{% endif %}>
+                                                <label for="inp_{{ col.column }}" class="form-label">&nbsp;{{ col.label }}</label>
+                                                <p>{{ col.attr_type }}</p>
+                                                <p>{{ col.d_type }}</p>
+                                                {% if col.attr_type == 'categorical' %}
+                                                    <div class="categoryFilter">
+                                                        <select id="filter_values_{{ col.column }}" name="filter_values_{{ col.column }}"
+                                                         class="form-select" data-column="{{ col.column }}">
+                                                            <option value="*">*</option>
+                                                            {% for option in col.options %}
+                                                                <option value="{{ option }}"
+                                                                 {% if col.value_filter == option %}selected{% endif %} >{{ option }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="minFilter">
+                                                        <input class="form-control" type="number"
+                                                        id="filter_min_{{ col.column }}" placeholder="büyük eşittir"
+                                                        name="filter_min_{{ col.column }}"
+                                                        value="{{ col.min_filter }}">
+                                                    </div>
+                                                    <div class="maxFilter">
+                                                        <input class="form-control" type="number"
+                                                        id="filter_max_{{ col.column }}" placeholder="küçük eşittir"
+                                                        name="filter_max_{{ col.column }}"
+                                                        value="{{ col.max_filter }}">
+                                                    </div>
+                                                {% endif %}
+                                            </th>
+                                            {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for row in rows %}
+                                        <tr>
+                                            {% for r in row %}
+                                            <td>{{ r }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    <div class="buttons-container">
+                        <button type="button" id="checkAllBtn" class="btn btn-sm btn-primary me-2">Hepsini Seç</button>
+                        <button type="button" id="uncheckAllBtn" class="btn btn-sm btn-secondary">Hepsini Kaldır</button>
+                    </div>
+                    <label for="id_selection" class="form-label">Seçilenler</label>
                 <input class="form-control" type="text" id="id_selection" name="input_list" value="" readonly>
                 <hr>
                 <div class="text-start">
@@ -204,9 +256,11 @@ Veri seti
                             id="test_size" value="{% if conf.test_size %}{{ conf.test_size }}{% else %}0.0{% endif %}">
                     </div>
                     <div class="col-md-3">
-                        <label for="random_state" class="form-label">Random State (Tamsayı)</label>
-                        <input name="random_state" type="number" min="-1" max="1111" step="1" class="form-control"
-                            id="random_state" value="{% if conf.random_state %}{{ conf.random_state }}{% else %}-1{% endif %}">
+                        <label for="random_state" class="form-label">Random State</label>
+                        <input name="random_state" type="number" min="0" max="1111" step="1" class="form-control"
+                            id="random_state" value="{% if conf.random_state %}{{ conf.random_state }}{% else %}0{% endif %}"
+                            title="Pozitif tamsayı girin. Aynı sonuçları tekrarlamak için kullanılır.">
+                        <small class="form-text text-muted">0 veya pozitif değer: tekrarlanabilir sonuçlar</small>
                     </div>
                 </div>
 
@@ -358,8 +412,102 @@ Veri seti
                 </div>
                 <input type="hidden" id="currentProfile" name="currentProfileName" value="{{ profile_name|default:'unknownprofile' }}">
             </form>
+            {% endif %}
         </div>
     </div>
 </div>
+
+<!-- CSV Upload Modal -->
+<div class="modal fade" id="csvUploadModal" tabindex="-1" aria-labelledby="csvUploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="csvUploadModalLabel">
+                    <i class="bi bi-upload"></i> CSV Dosyası Yükle
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="csvUploadForm" method="post" enctype="multipart/form-data" action="{% url 'csv_upload' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-primary" role="alert">
+                        <h6 class="alert-heading"><i class="bi bi-info-circle"></i> Kendi Verinizi Kullanın!</h6>
+                        <p class="mb-0">Bu özellik sayesinde kendi CSV dosyanızı yükleyerek modeling sistemini test edebilirsiniz. 
+                        Veritabanındaki veriler değişmez, sadece geçici olarak sizin verileriniz kullanılır.</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="csvFile" class="form-label"><strong>CSV Dosyası Seçin</strong></label>
+                        <input type="file" class="form-control" id="csvFile" name="csv_file" accept=".csv" required>
+                        <div class="form-text">
+                            <i class="bi bi-exclamation-triangle text-warning"></i> 
+                            Maksimum dosya boyutu: 2MB | Desteklenen format: .csv
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="hasHeaders" name="has_headers" checked>
+                            <label class="form-check-label" for="hasHeaders">
+                                <strong>Dosya sütun başlıkları içeriyor</strong>
+                            </label>
+                            <div class="form-text">İlk satır sütun adları olarak kullanılacaktır</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="alert alert-success" role="alert">
+                                <small><strong>Avantajlar:</strong></small>
+                                <ul class="mb-0 mt-1">
+                                    <li><small>Hızlı test imkanı</small></li>
+                                    <li><small>Kendi verilerinizle deneme</small></li>
+                                    <li><small>Veritabanı etkilenmez</small></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-warning" role="alert">
+                                <small><strong>Önemli Not:</strong></small>
+                                <ul class="mb-0 mt-1">
+                                    <li><small>Veriler geçici olarak saklanır</small></li>
+                                    <li><small>Profil "(custom)" eki ile kaydedilir</small></li>
+                                    <li><small>2 saat sonra otomatik silinir</small></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-info">
+                        <i class="bi bi-upload"></i> Yükle ve Analiz Et
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('csvFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Check file size (2MB limit)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Dosya boyutu 2MB\'dan büyük olamaz.');
+            e.target.value = '';
+            return;
+        }
+        
+        // Check file extension
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            alert('Sadece CSV dosyaları kabul edilir.');
+            e.target.value = '';
+            return;
+        }
+    }
+});
+</script>
 
 {% endblock %}
